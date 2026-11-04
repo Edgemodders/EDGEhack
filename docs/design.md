@@ -319,16 +319,20 @@ What the spike answers:
 
 Asked for by the owner on 2026-11-04: a quickhack can give the player a short one-line description, in red, above the bullets of effects in the scanner's **Hacking** tab.
 
-The game cannot do this from records alone. Its controller (`QuickHackDescriptionGameController`, in 2.5's types; `OnQuickHackDataChanged` read in the 2.31 scripts) shows either the description or the effects list, never both, so the wheel text set in a record stays hidden while the list shows. It takes a small script.
+**The game already has this, suppressed** (the owner's idea, confirmed the same day). The tab's layout in game 2.5 (`base\gameplay\gui\widgets\scanning\scandetails.inkwidget`) has a `description` panel beside the `effects` panel, in one vertical panel, in this order: `damage`, `hackTypeWrapper`, `details`, `effects`, `description`. Only the controller keeps them apart (`QuickHackDescriptionGameController.OnQuickHackDataChanged`, read in the 2.31 scripts, the class and its method in 2.5's types): if the effects list is visible, it hides the description. The list shows when `DEV_useLongScanTooltips` is on and the hack has abilities to list.
+
+So no new widget is needed, and the text is the one the record already holds (`Interactions.<...>.description`). It takes a very small script:
 
 | Part | How |
 |---|---|
-| The text | A new flat on the action, written by TweakXL: `QuickHack.<...>.edgehackLine: LocKey#EDGEhack-<Mod>-Line`. A hack with no such flat looks exactly as it does today, so the game's own hacks and other mods' are untouched |
-| The script | redscript, a `@wrapMethod` of `OnQuickHackDataChanged`: read the flat from `selectedData.action`'s record, and show one red `inkText` above `effectsList`. The red comes from the game's own style sheet |
-| The one copy | Every mod using it needs the same script, so it is one file at one path, `r6/scripts/EDGEhack/PlayerLine.reds`, and EDGEhack writes it only when a quickhack has a line. A mod with no line needs no redscript |
+| The script | redscript, a `@wrapMethod` of `OnQuickHackDataChanged`: after the game's own code, make the description visible with its text, tint it red, and move the `description` panel above `effects` |
+| The text | The action's own wheel text, which the editor already edits. The **Player line** is that field |
+| The one copy | Every mod using it needs the same script, so it is one file at one path, `r6/scripts/EDGEhack/PlayerLine.reds` |
 | Safety | One compile error stops every script in the game, so it is checked with redscript-cli against a copy of `final.redscripts`, with and without Codeware's scripts, before any test, as REDnode does |
 
-**Steps:** after H2a, a small hand-written spike in the game, then a **Player line** field in the editor (H2c). **Unverified:** where the new text fits in the tab's layout; how the tab's effects list is switched (`DEV_IsScanLongTooltipEnabled`), and so whether the line also shows when the list is hidden; whether the method is the same in 2.5's scripts.
+**To decide with the owner:** whether the script shows the line on every quickhack, the game's own text included, or only on hacks a mod marks. Every hack is simplest and needs no new field, but one mod's script then changes every hack's tab. Marking needs one more flat on the action (`edgehackLine`), read by the script.
+
+**Steps:** after H2a, a small hand-written spike in the game, then the field in the editor (H2c). **Unverified:** that the 2.31 method body is the same in 2.5; how the moved panel and its `line` rectangle look; how long a line fits.
 
 ### Own icons (H3b)
 
