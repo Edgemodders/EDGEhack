@@ -315,6 +315,21 @@ What the spike answers:
 - Do the Boss versions keep their own numbers when only the normal action changes? (The spike changes only the normal one on purpose.)
 - Whichever Boss or normal action the game uses on an ordinary enemy (H1's open question) shows here too.
 
+### The player's line (H2d)
+
+Asked for by the owner on 2026-11-04: a quickhack can give the player a short one-line description, in red, above the bullets of effects in the scanner's **Hacking** tab.
+
+The game cannot do this from records alone. Its controller (`QuickHackDescriptionGameController`, in 2.5's types; `OnQuickHackDataChanged` read in the 2.31 scripts) shows either the description or the effects list, never both, so the wheel text set in a record stays hidden while the list shows. It takes a small script.
+
+| Part | How |
+|---|---|
+| The text | A new flat on the action, written by TweakXL: `QuickHack.<...>.edgehackLine: LocKey#EDGEhack-<Mod>-Line`. A hack with no such flat looks exactly as it does today, so the game's own hacks and other mods' are untouched |
+| The script | redscript, a `@wrapMethod` of `OnQuickHackDataChanged`: read the flat from `selectedData.action`'s record, and show one red `inkText` above `effectsList`. The red comes from the game's own style sheet |
+| The one copy | Every mod using it needs the same script, so it is one file at one path, `r6/scripts/EDGEhack/PlayerLine.reds`, and EDGEhack writes it only when a quickhack has a line. A mod with no line needs no redscript |
+| Safety | One compile error stops every script in the game, so it is checked with redscript-cli against a copy of `final.redscripts`, with and without Codeware's scripts, before any test, as REDnode does |
+
+**Steps:** after H2a, a small hand-written spike in the game, then a **Player line** field in the editor (H2c). **Unverified:** where the new text fits in the tab's layout; how the tab's effects list is switched (`DEV_IsScanLongTooltipEnabled`), and so whether the line also shows when the list is hidden; whether the method is the same in 2.5's scripts.
+
 ### Own icons (H3b)
 
 Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.
