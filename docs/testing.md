@@ -19,16 +19,16 @@ Last updated 2026-11-04.
 
 ## Waiting for a hand test
 
-- [H1 Read](#h1-read), EDGEhack 0.0.2.
+- [H1 Read](#h1-read), EDGEhack 0.0.3.
 
 ## H1 Read
 
-EDGEhack 0.0.2, built on 2026-11-04. Read only: nothing is written to the game, a project or REDcode. The game does not need to run.
+EDGEhack 0.0.3, built on 2026-11-04 (0.0.2 showed broken images on the page: the webview refused the icons, since the storage folder was allowed under its vscode-userdata URI). Read only: nothing is written to the game, a project or REDcode. The game does not need to run.
 
 **Before you start:** REDcode 0.10.5 or later installed in VS Code, with its game folder set (REDcode's side bar works). Install EDGEhack from the repo's build:
 
 ```powershell
-code --install-extension "E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.2.vsix"
+code --install-extension "E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.3.vsix"
 ```
 
 Then reload VS Code (**Developer: Reload Window**).

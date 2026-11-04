@@ -20,7 +20,7 @@ A quickhack editor for Cyberpunk 2077, as a VS Code extension in the EDGE family
 **[Docs](https://edgemodders.github.io/EDGEhack/)** &middot; [Design](docs/design.md) &middot; [Changelog](CHANGELOG.md) &middot; [Tests](docs/testing.md)
 
 > [!NOTE]
-> **Status: H1 Read built, 2026-11-04 (EDGEhack 0.0.2), awaiting its hand test.** The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
+> **Status: H1 Read built, 2026-11-04 (EDGEhack 0.0.3), awaiting its hand test.** The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
 
 ## Repo layout
 

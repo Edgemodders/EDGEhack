@@ -31,7 +31,9 @@ export class QuickhackPage {
       const panel = vscode.window.createWebviewPanel("edgehack.quickhack", "Quickhack", vscode.ViewColumn.Active, {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [hub.storage, vscode.Uri.joinPath(hub.extensionUri, "media")],
+        // The storage folder as a file: URI: the context gives it with the vscode-userdata scheme,
+        // which never matches the file: URIs of the icons, and each image would get a 401.
+        localResourceRoots: [vscode.Uri.file(hub.storage.fsPath), vscode.Uri.joinPath(hub.extensionUri, "media")],
       });
       panel.iconPath = vscode.Uri.joinPath(hub.extensionUri, "images", "activity.svg");
       page = new QuickhackPage(panel, hub, key);
