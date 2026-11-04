@@ -1,0 +1,51 @@
+/* The quickhack page: VS Code's theme colours, with the HUD's yellow and cyan as accents. */
+:root {
+  --yellow: #fcee0a;
+  --cyan: #19f3ff;
+  --line: var(--vscode-panel-border, #262c3d);
+  --dim: var(--vscode-descriptionForeground);
+}
+body { font-family: var(--vscode-font-family); font-size: var(--vscode-font-size); color: var(--vscode-foreground); padding: 0 20px 40px; line-height: 1.45; }
+h1 { font-size: 1.7em; margin: 0; letter-spacing: .02em; }
+h2 { font-size: .85em; text-transform: uppercase; letter-spacing: .14em; color: var(--dim); margin: 18px 0 8px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.loading, .error { margin-top: 2em; }
+.error { color: var(--vscode-errorForeground); }
+.none { color: var(--dim); }
+.hack { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: center; margin: 18px 0 10px; }
+.hack .sub { margin: 2px 0 0; color: var(--cyan); text-transform: uppercase; letter-spacing: .08em; font-size: .85em; }
+.hack .ro { grid-column: 1 / -1; margin: 6px 0 0; color: var(--dim); font-size: .9em; }
+.icon { width: 48px; height: 48px; object-fit: contain; display: inline-block; vertical-align: middle; }
+.icon.big { width: 72px; height: 72px; border: 1px solid var(--yellow); padding: 4px; background: rgba(252, 238, 10, .06); }
+.icon.small { width: 32px; height: 32px; }
+.icon.blank { border: 1px dashed var(--line); }
+.tiers { display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0 4px; }
+.tiers button { background: transparent; color: var(--vscode-foreground); border: 1px solid var(--line); padding: 4px 12px; cursor: pointer; font: inherit; }
+.tiers button.on { border-color: var(--yellow); color: var(--yellow); background: rgba(252, 238, 10, .08); }
+table.numbers { border-collapse: collapse; }
+table.numbers th, table.numbers td { border-bottom: 1px solid var(--line); padding: 4px 14px 4px 0; text-align: left; vertical-align: top; }
+table.numbers thead th { color: var(--dim); font-weight: normal; }
+table.numbers td.on, table.numbers th.on { color: var(--yellow); }
+table.numbers tbody th { font-weight: normal; color: var(--dim); white-space: nowrap; }
+.scaled { border-bottom: 1px dotted var(--dim); cursor: help; }
+.scaled sup, .foot sup { color: var(--cyan); }
+.foot { color: var(--dim); font-size: .85em; }
+.tier { display: none; }
+.tier.on { display: block; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 28px; }
+dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+dt { color: var(--dim); }
+dd { margin: 0; }
+dd p { margin: 0 0 4px; }
+.icons { display: flex; gap: 16px; flex-wrap: wrap; }
+.icons figure { margin: 0; text-align: center; max-width: 140px; }
+.icons figcaption { font-size: .85em; }
+.icons small { color: var(--dim); }
+.effect { display: grid; grid-template-columns: 32px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.effect b { color: var(--vscode-foreground); }
+.effect .facts { margin: 2px 0; color: var(--dim); }
+.effect ul { margin: 2px 0; padding-left: 18px; }
+.tags span { display: inline-block; border: 1px solid var(--line); color: var(--dim); font-size: .8em; padding: 0 6px; margin: 2px 4px 0 0; }
+a.rec { color: var(--vscode-textLink-foreground); font-size: .85em; text-decoration: none; }
+a.rec:hover { text-decoration: underline; }
+details summary { cursor: pointer; color: var(--dim); margin: 8px 0; }
+ul.records { columns: 2 320px; font-family: var(--vscode-editor-font-family); padding-left: 18px; }

@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://edgemodders.github.io/EDGEhack/"><img src="docs/assets/brand/badges/docs.svg" alt="docs: read the docs"></a>
-  <img src="docs/assets/brand/badges/status.svg" alt="status: design draft">
+  <img src="docs/assets/brand/badges/status.svg" alt="status: H1 read">
   <img src="docs/assets/brand/badges/game.svg" alt="game: Cyberpunk 2077">
   <img src="docs/assets/brand/badges/vscode.svg" alt="runs in: VS Code">
   <a href="LICENSE"><img src="docs/assets/brand/badges/license.svg" alt="license: MIT"></a>
@@ -20,13 +20,14 @@ A quickhack editor for Cyberpunk 2077, as a VS Code extension in the EDGE family
 **[Docs](https://edgemodders.github.io/EDGEhack/)** &middot; [Design](docs/design.md) &middot; [Changelog](CHANGELOG.md) &middot; [Tests](docs/testing.md)
 
 > [!NOTE]
-> **Status: design draft (H0), 2026-11-04.** The repo, the release workflow, the brand and an empty extension with its three views (Desk, Library, Quickhacks) are in place. The design, with how the game builds a quickhack and the phases H1 to H6, waits for the owner's review: [docs/design.md](docs/design.md). Nothing is released yet.
+> **Status: H1 Read built, 2026-11-04 (EDGEhack 0.0.2), awaiting its hand test.** The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
 
 ## Repo layout
 
 | Folder | What |
 |---|---|
-| `src/` | The extension: `extension.ts` (the views), `quickhack.ts` (families and tiers from record names) |
+| `src/` | The extension: `extension.ts` (commands), `catalog.ts`, `records.ts` and `read.ts` (quickhacks from TweakDB in plain words), `icons.ts` and `png.ts` (icons cut from the game's atlases), `quickhacksView.ts`, `page.ts` and `pageHtml.ts` (the quickhack page), `redcode.ts` (REDcode's API) |
+| `media/` | The page's styles |
 | `test/` | Unit tests, `npm test` |
 | `docs/` | The docs site, published at https://edgemodders.github.io/EDGEhack/ |
 | `nexus/` | The Nexus Mods page's source and upload settings |

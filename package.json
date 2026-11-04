@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -72,12 +72,89 @@
       {
         "view": "edgehack.library",
         "contents": "Quickhacks in your EDGE Library. Coming in H5."
+      }
+    ],
+    "commands": [
+      {
+        "command": "edgehack.openQuickhack",
+        "title": "Open a Quickhack...",
+        "category": "EDGEhack",
+        "icon": "$(go-to-file)"
       },
       {
-        "view": "edgehack.quickhacks",
-        "contents": "The game's quickhacks, by category, family and tier. Coming in H1."
+        "command": "edgehack.openQuickhackFromREDcode",
+        "title": "Open in EDGEhack",
+        "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.quickhacks.filter",
+        "title": "Filter",
+        "category": "EDGEhack",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "edgehack.quickhacks.clearFilter",
+        "title": "Clear the Filter",
+        "category": "EDGEhack",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "edgehack.quickhacks.refresh",
+        "title": "Refresh",
+        "category": "EDGEhack",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "edgehack.openInREDcode",
+        "title": "Open the Record in REDcode",
+        "category": "EDGEhack"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "edgehack.quickhacks.filter",
+          "when": "view == edgehack.quickhacks && !edgehack.quickhacksFiltered",
+          "group": "navigation@1"
+        },
+        {
+          "command": "edgehack.quickhacks.clearFilter",
+          "when": "view == edgehack.quickhacks && edgehack.quickhacksFiltered",
+          "group": "navigation@1"
+        },
+        {
+          "command": "edgehack.quickhacks.refresh",
+          "when": "view == edgehack.quickhacks",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "edgehack.openInREDcode",
+          "when": "view == edgehack.quickhacks && viewItem =~ /^edgehack\\.(family|tier|action)$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "edgehack.openQuickhackFromREDcode",
+          "when": "view == redcode.tweakdb && viewItem == tweakRecord",
+          "group": "navigation@9"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "edgehack.openQuickhackFromREDcode",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.openInREDcode",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.quickhacks.clearFilter",
+          "when": "edgehack.quickhacksFiltered"
+        }
+      ]
+    }
   },
   "scripts": {
     "build": "node esbuild.mjs",
@@ -98,5 +175,8 @@
     "esbuild": "^0.28.2",
     "ovsx": "^1.3.0",
     "typescript": "~5.9.3"
-  }
+  },
+  "extensionDependencies": [
+    "edgemodders.redcode-cyberpunk"
+  ]
 }

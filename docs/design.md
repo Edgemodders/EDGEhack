@@ -4,7 +4,7 @@ title: Design
 
 # EDGEhack design
 
-**Draft 1, 2026-11-04, for the owner's review.** Nothing here is agreed yet. The open questions at the end need an answer before H1 starts.
+**Draft 1, agreed by the owner on 2026-11-04** ("Your design looks good, I think we can proceed"), with the recommendation in each open question taken as the answer. H1 is under way.
 
 EDGEhack is the EDGE platform's quickhack editor for Cyberpunk 2077: a VS Code extension (`edgemodders.edgehack`) with its own activity bar icon. Open any quickhack in the game and see and change everything about it: its name, icon, tier, RAM cost, upload time, cooldown, duration, damage, and the effects it applies. Make new quickhacks, and add buffs, debuffs and attack features to one, taken from other quickhacks or from any of the game's status effects that can be applied to an enemy.
 
@@ -212,9 +212,36 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 
 Device and vehicle quickhacks are read in H1 and edited after H3, once the people's ones work.
 
-## Open questions for the owner
+### H1: built
 
-| Question | Recommendation |
+Built on 2026-11-04 in EDGEhack 0.0.2, awaiting the owner's hand test ([Tests, "H1 Read"](testing.html#h1-read)). The open contract goes to REDcode after the test passes.
+
+| Part | File | What it does |
+|---|---|---|
+| REDcode's contract | `src/redcode.ts` | The parts of `REDcodeApi` 1 and its bridge client EDGEhack uses, copied as interfaces; `extensionDependencies` on REDcode |
+| Records | `src/records.ts` | Reads records one at a time through REDcode's REDbridge (`tweakdb.record` with LocKey texts), kept in memory; LocKeys held as plain strings (UI data, prerequisites' failure texts) through `loc.get` |
+| Reader | `src/read.ts` | A family's tiers in the editor's words: texts, the three icons, RAM, upload, cooldown, effects (status effects with duration, stacks, damage per hit, stat changes; effectors by kind), Works on, Spread, passives, the crafting spec, the Boss and Chimera actions, and every record read |
+| Catalog | `src/catalog.ts` | Two `tweakdb.records` calls: the families (items of `ItemType.Prt_Program` with a name and an action of their own), and the device and vehicle hacks (captions from their wheel entries) |
+| Icons | `src/icons.ts`, `src/png.ts` | The atlas as JSON (`cr2w.toJson`), its texture as PNG (`texture.toPng`), the part cut out in EDGEhack and kept in its storage folder; never shipped |
+| Quickhacks view | `src/quickhacksView.ts` | People (by category, family, tier), Devices, Vehicles; the game's icons; Filter, Refresh, Open the Record in REDcode |
+| The page | `src/page.ts`, `src/pageHtml.ts`, `media/page.css` | One panel per family: tier tabs, the Numbers table with a column per tier, and the tier's Texts, Icons, Effects, Works on, Spread, While equipped, Get it and Advanced; record links open REDcode's record page |
+| Open from anywhere | `edgehack.openQuickhack` | Takes a record path or id, a family key, a REDcode TweakDB view node, or `{ record }`; finds the family from any record of it. **Open in EDGEhack** on every record in REDcode's TweakDB view |
+
+Checked outside VS Code on game 2.5 through the real REDbridge (the session's scratchpad `qh/e2e.ts`): the catalog in about 12 s with TweakDB's first load, 18 families with every tier, 63 device and 4 vehicle hacks, each family read in 10 to 25 ms after that, 36 icons cut. The page rendered for Overheat and a device hack in headless Chrome (`qh/pageshot.ts`). 17 unit tests on made-up records.
+
+Found while building it:
+
+- Some items are not tiers: `Items.PingLvl3Program`, `Items.WhistleProgram` and `Items.CommsCallInProgram` have no action of their own (only a `counterpart`). The catalog leaves out an item with no action of its own, so Ping has four tiers and Bait six.
+- An attack's damage adds up several modifiers: Overheat's tier 3 attack is 3 (the base attack's) plus 20 (its own), 23 a hit.
+- The spread is plumbing in the effect lists (`SpreadInitEffector`, `SpreadEffector` and the `…HackSpread` actions): the page says it in Spread and leaves it out of Effects.
+- Tooltips hold the game's placeholders (`{float_0}`, `{int_0}`), filled from stats at run time. The page shows them as they are for now.
+- Three device hacks are captioned `!OBSOLETE` and one vehicle hack is a base record with no name; the view leaves them out.
+
+## Decisions
+
+Agreed with the owner on 2026-11-04: the recommendation is the answer in each row.
+
+| Question | Decided |
 |---|---|
 | EDGEhack's own `.quickhack.json` document that writes the YAML, or edit TweakXL YAML directly? | The document (see [Writing a mod](#writing-a-mod)) |
 | Edit one tier at a time, or the family with a column per tier? | The family, with a column per tier, and "apply to all tiers" on each number |

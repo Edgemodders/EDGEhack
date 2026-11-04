@@ -1,6 +1,7 @@
 // Names of the game's quickhack records, pure (no VS Code, no REDbridge), so the views and the
 // editor agree on what a family and a tier are. Checked against game 2.5's 92 quickhack items
 // (docs/design.md, "Tiers, families and variants").
+import type { TweakViewNode } from "./redcode";
 
 /** A quickhack's tier, as the game names its items. */
 export interface Tier {
@@ -41,4 +42,19 @@ export function parseItem(path: string): ItemName | undefined {
 export function actionFamily(path: string): string | undefined {
   const m = /^QuickHack\.(?:Boss|Chimera)?([A-Za-z]+?)(?:Lvl[0-4](?:PlusPlus)?)?Hack(?:Spread)?$/.exec(path);
   return m?.[1];
+}
+
+/**
+ * The record path or id in whatever edgehack.openQuickhack was given: a string (a record path,
+ * an id, or a family key), a REDcode TweakDB view node, { record } or { path }.
+ */
+export function recordOfArg(arg: unknown): string | undefined {
+  if (typeof arg === "string") return arg.trim() || undefined;
+  if (arg && typeof arg === "object") {
+    const o = arg as TweakViewNode & { record?: unknown; path?: unknown };
+    if (o.kind === "record" && o.ref) return o.ref.path ?? o.ref.id;
+    if (typeof o.record === "string") return o.record;
+    if (typeof o.path === "string") return o.path;
+  }
+  return undefined;
 }

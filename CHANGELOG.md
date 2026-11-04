@@ -12,4 +12,7 @@ How to keep it (the Edgemodders convention):
 
 **New**
 
-- The EDGEhack side bar with its Desk, Library and Quickhacks views (empty until their phases).
+- The EDGEhack side bar with its Desk, Library and Quickhacks views (Desk and Library empty until their phases).
+- The Quickhacks view: the game's quickhacks by category, family and tier, with their icons, then device and vehicle hacks; a filter.
+- The quickhack page (read-only): a quickhack's texts, icons, RAM, upload, cooldown, duration and damage for every tier, its effects in plain words, who it works on, spread, what it does while equipped, its crafting spec, and every record behind it, each opening in REDcode.
+- Open in EDGEhack on any record in REDcode's TweakDB view, and the command EDGEhack: Open a Quickhack..., which take any record of a quickhack (any tier, its Boss, Chimera or Spread action, its crafting spec).
