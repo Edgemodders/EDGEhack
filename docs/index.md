@@ -17,10 +17,11 @@ As of 2026-11-04. Each phase ends with a hand test by the owner, and an in-game 
 |---|---|
 | H0 Scaffold | Built 2026-11-04: the repo, the release workflow, the brand, the docs site, an empty extension with its three views, and the design (draft 1), agreed by the owner the same day |
 | H1 Read | Done 2026-11-04: the Quickhacks view, the read-only quickhack page and Open in EDGEhack from REDcode passed the hand test (EDGEhack 0.0.3) |
-| H2 Edit | Not started |
+| H2 Edit | Plan agreed 2026-11-04; H2a, a spike in the game, is built and waiting for its run |
 | H3 New and Effects | Not started |
+| H3b Own icons | Not started: pick, upload or generate each icon (asked for by the owner on 2026-11-04) |
 | H4 Try Live and MCP | Not started |
-| H5 Library and own icons | Not started |
+| H5 Library | Not started |
 | H6 First release | Not started |
 
 EDGEhack is not affiliated with CD Projekt RED. Source code and issues: [github.com/Edgemodders/EDGEhack](https://github.com/Edgemodders/EDGEhack)

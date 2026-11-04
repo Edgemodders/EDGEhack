@@ -206,8 +206,9 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H1 Read** | The Quickhacks view (families, tiers, icons, filter); the editor read-only for game quickhacks: every section above, with the game's values per tier and the effects resolved into words; Open in EDGEhack from REDcode's TweakDB view; `edgehack.openQuickhack`; the open contract filed on REDcode | Hand test |
 | **H2 Edit** | The `.quickhack.json` document; edit a game quickhack's texts, icons (picked from the game's atlases), costs, durations and damage; shared records copied; YAML and `onscreens` written into REDcode's project; Pack and Play | Hand test, and in the game: a changed Overheat shows the new name, icon and numbers and burns as set |
 | **H3 New and Effects** | Make a new quickhack from a family; Add Effect from other quickhacks and status effects (the sorted pool); attack features; Get it (crafting spec, vendor); the Desk | Hand test, and in the game: a new quickhack crafted or bought, with two added effects working on an enemy |
+| **H3b Own icons** | Each icon can be picked from the game, uploaded, or generated from a text prompt (see [Own icons](#own-icons-h3b)); the image goes into an atlas the mod ships | Hand test, and in the game: a new quickhack with its own icons in the inventory, on the wheel and on the target |
 | **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server and Connect an Assistant | Hand test and in-game test |
-| **H5 Library and own icons** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind); import an image as an icon (an atlas built for the mod) | Hand test, and in the game for the icon |
+| **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
 | **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page | The release gate: every hand test passed |
 
 Device and vehicle quickhacks are read in H1 and edited after H3, once the people's ones work.
@@ -239,7 +240,7 @@ Found while building it:
 
 ### H2: plan
 
-Written on 2026-11-04, **to agree with the owner**. It changes three things in this design, marked below.
+**Agreed with the owner on 2026-11-04.** It changes three things in this design, marked below.
 
 **Numbers are written as differences (changed from "copy shared records first").** Each number the game adds up from modifiers gets one more modifier from the mod, holding the difference; the game's own records stay as they are. The game builds its tiers the same way (`QuickHack.MemoryIncreaseTier4` adds 3 RAM). This keeps the YAML short, needs no copies of shared records, and lets several mods add up rather than overwrite each other. Whether a negative difference works (RAM lowered) is the spike's main question.
 
@@ -313,6 +314,34 @@ What the spike answers:
 - Does a quickhack already in the cyberdeck pick up the change on a fresh game start?
 - Do the Boss versions keep their own numbers when only the normal action changes? (The spike changes only the normal one on purpose.)
 - Whichever Boss or normal action the game uses on an ordinary enemy (H1's open question) shows here too.
+
+### Own icons (H3b)
+
+Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.
+
+Each of the three icons has **Pick from the game**, **Upload** and **Generate**. The game draws them differently, so each look has its own pre-baked prompt, and the modder's words are only what the glyph shows:
+
+| Look | Where the game shows it | In the game | Size in the atlas |
+|---|---|---|---|
+| **Item** | Inventory, crafting, vendors | A portrait shard card: a dark frame with gold pins along the top, a teal-edged screen, a glyph in cyan line art on the screen | 99 x 128 (`quickhack_overheat`) |
+| **Wheel** | The quickhack wheel | The same glyph alone: white line art on nothing | 64 x 64 (`Overheat`) |
+| **Status** | The target's status bar | A simple solid white symbol on nothing | To read from the game in H3b |
+
+**Generate:** a click asks for text ("a skull made of static") and sends the look's prompt with that text to the configured service. The result shows beside the game's icon at its real size, with **Keep** and **Try Again**; nothing is written until Keep.
+
+| Part | How |
+|---|---|
+| The service | OpenAI's GPT Image, with the model listed by the key's own account (`gpt-image*`), as EDGEmat does. The modder's own key and credits; nothing is sent until they click, and each click is a paid image |
+| The key | The shared store (`%APPDATA%\Edgemodders\keys\openai.txt`, DPAPI), through a copy of REDnode's `tools/keys/keys.mjs`. A modder with no key is asked once, and it is saved for every EDGE tool |
+| The prompts | Fixed, in `src/iconPrompts.ts`, one per look: the look, the colours, the framing and "no text". **Show the Prompt** shows the whole prompt sent |
+| One glyph, three looks | **Generate All** makes the Item first, then the other two from it as a reference image (`v1/images/edits`, as EDGEmat's `editImage`), so they show the same glyph. Three paid images; the button says so |
+| Transparency | The Wheel and Status looks are asked for in white on solid black, and the black becomes transparent in EDGEhack, whatever the model's own transparency does |
+
+**Upload** takes a PNG or JPG and goes through the same preview and fit. It is used as it is; a white-on-black image for Wheel or Status gets the same black-to-transparent step, offered as a switch.
+
+**Into the game:** the image is fitted to the look's size and imported as an `.xbm` (REDbridge's `project.import`). An `.inkatlas` with one part per icon is written (`cr2w.fromJson`), and new `UIIcon` records point to it from the YAML. REDbridge looks enough for this; a `request` issue goes there if not.
+
+**Unverified, to settle in H3b:** how close a fixed prompt gets to the game's look, which needs real generated images and the owner's eye, so the prompts will be tuned in that phase's test; the Status look's size; whether the atlas needs a 1080p texture as well as the 4K one the game's have.
 
 ## Decisions
 
