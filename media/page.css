@@ -49,3 +49,32 @@ a.rec { color: var(--vscode-textLink-foreground); font-size: .85em; text-decorat
 a.rec:hover { text-decoration: underline; }
 details summary { cursor: pointer; color: var(--dim); margin: 8px 0; }
 ul.records { columns: 2 320px; font-family: var(--vscode-editor-font-family); padding-left: 18px; }
+
+/* The editor. */
+input, textarea { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border, var(--line)); padding: 3px 6px; font: inherit; box-sizing: border-box; }
+input:focus, textarea:focus { outline: 1px solid var(--vscode-focusBorder); }
+input.changed, textarea.changed { border-color: var(--yellow); color: var(--yellow); }
+input::placeholder, textarea::placeholder { color: var(--dim); opacity: .8; }
+dl.texts { grid-template-columns: auto minmax(0, 1fr); }
+dl.texts input, dl.texts textarea { width: 100%; }
+button { background: var(--vscode-button-secondaryBackground, transparent); color: var(--vscode-button-secondaryForeground, var(--vscode-foreground)); border: 1px solid var(--line); padding: 3px 10px; cursor: pointer; font: inherit; }
+button:hover { background: var(--vscode-button-secondaryHoverBackground, transparent); }
+.actions { grid-column: 1 / -1; margin: 6px 0 0; }
+.actions button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: 0; }
+.warnings { grid-column: 1 / -1; margin: 4px 0 0; padding-left: 18px; color: var(--vscode-editorWarning-foreground, var(--yellow)); }
+.warnings:empty { display: none; }
+[data-status].bad { color: var(--vscode-errorForeground); }
+[data-status] { font-weight: normal; }
+main.edit table.numbers input { width: 76px; }
+main.edit table.numbers th button:not(.all) { border: 0; background: transparent; color: var(--dim); padding: 0; }
+main.edit table.numbers th.on button { color: var(--yellow); }
+button.all { display: block; font-size: .8em; padding: 0 6px; margin-top: 2px; color: var(--dim); background: transparent; }
+.family { margin: 6px 0 10px; }
+.family input { width: 90px; }
+h2.game { margin-top: 26px; }
+figure.changed .icon { outline: 1px solid var(--yellow); outline-offset: 2px; }
+.picker { margin-top: 10px; border: 1px solid var(--line); padding: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; max-height: 320px; overflow-y: auto; margin-bottom: 8px; }
+.grid button { padding: 4px; background: transparent; line-height: 0; }
+.grid button:hover { border-color: var(--yellow); }
+.grid img { width: 48px; height: 48px; object-fit: contain; }

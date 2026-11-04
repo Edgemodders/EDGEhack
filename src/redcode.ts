@@ -53,6 +53,14 @@ export interface BridgeClient {
   toPng(path: string, outFile: string): Promise<{ file: string; bytes: number }>;
   tweakRecords(query: TweakRecordsQuery): Promise<TweakRecords>;
   tweakRecord(path: string, resolveLocKeys?: boolean, language?: string): Promise<TweakRecordFull>;
+  /** cr2w.fileToJson: a CR2W file on disk as WolvenKit JSON. */
+  fileToJson(file: string, outFile?: string): Promise<{ json?: string | null }>;
+  /** cr2w.fromJson: writes a CR2W file from WolvenKit JSON. */
+  fromJson(outFile: string, source: { json: string }): Promise<{ file: string; bytes: number }>;
+  /** loc.projectFiles: the project's onscreens files for a language. */
+  locProjectFiles(projectDir: string, language?: string): Promise<{ file: string; exists: boolean; xl: string | null }[]>;
+  /** loc.newFile: makes sure the project has an onscreens file, with its .xl. */
+  locNewFile(projectDir: string, modName: string, language?: string): Promise<{ file: string; created: boolean; xl: string | null; xlWritten: boolean }>;
   /** loc.get: texts for LocKeys ("LocKey#123" or a secondary key), null where there is none. */
   locGet(keys: string[], language?: string, projectDir?: string): Promise<Record<string, { female: string; male: string } | null>>;
 }
@@ -75,6 +83,8 @@ export interface REDcodeApi {
   gamePath(): string | undefined;
   project(): ProjectRef | undefined;
   readonly onDidChangeProject: vscode.Event<ProjectRef | undefined>;
+  /** Packs the project and gets it into the game as fast as it allows (REDcode: Pack and Play). */
+  packAndPlay(): Promise<"rednode" | "hot" | "installed" | undefined>;
 }
 
 /** A node of REDcode's TweakDB view, as its menus pass it (tweakView.ts). */

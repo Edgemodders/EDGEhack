@@ -51,7 +51,7 @@ export function iconsOf(fam: Family): IconRef[] {
   return out;
 }
 
-function img(icons: Map<string, string>, icon: IconRef | undefined, cls: string, alt: string): string {
+export function img(icons: Map<string, string>, icon: IconRef | undefined, cls: string, alt: string): string {
   const src = icon && icons.get(`${icon.atlas}|${icon.part}`);
   return src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" title="${esc(`${icon!.record}: ${icon!.part}`)}">` : `<span class="${cls} blank" title="no icon"></span>`;
 }
@@ -85,7 +85,7 @@ ${tiers.some((t) => t.boss) ? row("Against bosses", (t) => (t.boss ? `${value(t.
 <header class="hack">
   ${img(icons, top.icons.item ?? top.icons.wheel, "icon big", fam.name)}
   <div><h1>${esc(fam.name)}</h1><p class="sub">${esc(kind)}${fam.category && fam.category.toLowerCase() !== kind.toLowerCase() ? ` &middot; ${esc(fam.category)}` : ""} &middot; ${tiers.length} tier${tiers.length === 1 ? "" : "s"}</p></div>
-  <p class="ro">Read-only: the game's own quickhack. Editing comes in H2.</p>
+  <p class="ro">The game's own quickhack.${fam.kind === "people" ? ` <button data-edit>Edit...</button>` : " Device and vehicle hacks are read-only for now."}</p>
 </header>
 ${tabs}
 ${numbers}
@@ -93,7 +93,7 @@ ${panels}
 </main>`;
 }
 
-function tierPanel(t: Tier, icons: Map<string, string>): string {
+export function tierPanel(t: Tier, icons: Map<string, string>, options: { texts?: boolean } = {}): string {
   // The spread's own effectors (Spread Init, Spread) are plumbing: the Spread section says it.
   const own = t.effects.filter((e) => !e.shared && !e.cooldown && !(e.spread && !e.status && !e.damage.length));
   const shared = t.effects.filter((e) => e.shared);
@@ -130,7 +130,7 @@ ${t.boss || t.chimera ? `<p>Against bosses it uses ${[rec(t.boss?.record, "its B
     .map((p) => `<li>${rec(p)}</li>`)
     .join("")}</ul></details></section>`;
   // A device or vehicle hack has no item: nothing sits in the cyberdeck for it.
-  return `<div class="cols"><div>${texts}${iconSection}${worksOn}${spread}</div><div>${effects}${t.item ? passives : ""}${getIt}</div></div>${advanced}`;
+  return `<div class="cols"><div>${options.texts === false ? "" : texts}${options.texts === false ? "" : iconSection}${worksOn}${spread}</div><div>${effects}${t.item ? passives : ""}${getIt}</div></div>${advanced}`;
 }
 
 function effectCard(e: Effect, icons: Map<string, string>): string {

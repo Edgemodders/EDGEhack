@@ -16,7 +16,8 @@ export class QuickhackPage {
     private readonly key: string,
   ) {
     panel.onDidDispose(() => QuickhackPage.panels.delete(key));
-    panel.webview.onDidReceiveMessage((m: { open?: string; tier?: number }) => {
+    panel.webview.onDidReceiveMessage((m: { open?: string; tier?: number; edit?: boolean }) => {
+      if (m.edit) void vscode.commands.executeCommand("edgehack.editQuickhack", key);
       if (m.open) void vscode.commands.executeCommand("redcode.openTweakRecord", m.open);
       if (typeof m.tier === "number") this.tier = m.tier;
     });
@@ -81,6 +82,7 @@ document.addEventListener("click", (ev) => {
   if (t) pick(Number(t.dataset.pick));
   const r = ev.target.closest("[data-record]");
   if (r) { ev.preventDefault(); vscode.postMessage({ open: r.dataset.record }); }
+  if (ev.target.closest("[data-edit]")) vscode.postMessage({ edit: true });
 });
 if (document.body.querySelector("[data-pick]")) pick(Number(document.querySelector("main")?.dataset.start ?? 0));
 </script></body></html>`;

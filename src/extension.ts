@@ -6,6 +6,7 @@ import { Hub } from "./hub";
 import { QuickhacksView } from "./quickhacksView";
 import { QuickhackPage } from "./page";
 import { recordOfArg } from "./quickhack";
+import { QuickhackEditor } from "./editor";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
 class Empty implements vscode.TreeDataProvider<never> {
@@ -23,6 +24,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const quickhacks = new QuickhacksView(hub);
   const view = vscode.window.createTreeView("edgehack.quickhacks", { treeDataProvider: quickhacks, showCollapseAll: true });
   quickhacks.view = view;
+
+  const editor = new QuickhackEditor(hub);
 
   const open = async (arg?: unknown): Promise<void> => {
     let target = recordOfArg(arg);
@@ -51,6 +54,14 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("edgehack.openQuickhack", open),
     // The same, as REDcode's TweakDB view menu entry: a separate id so the palette shows only one.
     vscode.commands.registerCommand("edgehack.openQuickhackFromREDcode", open),
+    editor.register(),
+    vscode.commands.registerCommand("edgehack.editQuickhack", async (key?: string) => {
+      try {
+        if (key) await editor.edit(key);
+      } catch (err) {
+        void vscode.window.showErrorMessage(err instanceof Error ? err.message : String(err));
+      }
+    }),
     vscode.commands.registerCommand("edgehack.quickhacks.filter", async () => {
       const text = await vscode.window.showInputBox({ title: "Filter Quickhacks", prompt: "Words in a quickhack's name, category or records", placeHolder: "overheat, control, Lvl4, camera" });
       if (text !== undefined) quickhacks.setFilter(text);

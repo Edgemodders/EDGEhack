@@ -4,6 +4,8 @@ import { Records } from "../src/records";
 import { readFamily } from "../src/read";
 import { writeTweaks } from "../src/tweaks";
 import { newDoc, parseDoc, printDoc, safeId, withField, withTierField } from "../src/document";
+import { gameValue, renderEditor } from "../src/editorHtml";
+import { isInside, mergeEntries } from "../src/projectFiles";
 import { fetchRecord, fetchText } from "./fixture";
 
 const family = () =>
@@ -99,4 +101,41 @@ test("a bad document says what is wrong", () => {
   assert.throws(() => parseDoc('{"format":1,"id":"A B","family":"b"}'), /an id/);
   assert.throws(() => parseDoc('{"format":1,"id":"a"}'), /family/);
   assert.throws(() => parseDoc('{"format":1,"id":"a","family":"b","tiers":{"Items.X":{"ram":"lots"}}}'), /must be a number/);
+});
+
+test("the writer's output is what the editor's numbers ask for", async () => {
+  const fam = await family();
+  assert.equal(gameValue(fam.tiers[1], "ram"), 4);
+  assert.equal(gameValue(fam.tiers[1], "upload"), 1.5);
+  assert.equal(gameValue(fam.tiers[1], "damage"), 23);
+  assert.equal(gameValue(fam.tiers[1], "duration"), 6);
+  assert.equal(gameValue(fam.tiers[1], "bossRam"), 4);
+});
+
+test("the editor's page shows inputs with the game's values and the document's", async () => {
+  const fam = await family();
+  let doc = newDoc("mod", "Zap");
+  doc = withTierField(doc, "Items.ZapLvl1Program", "ram", 6, 4);
+  doc = { ...doc, name: "Big <Zap>" };
+  const html = renderEditor(fam, doc, { all: new Map() }, 1);
+  assert.match(html, /<h1 data-title>Big &lt;Zap&gt;<\/h1>/);
+  assert.match(html, /data-tier-key="Items.ZapLvl1Program" data-field="ram" data-game="4" placeholder="4" value="6"/);
+  assert.match(html, /data-tier-key="Items.ZapProgram" data-field="ram" data-game="3" placeholder="3" value=""/);
+  assert.match(html, /data-set="cooldown" data-game="12"/);
+  assert.match(html, /data-pack/);
+  assert.doesNotMatch(html, /<h2>While equipped<\/h2>[\s\S]*<h2>Texts<\/h2>/);
+});
+
+test("text entries are merged into the onscreens file, keeping others'", () => {
+  const json = JSON.stringify({ Data: { RootChunk: { root: { Data: { entries: [{ secondaryKey: "Someone-Else", femaleVariant: "Keep" }, { secondaryKey: "EDGEhack-mod_zap-Old", femaleVariant: "Gone" }] } } } } });
+  const out = JSON.parse(mergeEntries(json, "mod_zap", [{ key: "EDGEhack-mod_zap-Name", text: "New" }]));
+  assert.deepEqual(out.Data.RootChunk.root.Data.entries.map((e: { secondaryKey: string }) => e.secondaryKey), ["Someone-Else", "EDGEhack-mod_zap-Name"]);
+  assert.equal(out.Data.RootChunk.root.Data.entries[1].primaryKey, "0");
+  assert.throws(() => mergeEntries("{}", "x", []), /onscreens file/);
+});
+
+test("a change goes only inside the folder it is meant for", () => {
+  assert.equal(isInside("E:/a/b/c.txt", "E:/a"), true);
+  assert.equal(isInside("E:/ab/c.txt", "E:/a"), false);
+  assert.equal(isInside("E:/a", "E:/a"), false);
 });

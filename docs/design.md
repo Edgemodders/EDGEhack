@@ -319,6 +319,21 @@ What the spike answers:
 - Do the Boss versions keep their own numbers when only the normal action changes? (The spike changes only the normal one on purpose.)
 - Whichever Boss or normal action the game uses on an ordinary enemy (H1's open question) shows here too.
 
+### H2b and H2c: built
+
+Built on 2026-11-04 in EDGEhack 0.0.4, awaiting the owner's tests ([Tests, "H2c Edit"](testing.html#h2c-edit)).
+
+| Part | File | What it does |
+|---|---|---|
+| The document | `src/document.ts` | `<mod>_<family>.quickhack.json` in the project's `source/raw/edgehack`: what the modder wants each number to be, not the difference, so a game patch keeps the modder's number. Missing means the game's |
+| The writer | `src/tweaks.ts` | A document and the game's records in; YAML and text entries out. Differences on RAM, upload, damage and duration; Boss and Chimera actions get the same difference, or their own for RAM and upload. Warns when tiers that share a record want different changes |
+| The project's files | `src/projectFiles.ts` | The YAML in `source/resources/r6/tweaks/<mod>/`, removed when the document changes nothing; texts merged into the project's `onscreens` file, keeping everyone else's. It leaves alone a YAML it did not make |
+| The editor | `src/editor.ts`, `src/editorHtml.ts`, `media/editor.js` | A custom editor on the document's text, so VS Code's undo, save and dirty marker work. Messages run one at a time, each from the document's current text. **Edit** on the read-only page makes the document |
+| The icon pickers | `Hub.quickhackIcons` | The game's `UIIcon.quickhack_*` for the item, the parts of `quickhacks_icons.inkatlas` for the wheel |
+| The reader's fixes from H2a | `src/read.ts`, `src/pageHtml.ts` | A modifier reading the effect's own stat is worked out, so Overheat's duration is 5 s as in the game. Damage shows a second beside a hit |
+
+**The smoke test** (`npm run smoke`, `tools/smoke/`) runs VS Code, the built extension and the real REDbridge on the game, with a stand-in REDcode holding a scratch project, and drives the pages over DevTools. It exists because of two bugs nothing else could catch: icons refused by the webview (0.0.2), and two quick changes losing one (found by its first run). Its second run passed every check. It stands in for REDcode's Pack and Play, so the real one is for the hand test.
+
 ### The player's line (H2d): dropped
 
 **Dropped by the owner on 2026-11-04**, after its second spike: "it's fine this way". The game's tab stays as it is, and the Player line field is not built. What follows is kept for if it ever comes back: the first spike worked on every hack, and the second, on marked hacks only, showed no line on any hack (not looked into; likely the mark, a new flat on a game record, never read as true). The wheel text stays editable in H2c, and the page says it shows only for a hack whose tab has no effects list.

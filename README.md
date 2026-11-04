@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://edgemodders.github.io/EDGEhack/"><img src="docs/assets/brand/badges/docs.svg" alt="docs: read the docs"></a>
-  <img src="docs/assets/brand/badges/status.svg" alt="status: H1 read">
+  <img src="docs/assets/brand/badges/status.svg" alt="status: H2 edit">
   <img src="docs/assets/brand/badges/game.svg" alt="game: Cyberpunk 2077">
   <img src="docs/assets/brand/badges/vscode.svg" alt="runs in: VS Code">
   <a href="LICENSE"><img src="docs/assets/brand/badges/license.svg" alt="license: MIT"></a>
@@ -20,14 +20,14 @@ A quickhack editor for Cyberpunk 2077, as a VS Code extension in the EDGE family
 **[Docs](https://edgemodders.github.io/EDGEhack/)** &middot; [Design](docs/design.md) &middot; [Changelog](CHANGELOG.md) &middot; [Tests](docs/testing.md)
 
 > [!NOTE]
-> **Status: H1 Read done, 2026-11-04 (EDGEhack 0.0.3); H2 Edit is next.** The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
+> **Status: H2 Edit built, 2026-11-04 (EDGEhack 0.0.4), awaiting its tests; H1 Read is done.** Edit a game quickhack's texts, icons and numbers, and it writes a TweakXL and ArchiveXL mod into your REDcode project. The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
 
 ## Repo layout
 
 | Folder | What |
 |---|---|
-| `src/` | The extension: `extension.ts` (commands), `catalog.ts`, `records.ts` and `read.ts` (quickhacks from TweakDB in plain words), `icons.ts` and `png.ts` (icons cut from the game's atlases), `quickhacksView.ts`, `page.ts` and `pageHtml.ts` (the quickhack page), `redcode.ts` (REDcode's API) |
-| `media/` | The page's styles |
+| `src/` | The extension: `extension.ts` (commands), `catalog.ts`, `records.ts` and `read.ts` (quickhacks from TweakDB in plain words), `icons.ts` and `png.ts` (icons cut from the game's atlases), `quickhacksView.ts`, `page.ts` and `pageHtml.ts` (the quickhack page), `document.ts`, `tweaks.ts` and `projectFiles.ts` (a document to the mod's files), `editor.ts` and `editorHtml.ts` (the editor), `redcode.ts` (REDcode's API) |
+| `media/` | The pages' styles, and the editor's script |
 | `test/` | Unit tests, `npm test` |
 | `docs/` | The docs site, published at https://edgemodders.github.io/EDGEhack/ |
 | `nexus/` | The Nexus Mods page's source and upload settings |

@@ -12,17 +12,73 @@ Last updated 2026-11-04.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1 | 2026-11-04 | Pass, 17 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2 | 2026-11-04 | Pass, 30 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
+| [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | Not run yet | Waiting |
+| [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2 | 2026-11-04 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
 | [H2d Spike, second version](#h2d-spike-second-version) | By hand, in the game | H2 | 2026-11-04 | No line on any hack. The owner dropped the player's line; not looked into |
 
 ## Waiting for a hand test
 
-None.
+- [H2c Edit](#h2c-edit), EDGEhack 0.0.4, by hand and in the game.
+
+## H2c Edit
+
+EDGEhack 0.0.4: editing a game quickhack, writing the mod, and playing it. The smoke test has already driven these pages; this checks them by hand, with the real REDcode, and in the game.
+
+**Before you start:**
+
+- In EDGEdeck, turn **EDGEhack H2a spike** and **EDGEhack H2d spike v2** off and deploy: they change the same records.
+- Install: `code --install-extension "E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.4.vsix"`, then **Developer: Reload Window**.
+- Open a WolvenKit project in REDcode, a new test one. The mod goes into it.
+
+**Part A, in VS Code**
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Quickhacks view, click **Overheat** | The read-only page. Duration reads 5 s for every tier, as the game's tooltip does. Damage reads a second first, then a tick: 63 thermal a second (15.625 every 0.25 s) at Rare |
+| 2 | Click **Edit...** | A new tab, `<your mod>_overheat.quickhack.json`, with Texts, Icons and Numbers. The fields show the game's values, greyed |
+| 3 | Name: `Test Heat`. Rare's RAM: `8`. Rare's Upload: `1`. Rare's Duration: `11`. Rare's Damage a hit: `65` | Each changed field turns yellow. The title follows the name. The tab shows it is unsaved |
+| 4 | Press **Ctrl+Z**, then **Ctrl+Y** | The last change goes and comes back |
+| 5 | Legendary's RAM: `6` | Yellow: lower than the game's 9 |
+| 6 | Under Icons, Item: **Change...**, and pick Short Circuit's. Wheel: **Change...**, and pick Short Circuit's | The picker shows the game's icons. A pick shows at once, with a **Game's** button to undo it |
+| 7 | Click **Rare** in the table, then **All tiers** under Upload. Then **Ctrl+Z** | Every tier's upload drops by 1, then back. Tiers keep their own curve: it adds the change, not the number |
+| 8 | **Ctrl+S** | The line under the title says what it saved. In the Project view: the YAML under `source/resources/r6/tweaks/<your mod>/`, an `.xl` under `source/resources`, and the texts under `source/archive/<your mod>/localization` |
+| 9 | Open the YAML | "Made by EDGEhack" at the top; only what you changed; RAM `value: 2` on Rare and `value: -3` on Legendary |
+
+**Part B, in the game**
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step.
+
+| Step | Do | Expect |
+|---|---|---|
+| 10 | Click **Pack and Play** on the page. Say if it does something other than you expect | REDcode packs the project and gets it into the game. Restart the game if it was running: TweakDB changes load at the start |
+| 11 | Load a save. In the launcher, switch on **Console**, and run `await game.player.addItem("Items.OverheatLvl2Program")`, then the same with `Items.OverheatLvl4Program` | Two quickhacks in the backpack. If you still have them from the spikes, no need |
+| 12 | Look at Rare in the inventory | Named **Test Heat**, with Short Circuit's item icon. Tooltip: about 260 damage a second, 11 s, upload 1 s |
+| 13 | Put Rare in the cyberdeck, scan an enemy, and look at the wheel and the Hacking tab | **Test Heat**, Short Circuit's wheel icon, RAM 8 |
+| 14 | Upload it on an enemy | About 1 s to upload; burns for about 11 s |
+| 15 | Swap to Legendary | RAM 6 |
+| 16 | Quit the game | Tell me what differed. I read TweakXL's log |
+
+## Smoke test
+
+```powershell
+npm run build
+npm run smoke
+```
+
+Runs VS Code (EDGEwave's cached test build when there is one, so it stays apart from the VS Code in use), the built extension and the real REDbridge on the real game, with a stand-in REDcode (`tools/smoke/stub`) holding a scratch project in `%TEMP%\ehsmoke`. It only reads the game. `EH_BRIDGE`, `EH_GAME` and `EH_CODE` name another REDbridge, game or VS Code. Screenshots land in the scratch folder.
+
+It checks that images really load on both pages, the numbers against the game's tooltip, a record link, Edit making the document, inputs reaching the document, a save writing the YAML, the `.xl` and the texts, undo and redo, All tiers, the icon picker, the game's value clearing a change, and Pack and Play asking REDcode to pack.
+
+| Run | Result |
+|---|---|
+| 2026-11-04, first | Four failures, one bug: two quick changes lost one, since each edit started from a copy of the document that was not yet up to date |
+| 2026-11-04, second, with edits one at a time | Pass, every check |
 
 ## H2d Spike, second version
 

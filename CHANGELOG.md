@@ -15,4 +15,5 @@ How to keep it (the Edgemodders convention):
 - The EDGEhack side bar with its Desk, Library and Quickhacks views (Desk and Library empty until their phases).
 - The Quickhacks view: the game's quickhacks by category, family and tier, with their icons, then device and vehicle hacks; a filter.
 - The quickhack page (read-only): a quickhack's texts, icons, RAM, upload, cooldown, duration and damage for every tier, its effects in plain words, who it works on, spread, what it does while equipped, its crafting spec, and every record behind it, each opening in REDcode.
+- Edit a game quickhack: its name, description, wheel text, item and wheel icons (from the game's own), RAM, upload, duration, damage and cooldown, per tier where the game allows, with All tiers and the game's value beside each. Each save writes a TweakXL and ArchiveXL mod into your REDcode project; Pack and Play is on the page.
 - Open in EDGEhack on any record in REDcode's TweakDB view, and the command EDGEhack: Open a Quickhack..., which take any record of a quickhack (any tier, its Boss, Chimera or Spread action, its crafting spec).

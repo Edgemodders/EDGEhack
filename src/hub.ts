@@ -5,10 +5,11 @@ import { bridge } from "./redcode";
 import { Records } from "./records";
 import { Icons } from "./icons";
 import { Catalog, familyOfPath, readCatalog } from "./catalog";
-import { Family, readAction, readFamily } from "./read";
+import { Family, IconRef, readAction, readFamily } from "./read";
 
 export class Hub {
   private catalogP: Promise<Catalog> | undefined;
+  private uiIcons: Promise<IconRef[]> | undefined;
   private records = this.newRecords();
   private readonly families = new Map<string, Promise<Family>>();
   readonly icons: Icons;
@@ -98,7 +99,25 @@ export class Hub {
     return undefined;
   }
 
+  /**
+   * The game's quickhack icons: the item's are `UIIcon.quickhack_*`, the wheel's are the parts of the
+   * quickhack atlas. Read once.
+   */
+  async quickhackIcons(which: "item" | "wheel"): Promise<IconRef[]> {
+    if (!this.uiIcons) {
+      const b = await bridge();
+      this.uiIcons = b.tweakRecords({ type: "UIIcon", prefix: "UIIcon.", flats: ["atlasResourcePath", "atlasPartName"], limit: 20000 }).then((page) =>
+        page.items
+          .map((r) => ({ record: r.path ?? "", atlas: String(r.flats?.atlasResourcePath ?? ""), part: String(r.flats?.atlasPartName ?? "") }))
+          .filter((i) => i.record && i.atlas && i.part),
+      );
+    }
+    const icons = await this.uiIcons;
+    return which === "item" ? icons.filter((i) => /^UIIcon\.quickhack_/.test(i.record)) : icons.filter((i) => /quickhacks_icons\.inkatlas$/i.test(i.atlas));
+  }
+
   refresh(): void {
+    this.uiIcons = undefined;
     this.catalogP = undefined;
     this.records = this.newRecords();
     this.families.clear();

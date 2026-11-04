@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -108,6 +108,11 @@
         "command": "edgehack.openInREDcode",
         "title": "Open the Record in REDcode",
         "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.editQuickhack",
+        "title": "Edit",
+        "category": "EDGEhack"
       }
     ],
     "menus": {
@@ -152,9 +157,25 @@
         {
           "command": "edgehack.quickhacks.clearFilter",
           "when": "edgehack.quickhacksFiltered"
+        },
+        {
+          "command": "edgehack.editQuickhack",
+          "when": "false"
         }
       ]
-    }
+    },
+    "customEditors": [
+      {
+        "viewType": "edgehack.quickhack.editor",
+        "displayName": "EDGEhack Quickhack",
+        "selector": [
+          {
+            "filenamePattern": "*.quickhack.json"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
   },
   "scripts": {
     "build": "node esbuild.mjs",
@@ -166,7 +187,8 @@
     "nexus-zip": "node tools/nexus-zip.mjs",
     "nexus:pull": "node tools/nexus/nexus.mjs pull",
     "nexus:status": "node tools/nexus/nexus.mjs status",
-    "release:notes": "node tools/release-notes.mjs"
+    "release:notes": "node tools/release-notes.mjs",
+    "smoke": "node tools/smoke/smoke.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
