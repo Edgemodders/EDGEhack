@@ -237,6 +237,83 @@ Found while building it:
 - Tooltips hold the game's placeholders (`{float_0}`, `{int_0}`), filled from stats at run time. The page shows them as they are for now.
 - Three device hacks are captioned `!OBSOLETE` and one vehicle hack is a base record with no name; the view leaves them out.
 
+### H2: plan
+
+Written on 2026-11-04, **to agree with the owner**. It changes three things in this design, marked below.
+
+**Numbers are written as differences (changed from "copy shared records first").** Each number the game adds up from modifiers gets one more modifier from the mod, holding the difference; the game's own records stay as they are. The game builds its tiers the same way (`QuickHack.MemoryIncreaseTier4` adds 3 RAM). This keeps the YAML short, needs no copies of shared records, and lets several mods add up rather than overwrite each other. Whether a negative difference works (RAM lowered) is the spike's main question.
+
+| Number | What is written | Reach |
+|---|---|---|
+| RAM | `costs: - !append` a new `StatPoolCost` holding the difference | One tier |
+| Upload | `activationTime: - !append` a new constant `QuickHackUpload` modifier | One tier |
+| Damage | The attack's `statModifiers: - !append` a new constant damage modifier | One tier (attacks are per tier) |
+| Duration | The status effect's `duration` pointed at a new group: the old modifiers plus the difference | The status effect, per tier where the game has one per tier; the page says so where tiers share one |
+| Cooldown | The difference appended to the cooldown's duration group | **The whole family** (changed: its tiers share one cooldown status effect) |
+| Against bosses | The same difference on the Boss and Chimera actions, unless the modder sets their own | Follows the tier |
+
+**What belongs to the family, not a tier (changed from "a column per tier" for these).** The game shares these records across tiers, so the page shows them once: the name, the wheel text and the wheel icon (`Interactions.OverheatHack`, `ChoiceCaptionParts.OverheatIcon`), and the cooldown. The item's name, description and icon are set on every tier's item from the one value. Tooltip lines stay per record, since tiers list them cumulatively.
+
+**Texts:** new keys in the mod's own `onscreens` file (REDbridge's `loc.newFile` makes it and its `.xl`), named `EDGEhack-<Mod>-<Field>`, and written in the YAML as `LocKey#EDGEhack-<Mod>-<Field>`, TweakXL's explicit form. Tooltip lines keep the game's placeholders (`{float_0}`); the editor warns when one is removed.
+
+**Icons:** picked from the game's own `UIIcon` records. `iconPath` on the items, `texturePartID` on the wheel's caption part.
+
+**The document's home (changed from "on the Desk").** In H2 a document needs an open REDcode project: `source/raw/edgehack/<name>.quickhack.json`, with the YAML in `source/resources/r6/tweaks/<mod>/<name>.yaml`. The Desk comes in H3 as planned, and takes over the case of no project.
+
+**Steps:**
+
+| Step | What | Test |
+|---|---|---|
+| **H2a Spike** | A hand-written test mod on Overheat, before any UI is built: a new name and wheel text, a new item icon and wheel icon, RAM up on one tier and **down** on another, upload down, damage up, duration up | In the game, by the owner: every change shows and works, in the inventory, on the wheel and on an enemy |
+| **H2b Writer** | `src/tweaks.ts`, pure: a document and the game's records in, YAML and `onscreens` entries out. Unit tests on made-up records; a check that the output for a real family matches what the spike proved | Automated |
+| **H2c Editor** | The custom editor for `.quickhack.json`: the page with inputs, the game's value beside each changed one, "apply to all tiers", icon pickers, undo through VS Code; **Edit** on the read-only page makes the document; each save writes the files into the project | Hand test, then in the game through Pack and Play |
+
+The spike's YAML, to be packed with its `onscreens` file:
+
+```yaml
+# Numbers, as differences. Rare tier unless noted.
+EDGEhack.Spike.RamUp:
+  $type: gamedataStatPoolCost_Record
+  statPool: BaseStatPools.Memory
+  costMods: [EDGEhack.Spike.RamUpMod]
+EDGEhack.Spike.RamUpMod: { $type: ConstantStatModifier, value: 2, modifierType: Additive, statType: BaseStats.Memory }
+QuickHack.OverheatLvl2Hack.costs:
+  - !append EDGEhack.Spike.RamUp
+
+# The same with value -3 on QuickHack.OverheatLvl4Hack: RAM 9 becomes 6.
+
+EDGEhack.Spike.UploadDown: { $type: ConstantStatModifier, value: -1, modifierType: Additive, statType: BaseStats.QuickHackUpload }
+QuickHack.OverheatLvl2Hack.activationTime:
+  - !append EDGEhack.Spike.UploadDown
+
+EDGEhack.Spike.DamageUp: { $type: ConstantStatModifier, value: 50, modifierType: Additive, statType: BaseStats.ThermalDamage }
+Attacks.OverheatQuickHackAttackLevel2.statModifiers:
+  - !append EDGEhack.Spike.DamageUp
+
+EDGEhack.Spike.DurationUp: { $type: ConstantStatModifier, value: 6, modifierType: Additive, statType: BaseStats.MaxDuration }
+EDGEhack.Spike.Duration:
+  $type: StatModifierGroup
+  statModsLimit: -1
+  statModifiers: [BaseStatusEffect.BaseOverheat_inline1, BaseStatusEffect.BaseOverheat_inline2, EDGEhack.Spike.DurationUp]
+BaseStatusEffect.OverheatLevel2.duration: EDGEhack.Spike.Duration
+
+# Texts and icons, for the family.
+Items.OverheatLvl2Program.displayName: LocKey#EDGEhack-Spike-Name
+Interactions.OverheatHack.caption: LocKey#EDGEhack-Spike-Name
+Interactions.OverheatHack.description: LocKey#EDGEhack-Spike-Wheel
+Items.OverheatLvl2Program.iconPath: quickhack_overload
+ChoiceCaptionParts.OverheatIcon.texturePartID: UIIcon.OverLoad
+```
+
+What the spike answers:
+
+- Does a negative difference lower RAM and upload, or does the game ignore or misread it?
+- Does the wheel and the item's tooltip show the changed RAM, upload and damage, or do some read elsewhere?
+- Does `LocKey#<secondary key>` work on the item's name and the wheel's caption and text?
+- Does a quickhack already in the cyberdeck pick up the change on a fresh game start?
+- Do the Boss versions keep their own numbers when only the normal action changes? (The spike changes only the normal one on purpose.)
+- Whichever Boss or normal action the game uses on an ordinary enemy (H1's open question) shows here too.
+
 ## Decisions
 
 Agreed with the owner on 2026-11-04: the recommendation is the answer in each row.
