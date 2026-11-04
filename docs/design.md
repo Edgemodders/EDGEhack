@@ -332,7 +332,11 @@ So no new widget is needed, and the text is the one the record already holds (`I
 
 **Decided by the owner on 2026-11-04:** the line shows on **every quickhack**, the game's own text included. If the tab gets overcrowded, it is turned off: the spike is there to see.
 
-**If the panels overflow** (the owner's idea, 2026-11-04: make the quickhack tooltips and panels scrollable rather than let them run off the screen). The game has scroll areas (`inkScrollArea`, in its full-screen menus: codex, crafting, shards, settings), but none in `scandetails.inkwidget`, and no tooltip or scanner script uses one. A scroll area can be added by script, as a parent of the panel, but something must drive it: the scanner's list and the inventory's tooltips take no scroll input of their own, and the mouse wheel and arrow keys may already move the selection in the list (unverified). So the likely form is a capped height with a slow automatic scroll, or a key of its own. Built only if the spike shows a need, panel by panel.
+**If the panels overflow** (the owner's idea, 2026-11-04: make the quickhack tooltips and panels scrollable rather than let them run off the screen). The game has scroll areas (`inkScrollArea`, in its full-screen menus: codex, crafting, shards, settings), but none in `scandetails.inkwidget`, and no tooltip or scanner script uses one. A scroll area can be added by script, as a parent of the panel, but something must drive it: the scanner's list and the inventory's tooltips take no scroll input of their own, and the mouse wheel and arrow keys may already move the selection in the list (unverified). Built only if the spike shows a need, panel by panel, and judged by how cluttered the screen feels in the game. The options to try, in order (the owner, 2026-11-04):
+
+1. **Automatic scrolling:** a capped height with a slow scroll, needing no input.
+2. **A floating side panel** holding only the description, so the tab keeps its size.
+3. A key of its own to scroll, only if neither of those feels right.
 
 **Steps:** after H2a, a small hand-written spike in the game, on hacks with long and short lines and with the most effect bullets, then the field in the editor (H2c). **Unverified:** that the 2.31 method body is the same in 2.5; how the moved panel and its `line` rectangle look; how long a line fits.
 
