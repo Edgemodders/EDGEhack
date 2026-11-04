@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter">
+  <!-- HUD brackets, as REDcode's, EDGEdeck's and EDGEwave's icons, around a quickhack shard: a chip
+       with its pins on two sides and a lightning bolt inside, the EDGEhack activity bar icon. The
+       chip is drawn at 1.5 so its parts stay open at 24 px. Monochrome, uses currentColor. -->
+  <path d="M3 8V3h5"/>
+  <path d="M21 16v5h-5"/>
+  <g stroke-width="1.5">
+    <path d="M8 7h8v10H8z"/>
+    <path d="M6 10h2M6 14h2M16 10h2M16 14h2"/>
+    <path d="M12.5 8.5L10.5 12h3l-2 3.5"/>
+  </g>
+</svg>

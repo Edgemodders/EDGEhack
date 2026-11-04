@@ -1,0 +1,28 @@
+# build output
+dist/
+dist-test/
+out/
+node_modules/
+*.vsix
+*.tsbuildinfo
+
+# Jekyll's output, when the docs are built locally
+docs/_site/
+docs/.jekyll-cache/
+
+# never commit game files or data read from them: archives, DLLs, TweakDB dumps, record and name
+# tables built from the game, or icons cut from its atlases
+*.archive
+*.dll
+*.exe
+*.bin
+*.inkatlas
+*.xbm
+index/
+cache/
+
+# VS Code builds downloaded by a UI test
+.vscode-test/
+
+# made from CHANGELOG.md by the Docs site workflow
+docs/changelog.md

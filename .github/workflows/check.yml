@@ -1,0 +1,27 @@
+# Typechecks, builds and unit-tests the extension on every push to main and every pull request.
+
+name: Check
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["docs/**", "tools/brand/**", "nexus/**", "**.md"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm test

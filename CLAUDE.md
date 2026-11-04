@@ -1,0 +1,43 @@
+# EDGEhack: notes for Claude sessions
+
+EDGEhack is the EDGE platform's quickhack editor for Cyberpunk 2077 (PC), built as a VS Code extension (`edgemodders.edgehack`) with its own activity bar icon. Open any quickhack (from its Quickhacks view, or by clicking one in REDcode or another EDGE tool), see and change its name, icon and every attribute, make new ones, and add buffs, debuffs and attack features from other quickhacks or the game's status effects. It writes TweakXL and ArchiveXL files into a REDcode project. Read [docs/design.md](docs/design.md) before any feature work: it has how the game builds a quickhack (checked on game 2.5), the editor, the views, the Desk and Library, the open contract, Try Live, the phases H0 to H6 and the open questions.
+
+It is one of the Edgemodders repos, checked out side by side in `E:\Modding\Cyberpunk 2077\`. REDnode's `CLAUDE.md` and `docs/dev-setup.md` (`../REDnode`) set the shared conventions. The scaffold was copied from REDsave (`../REDsave`, a single-folder extension). The closest siblings: REDcode (`../REDcode`: its API, its TweakDB view and record page, `tweakYaml.ts` for TweakXL YAML), EDGEwave (`../EDGEwave`: a document that renders into the project, Game Assets), EDGEmat and EDGEfab (Desks), EDGEbuilder (`docs/library.md`: the shared Library's rules).
+
+## Current status and next step
+
+- **Asked for by the owner on 2026-11-04:** the repo with build and brand scaffolding, then a design document with build phases for review, after research into how quickhacks are built and stored in the game. The owner asked for its own activity icon, a Desk, a Library, and the game's quickhacks as a view ("Game Assets filtered to quickhacks, or the same view just named Quickhacks").
+- **H0 built (2026-11-04), EDGEhack 0.0.1, not released:** the extension skeleton (three empty views with welcome text), `src/quickhack.ts` (families and tiers from record names) with 3 unit tests, the Check, Release, Docs site and Verify publish tokens workflows (copied from REDsave), the brand (`tools/brand/`: mark "EH" with a RAM bar; activity icon a chip with a bolt in the HUD brackets), the Nexus page source (`nexus/`, no page yet), the docs site and the design (draft 1). **Next: the owner's review of the design**, then H1 Read.
+- **Research (2026-11-04, game 2.5, REDbridge 0.11.0):** a quickhack is TweakDB records only (item `Items.<Family>[LvlN]Program` → `QuickHack.<Family>[LvlN]Hack` object actions → `ObjectActionEffect`s → status effects → effectors and attacks); icons are atlas parts. Counts and the full chain are in the design. Scratch scripts that walk a record chain and count the pools: the session's scratchpad `qh/walk.py` and `qh/pools.py` (they use REDbridge's `tools/probe.py` `Bridge`; rebuild them from the design's description if gone). The game's script code read for the quickhack list is in `../Decompiled Scripts` (from January 2026, game 2.31; the functions still exist in 2.5's types): read only, never copy from it.
+- **Unverified, to settle in their phases:** listed at the end of the design.
+- **Open on GitHub, for the owner:** the repo's social preview (upload `docs/assets/brand/social.png` in Settings > General); Settings > Pages > Source: GitHub Actions; whether the organisation secrets `VSCE_PAT`, `OVSX_PAT` and `NEXUS_KEY` reach this repo; the Nexus page (none yet).
+
+## Conventions
+
+The same as REDnode's:
+
+- **Commits:** commit straight to `main` and push, in small logical commits. Agree the plan in chat first. Use a PR only for large or risky changes, and ask before opening one. End commit messages with the attribution line the session's instructions give.
+- **Git identity:** set per repo to `CyberbuildsAI` with the GitHub no-reply email (docs/dev-setup.md). The global identity on the dev PC is another one: never change it.
+- **Versions:** one version, in `package.json`. Raise it with each hand test build, and refer to it as "EDGEhack <version>".
+- **Release gate (the owner's rule):** no release (the Release workflow with Make a release, a Marketplace, Open VSX or Nexus upload) until every hand test of the changes since the last release has passed (docs/testing.md). Check this and say what is still open before a release run, even when asked to release.
+- **Releases:** start a release run (`gh workflow run release.yml -f release=true`, with `-f nexus=true` for Nexus) only when the owner asks in chat. The workflow is described at the top of `.github/workflows/release.yml`.
+- **README at each release (the owner's rule):** before a release run, update README.md's status line (`**Status: <version> released on <date>** ...`) and draw the status badge again (the `status` entry in `tools/brand/badges.py`, then `python -I tools/brand/badges.py docs/assets/brand/badges`; the README's `<img alt>` too). `tools/release/readme-check.mjs` checks it. Between releases, keep the status line and the badge current with the phase.
+- **Changelog (the owner's rule, the same in every Edgemodders repo):** `CHANGELOG.md` at the root, a section per release, newest first, with **Unreleased** on top, grouped **New**, **Changed**, **Fixed**, **Other**; a line in the same commit as each change a player would notice. `docs/changelog.md` is made from it by the Docs site workflow: never commit it.
+- **Shared files, copied as they are:** `tools/nexus/nexus.mjs` and `api.mjs`, and `tools/release/readme-check.mjs`, are REDnode's. Change them in REDnode, then copy them again here.
+- **REDcode's API:** copy its interfaces (as EDGEwave's `src/redcode.ts` does), never import REDcode. REDcode's TweakDB view items are `tweakType` and `tweakRecord` (`view == redcode.tweakdb`); `redcode.openTweakRecord(pathOrId)` opens its record page.
+- **Nexus:** the page source is `nexus/` (`nexus/README.md`). Tags are set by hand. Never list the owner's own account (Cyberbuilds) in Nexus credits.
+- **Writing style:** plain, short sentences. Tables for comparisons and lists of facts. The modder's words in the UI (RAM, upload time, cooldown), TweakDB's names only in Advanced. Mark anything unverified as unverified. Never "exposes" for a port or endpoint; always say how access is locked in the same place.
+- **Never commit game files** or data extracted from them: archives, TweakDB dumps, record lists or name tables read from the game, icons cut from its atlases. The design may quote a few record names and values as examples.
+- **Requests to other repos** (REDcode's open contract, EDGEbuilder's `quickhack` Library kind, REDnode's editor channel for TweakDB writes, REDbridge for atlases) go to that repo as a `request` issue with the shape that would work, after the owner agrees. Requests from other repos come here the same way: read open `request` issues at the start of a session.
+
+## Tests
+
+- Automated: `npm run typecheck`, `npm run build`, `npm test` (also the Check workflow on every push).
+- Hand tests: numbered steps the owner runs in VS Code (F5, **Run EDGEhack**), written in docs/testing.md with what each step should show. Record every test's first run and later runs' results there, and keep the roadmap table in docs/index.md current.
+- In-game tests (from H2): give the owner a fixed order of numbered steps, with REDnode's **Test timer** first (Start, then Mark after each step). The game needs about 12 to 16 GB of RAM.
+
+## Docs site
+
+- `docs/` is published by GitHub Pages at https://edgemodders.github.io/EDGEhack/ through `.github/workflows/pages.yml` (Settings > Pages > Source: GitHub Actions). Jekyll renders it with the HUD layout (`docs/_layouts/default.html`, `docs/assets/css/hud.css`, copied from the other EDGE repos).
+- Add every new page to `nav` in `docs/_config.yml`.
+- The banner, social image, Nexus picture, icon and badges come from `tools/brand/` (`render.ps1`). Update the status badge in `badges.py` when the phase changes, then render again.

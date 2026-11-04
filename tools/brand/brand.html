@@ -1,0 +1,132 @@
+<!doctype html>
+<!-- Source for the README banner, the GitHub social preview and the Nexus picture.
+     Rendered to PNG by tools/brand/render.ps1 with headless Chrome:
+       brand.html?banner  -> 1280 x 320
+       brand.html?social  -> 1280 x 640
+       brand.html?nexus   -> 1280 x 640, the social layout 55 px lower, with room at the top for the
+                             EDGEmodders header the owner adds by hand -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EDGEhack brand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rajdhani:wght@500;600&family=JetBrains+Mono:wght@400;500&display=block" rel="stylesheet">
+<style>
+:root {
+  --bg: #08090d;
+  --panel: #10131b;
+  --line: #262c3d;
+  --fg: #e3e6ee;
+  --dim: #8a93a8;
+  --yellow: #fcee0a;
+  --cyan: #19f3ff;
+  --green: #5dffa1;
+  --red: #ff3b5c;
+  --display: "Chakra Petch", sans-serif;
+  --body: "Rajdhani", sans-serif;
+  --mono: "JetBrains Mono", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+.frame {
+  position: relative; overflow: hidden;
+  width: 1280px; height: 320px; padding: 44px 56px;
+  display: grid; grid-template-columns: 1fr 400px; gap: 40px; align-items: center;
+  background:
+    radial-gradient(ellipse at 18% 120%, rgba(252,238,10,.10), transparent 55%),
+    linear-gradient(rgba(25,243,255,.06) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, rgba(25,243,255,.06) 1px, transparent 1px) 0 0 / 32px 32px,
+    var(--bg);
+}
+.social .frame, .nexus .frame { height: 640px; padding: 72px 80px; grid-template-columns: 1fr 470px; gap: 56px; align-content: center; }
+.nexus .frame { padding-top: 127px; padding-bottom: 17px; }
+
+.frame > * { min-width: 0; }
+/* corner brackets */
+.frame::before, .frame::after {
+  content: ""; position: absolute; width: 36px; height: 36px; border: 2px solid var(--yellow);
+}
+.frame::before { top: 16px; left: 16px; border-right: 0; border-bottom: 0; }
+.frame::after { bottom: 16px; right: 16px; border-left: 0; border-top: 0; }
+
+.eyebrow { font-family: var(--mono); font-size: 15px; letter-spacing: .22em; text-transform: uppercase; color: var(--cyan); }
+h1 {
+  margin: 10px 0 12px; font-family: var(--display); font-weight: 700; text-transform: uppercase;
+  font-size: 92px; line-height: .9; letter-spacing: .02em;
+}
+h1 span { color: var(--yellow); }
+.tag { font-family: var(--body); font-weight: 500; font-size: 26px; color: #c3c9d8; margin: 0; max-width: 44ch; text-wrap: balance; }
+.rule { height: 3px; width: 100%; max-width: 560px; margin-top: 22px; background: linear-gradient(90deg, var(--yellow) 0 72px, var(--line) 72px); }
+.social h1, .nexus h1 { font-size: 112px; }
+.social .eyebrow, .nexus .eyebrow { font-size: 17px; }
+.social .tag, .nexus .tag { font-size: 32px; }
+
+/* A quickhack in the editor: its name and tier, its costs, and the effects it applies, one of them
+   just added from another quickhack. */
+.hack {
+  background: rgba(16,19,27,.92); border: 1px solid var(--line); padding: 14px 16px;
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim);
+}
+.head { display: grid; grid-template-columns: 46px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
+.glyph { width: 46px; height: 46px; border: 1px solid var(--yellow); display: grid; place-items: center; color: var(--yellow); font-size: 22px;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px)); background: rgba(252,238,10,.07); }
+.head b { display: block; font-family: var(--display); font-size: 22px; letter-spacing: .04em; color: var(--fg); }
+.head small { color: var(--cyan); font-size: 11px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.stats div { border: 1px solid var(--line); padding: 5px 7px; }
+.stats em { display: block; font-style: normal; color: var(--fg); font-size: 15px; margin-top: 2px; }
+.fx { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; padding: 6px 4px; border-top: 1px solid var(--line); }
+.fx i { width: 10px; height: 10px; background: var(--line); transform: skewX(-18deg); }
+.fx b { font-weight: 500; color: var(--fg); letter-spacing: .04em; }
+.fx span { font-size: 10px; }
+.fx.dmg i { background: var(--red); }
+.fx.ctl i { background: var(--cyan); }
+.fx.new { background: rgba(252,238,10,.07); box-shadow: inset 3px 0 0 var(--yellow); }
+.fx.new i { background: var(--yellow); }
+.fx.new b { color: var(--yellow); }
+.social .hack, .nexus .hack { font-size: 14px; padding: 18px 20px; }
+.social .head b, .nexus .head b { font-size: 28px; }
+.social .glyph, .nexus .glyph { width: 56px; height: 56px; font-size: 26px; }
+.social .head, .nexus .head { grid-template-columns: 56px 1fr; }
+.social .fx, .nexus .fx { padding: 9px 4px; }
+.social .stats em, .nexus .stats em { font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div>
+    <div class="eyebrow">// EDGE platform &middot; Quickhack editor</div>
+    <h1>EDGE<span>hack</span></h1>
+    <p class="tag">Open any quickhack, change its name, icon, costs and effects, or build a new one from the game&rsquo;s own status effects.</p>
+    <div class="rule"></div>
+  </div>
+  <div class="hack">
+    <div class="head"><div class="glyph">&#9650;</div><div><b>Overheat</b><small>Tier 3 &middot; Damage hack</small></div></div>
+    <div class="stats"><div>RAM<em>6</em></div><div>Upload<em>2.0 s</em></div><div>Duration<em>9 s</em></div></div>
+    <div class="fx dmg"><i></i><b>Burning</b><span>15.6 thermal / 0.25 s</span></div>
+    <div class="fx ctl"><i></i><b>Spread on upload</b><span>3 targets</span></div>
+    <div class="fx new"><i></i><b>+ EMP shock</b><span>from Short Circuit</span></div>
+  </div>
+</div>
+<script>
+  if (location.search.includes("social")) document.body.classList.add("social");
+  if (location.search.includes("nexus")) document.body.classList.add("nexus");
+  // The banner shows three effects; the taller pictures add two more.
+  const big = document.body.classList.contains("social") || document.body.classList.contains("nexus");
+  if (big) {
+    const card = document.querySelector(".hack");
+    for (const [kind, name, note] of [
+      ["ctl", "Armor down", "-30% while hacked"],
+      ["", "Cooldown", "12 s"],
+    ]) {
+      const row = document.createElement("div");
+      row.className = "fx " + kind;
+      row.innerHTML = `<i></i><b>${name}</b><span>${note}</span>`;
+      card.appendChild(row);
+    }
+  }
+</script>
+</body>
+</html>

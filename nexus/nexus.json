@@ -1,0 +1,11 @@
+{
+  "page": null,
+  "upload": {
+    "name": "EDGEhack",
+    "category": "main",
+    "primary": false,
+    "modManager": false,
+    "archivePrevious": true,
+    "description": "EDGEhack {version}, the VS Code extension: not a game mod, so no Mod Manager Download. Extract, then in VS Code: Extensions view, ..., Install from VSIX. Or install it from the Marketplace or Open VSX, which update themselves."
+  }
+}

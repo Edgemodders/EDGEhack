@@ -1,0 +1,181 @@
+# Builds EDGEhack's .vsix and Nexus Mods zip and, when asked, publishes a release, as EDGEdeck's and
+# EDGEwave's workflows do:
+#
+#   Run workflow (Actions tab)                  checks, tests and packages; keeps the .vsix and the
+#                                               Nexus zip as the run's artifact. Publishes nothing
+#   Run workflow, "Make a release" ticked       also publishes to the VS Code Marketplace (VSCE_PAT)
+#                                               and Open VSX (OVSX_PAT, skipped while that secret is
+#                                               not set), and makes the GitHub release v<version>
+#                                               (which tags this commit) with the .vsix, the Nexus zip
+#                                               and the version's CHANGELOG.md section as notes. Stops
+#                                               first if it is not run on main, if that tag exists
+#                                               (raise the version in package.json), if CHANGELOG.md
+#                                               has no section for the version
+#                                               (tools/release-notes.mjs), or if README.md's status
+#                                               line and status badge do not name the version
+#                                               (tools/release/readme-check.mjs)
+#   ... and "Update Nexus Mods" ticked          also, after the GitHub release, uploads the Nexus zip
+#                                               as the main file's new version (the old one archived;
+#                                               the first one on a new page), adds its changelog and
+#                                               pushes nexus/description.bbcode (tools/nexus/nexus.mjs,
+#                                               copied from REDnode; NEXUS_KEY). It checks the page
+#                                               first and stops before building if nexus/nexus.json
+#                                               names no page, or if the description changed on Nexus
+#                                               since the last pull (npm run nexus:pull, merge,
+#                                               commit, run again). If the upload fails after the
+#                                               GitHub release, run tools/nexus/nexus.mjs release on
+#                                               the dev PC with the release's zip: it skips what is
+#                                               already done
+#
+# One .vsix for every platform: EDGEhack has no native parts. The tokens are Edgemodders
+# organisation secrets, shared with REDnode's, REDcode's, EDGEdeck's and EDGEwave's workflows; if
+# they are limited to selected repos, EDGEhack must be added to them (Organisation settings >
+# Secrets and variables > Actions).
+#
+# Release gate: make a release only after every hand test of the changes since the last release
+# has passed (docs/testing.md). Untested or failed means no release.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Make a release (publishes to the Marketplace and Open VSX, and tags this commit v<version>). Only after every hand test has passed
+        type: boolean
+        default: false
+      nexus:
+        description: Update Nexus Mods (with Make a release) - upload the Nexus zip, its changelog and the page's description
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# One release at a time.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      RELEASE: ${{ inputs.release == true }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # the tags: the Nexus check compares with the previous release's description
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: The version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "${{ inputs.nexus }}" = "true" ] && [ "${RELEASE}" != "true" ]; then
+            echo "::error::Update Nexus Mods needs Make a release ticked too"
+            exit 1
+          fi
+          if [ "${RELEASE}" = "true" ]; then
+            if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+              echo "::error::Releases are made from main, not ${GITHUB_REF_NAME}"
+              exit 1
+            fi
+            if git ls-remote --exit-code --tags origin "refs/tags/v${version}" > /dev/null; then
+              echo "::error::v${version} is released already: raise the version in package.json"
+              exit 1
+            fi
+          fi
+          { echo "VERSION=${version}"; echo "VSIX=${GITHUB_WORKSPACE}/dist/edgehack-${version}.vsix"; } >> "$GITHUB_ENV"
+
+      # Before anything is built or published: no CHANGELOG.md section for the version stops a release here.
+      - name: Release notes from CHANGELOG.md
+        if: env.RELEASE == 'true'
+        run: |
+          node tools/release-notes.mjs "${VERSION}" --out "${RUNNER_TEMP}/notes.md"
+          node tools/release-notes.mjs "${VERSION}" --nexus --out "${RUNNER_TEMP}/nexus-notes.txt"
+
+      # Before anything is built or published: a README whose status line or status badge does not
+      # name the version stops a release here.
+      - name: The README says this release
+        if: env.RELEASE == 'true'
+        run: node tools/release/readme-check.mjs --version "${VERSION}"
+
+      # Before anything is published: Nexus takes this release, and its description has no edit the repo lacks.
+      - name: Nexus Mods can take this release
+        if: env.RELEASE == 'true' && inputs.nexus
+        env:
+          NEXUS_KEY: ${{ secrets.NEXUS_KEY }}
+        run: |
+          if [ -z "$(node -p "require('./nexus/nexus.json').page ?? ''")" ]; then
+            echo "::error::nexus/nexus.json names no page yet. Make the page on Nexus, put its number in nexus.json as \"page\", then run npm run nexus:pull (nexus/README.md)."
+            exit 1
+          fi
+          node tools/nexus/nexus.mjs check --version "${VERSION}"
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+      - name: Package
+        id: package
+        run: |
+          mkdir -p dist
+          node_modules/.bin/vsce package --no-dependencies --readme-path README.marketplace.md --out "${VSIX}"
+
+      - name: Nexus zip
+        run: node tools/nexus-zip.mjs
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: edgehack-${{ env.VERSION }}
+          path: |
+            dist/edgehack-${{ env.VERSION }}.vsix
+            dist/EDGEhack-${{ env.VERSION }}-nexus.zip
+          if-no-files-found: error
+
+      - name: VS Code Marketplace
+        if: env.RELEASE == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        # --skip-duplicate: a re-run of a release that got partway does not fail on what is already out.
+        run: node_modules/.bin/vsce publish --packagePath "${VSIX}" --skip-duplicate
+
+      # Each registry is tried even when another one failed; the run still fails if any of them did.
+      - name: Open VSX
+        if: env.RELEASE == 'true' && !cancelled() && steps.package.outcome == 'success'
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "${OVSX_PAT}" ]; then
+            echo "::warning::OVSX_PAT is not set; not published to Open VSX"
+            exit 0
+          fi
+          node_modules/.bin/ovsx publish "${VSIX}" --pat "${OVSX_PAT}" --skip-duplicate
+
+      # Makes the tag too (--target: this commit).
+      - name: GitHub release
+        if: env.RELEASE == 'true' && !cancelled() && steps.package.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Release v${VERSION} already exists; adding the files if they are missing"
+            gh release upload "v${VERSION}" "${VSIX}" "dist/EDGEhack-${VERSION}-nexus.zip" --clobber
+            exit 0
+          fi
+          gh release create "v${VERSION}" "${VSIX}" "dist/EDGEhack-${VERSION}-nexus.zip" --target "${GITHUB_SHA}" --title "EDGEhack ${VERSION}" --notes-file "${RUNNER_TEMP}/notes.md"
+
+      # Skips what is already on Nexus, so a re-run is safe.
+      - name: Nexus Mods
+        if: env.RELEASE == 'true' && inputs.nexus && !cancelled() && steps.package.outcome == 'success'
+        env:
+          NEXUS_KEY: ${{ secrets.NEXUS_KEY }}
+        run: node tools/nexus/nexus.mjs release --version "${VERSION}" --zip "dist/EDGEhack-${VERSION}-nexus.zip" --notes "${RUNNER_TEMP}/nexus-notes.txt"
