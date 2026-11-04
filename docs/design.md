@@ -261,6 +261,10 @@ Found while building it:
 
 **The document's home (changed from "on the Desk").** In H2 a document needs an open REDcode project: `source/raw/edgehack/<name>.quickhack.json`, with the YAML in `source/resources/r6/tweaks/<mod>/<name>.yaml`. The Desk comes in H3 as planned, and takes over the case of no project.
 
+**H2a's result (2026-11-04, game 2.5):** passed. The difference approach works, a negative one included, and the tooltip and the wheel show the changed numbers. `LocKey#<secondary key>` works.
+
+**Fixes the spike showed, for H2c:** the page's Duration must work out modifiers that read the effect's own stats (Overheat is 5 s, not 2 s: `OverheatDurationIncrease` adds 3), and the page should give damage a second beside damage a tick, as the game's tooltip does.
+
 **Steps:**
 
 | Step | What | Test |
@@ -338,7 +342,9 @@ So no new widget is needed, and the text is the one the record already holds (`I
 2. **A floating side panel** holding only the description, so the tab keeps its size.
 3. A key of its own to scroll, only if neither of those feels right.
 
-**Steps:** after H2a, a small hand-written spike in the game, on hacks with long and short lines and with the most effect bullets, then the field in the editor (H2c). **Unverified:** that the 2.31 method body is the same in 2.5; how the moved panel and its `line` rectangle look; how long a line fits.
+**The game's own lines (read on 2026-11-04):** the top tiers' run from 54 characters (Reboot Optics) to 292 (Blackwall Gateway); some are flavour text rather than a description (Blackwall Gateway, Contagion, Bait), and two hold placeholders (`{float_0}`: Memory Wipe, Synapse Burnout) that the tab may show as written.
+
+**Built: the spike** (`r6/scripts/EDGEhack/PlayerLine.reds`, in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H2d`), waiting for its run ([Tests, "H2d Spike"](testing.html#h2d-spike)). redscript-cli found no errors in it against a copy of 2.5's scripts, which also shows the method and fields exist in 2.5. Then the field in the editor (H2c). **Unverified:** how the moved panel and its `line` rectangle look; how long a line fits; whether a tint reaches a rich text box.
 
 ### Own icons (H3b)
 

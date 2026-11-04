@@ -16,11 +16,35 @@ Last updated 2026-11-04.
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
-| [H2a Spike](#h2a-spike) | By hand, in the game | H2 | Not run yet | Waiting |
+| [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
+| [H2d Spike](#h2d-spike) | By hand, in the game | H2 | Not run yet | Waiting |
 
 ## Waiting for a hand test
 
-- [H2a Spike](#h2a-spike), in the game.
+- [H2d Spike](#h2d-spike), in the game.
+
+## H2d Spike
+
+The player's line, a hand-written script ([design, "The player's line (H2d)"](design.html#the-players-line-h2d)): every quickhack's description in red, above its effects in the scanner's **Hacking** tab. Checked first with redscript-cli against a copy of the game's scripts: no errors alone, and none in this file with Codeware's scripts. It is in the EDGEdeck library as **EDGEhack H2d spike**: one file, `r6/scripts/EDGEhack/PlayerLine.reds`, which needs redscript. Leave **EDGEhack H2a spike** on for this test.
+
+**Before you start:** deploy with the game closed. If the game shows a script error at start, or scripts stop working, turn the mod off and tell me: that's what the compile check is there to prevent, but the CLI is not the game's own compiler.
+
+The hacks are the worst cases for crowding: the longest lines and the most bullets.
+
+| Step | Do | Expect |
+|---|---|---|
+| Timer | In REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below | Marks in the Mod log |
+| 1 | Load the save. In the launcher, switch on **Console**. Run `await game.player.addItem("Items.BlackWallProgramLvl4")`, then the same with `Items.ContagionLvl4PlusPlusProgram`, `Items.CommsNoiseLvl4PlusPlusProgram`, `Items.MemoryWipeLvl4PlusPlusProgram` and `Items.BlindLvl4PlusPlusProgram`. Keep the Overheat Rare from H2a | The quickhacks in the backpack |
+| 2 | Put them in the cyberdeck, as many as it holds, with the Overheat Rare first. Scan an enemy and highlight it in the wheel, on the **Hacking** tab | "EDGEhack's spike: this text comes from the mod." in red, above the effect bullets. That also settles the test text from H2a |
+| 3 | Highlight **Reboot Optics** | The shortest line: "Resets a target's optics, causing temporary blindness." How does it look? |
+| 4 | Highlight **Sonic Shock** | The most bullets (6) with a line of 82 characters. Does it all fit on screen? |
+| 5 | Highlight **Contagion** | A long line (242 characters) that is flavour text rather than a description. Does it fit? Does it read well? |
+| 6 | Highlight **Blackwall Gateway** | The longest line (292 characters). This is the worst case for length |
+| 7 | Highlight **Memory Wipe** | Its line holds a placeholder: does it show a number, or a literal `{float_0}`? |
+| 8 | Move between hacks a few times, and scan a device, such as a camera | The line follows the highlighted hack. A device hack shows its own line, or none. Nothing flickers or jumps |
+| 9 | Quit the game | Tell me how crowded it feels, and which hacks looked wrong. A screenshot of the worst one would help |
+
+**After:** turn both spikes off in EDGEdeck and deploy, if you don't want to keep them.
 
 ## H2a Spike
 
@@ -41,6 +65,10 @@ A hand-written test mod on Overheat, before any editor is built ([design, "H2: p
 | 8 | Quit the game | Tell me what differed. I read TweakXL's log for anything it refused |
 
 **After:** turn the mod off in EDGEdeck and deploy.
+
+| Run | Result |
+|---|---|
+| 2026-11-04, by the owner, on the dev PC's game 2.5 | Pass. The tooltip's numbers: Rare 263 damage a second (65.625 x 4), 11 s, upload 1 s; Epic, left alone, 92 a second, 5 s, 2 s. Steps 4 to 6 as expected, with Legendary at RAM 6, so a negative difference works. TweakXL's log has no errors. The wheel text did not show because the tab hides its description while the effects list shows (see the player's line). The timer was not used; nothing depended on it. The expected durations in steps 4 were wrong: the base is 5 s, since Overheat adds 3 s from its own stat |
 
 ## H1 Read
 
