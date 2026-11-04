@@ -83,6 +83,7 @@ add("Attacks.ZapBase", "ConstantStatModifier", { value: 3, modifierType: "Additi
 add("QuickHack.MemoryCostReductionMod", "CombinedStatModifier", { opSymbol: "*", refObject: "Player", refStat: "BaseStats.MemoryCostReduction", value: -1, modifierType: "Additive", statType: "BaseStats.Memory" });
 add("BaseStatusEffect.ZapDuration", "StatModifierGroup", { statModifiers: ["BaseStatusEffect.ZapDuration_inline0"] });
 add("BaseStatusEffect.ZapDuration_inline0", "ConstantStatModifier", { value: 6, modifierType: "Additive", statType: "BaseStats.MaxDuration" });
+add("BaseStatusEffect.ZapOwnMod", "CombinedStatModifier", { opSymbol: "*", refObject: "Self", refStat: "BaseStats.ZapDurationIncrease", value: 1, modifierType: "Additive", statType: "BaseStats.MaxDuration" });
 add("BaseStatusEffect.ZapStacks", "StatModifierGroup", { statModifiers: ["BaseStatusEffect.ZapStacks_inline0"] });
 add("BaseStatusEffect.ZapStacks_inline0", "ConstantStatModifier", { value: 2, modifierType: "Additive", statType: "BaseStats.MaxStacks" });
 add("BaseStatusEffect.ZapUI", "StatusEffectUIData", { displayName: "LocKey#60", iconPath: "zap_icon" });

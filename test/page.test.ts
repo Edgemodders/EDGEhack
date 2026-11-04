@@ -17,7 +17,8 @@ test("the page shows a family's tiers, numbers and effects, with game text escap
   assert.match(html, /Quickhack &middot; Damage Hack &middot; 2 tiers/);
   assert.match(html, /data-pick="0" data-tier="0">Common</);
   assert.match(html, /data-pick="1" data-tier="1">Uncommon</);
-  assert.match(html, /23 thermal every 0.25 s/);
+  assert.match(html, /92 thermal a second/);
+  assert.match(html, /23 every 0.25 s/);
   assert.match(html, /<img class="icon big" src="https:\/\/icons\/zap.png"/);
   assert.match(html, /Zaps hard\./);
   assert.match(html, /Every quickhack also \(1\)/);

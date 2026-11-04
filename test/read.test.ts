@@ -27,6 +27,14 @@ test("sumStat adds the additive modifiers and names what scales them", async () 
   assert.deepEqual(await sumStat(r, mods, "BaseStats.Memory"), { base: 3, scaledBy: ["V's Memory Cost Reduction"] });
 });
 
+test("a modifier reading the effect's own stat is worked out", async () => {
+  const r = reader();
+  const mods = await r.all(["BaseStatusEffect.ZapDuration_inline0", "BaseStatusEffect.ZapOwnMod"]);
+  const own = new Map([["BaseStats.ZapDurationIncrease", 3]]);
+  assert.deepEqual(await sumStat(r, mods, "BaseStats.MaxDuration", undefined, own), { base: 9, scaledBy: [] });
+  assert.deepEqual(await sumStat(r, mods, "BaseStats.MaxDuration"), { base: 6, scaledBy: ["its own Zap Duration Increase"] });
+});
+
 test("a family reads into tiers with texts, icons, costs and effects", async () => {
   const fam = await readFamily(reader(), "Zap", [
     { path: "Items.ZapProgram", rank: 0 },
@@ -81,7 +89,9 @@ test("effects: the cooldown, a shared one, the spread and the burn with its dama
   assert.equal(burn.type, "Burning");
   assert.equal(burn.duration?.base, 6);
   assert.equal(burn.stacks, 2);
-  assert.deepEqual(burn.damage, [{ type: "Thermal", perHit: 23, every: 0.25, scaledBy: [] }]);
+  assert.deepEqual(burn.damage, [{ type: "Thermal", perHit: 23, every: 0.25, scaledBy: [], record: "Attacks.ZapLvl1Hack", stat: "BaseStats.ThermalDamage" }]);
+  assert.equal(burn.durationGroup, "BaseStatusEffect.ZapDuration");
+  assert.deepEqual(burn.durationMods, ["BaseStatusEffect.ZapDuration_inline0"]);
   assert.deepEqual(burn.stats, [{ stat: "Armor", value: -10, how: "Additive" }]);
   assert.equal(burn.icon?.part, "zap_icon");
 });

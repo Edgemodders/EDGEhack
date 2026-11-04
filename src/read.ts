@@ -26,6 +26,9 @@ export interface Damage {
   every?: number;
   /** What scales it in the game. */
   scaledBy: string[];
+  /** The attack record, and the stat its damage is added up in: what the writer appends to. */
+  record: string;
+  stat?: string;
 }
 
 export interface StatChange {
@@ -50,6 +53,9 @@ export interface Effect {
   effector?: string;
   type?: string;
   duration?: Value;
+  /** The status effect's duration group and its modifiers: what the writer copies with one more. */
+  durationGroup?: string;
+  durationMods?: string[];
   stacks?: number;
   tags: string[];
   damage: Damage[];
@@ -67,6 +73,8 @@ export interface Variant {
   record: string;
   ram?: Value;
   upload?: Value;
+  /** Its main effect: Boss actions have status effects and attacks of their own. */
+  main?: Effect;
 }
 
 export interface Tier {
@@ -84,11 +92,15 @@ export interface Tier {
   wheelDescription?: string;
   /** Lines the tier's tooltip adds (the item's OnAttach packages). */
   tooltip: string[];
+  /** The wheel's records, shared across tiers: its entry and its icon part. */
+  ui?: string;
+  captionIcon?: string;
   icons: { item?: IconRef; wheel?: IconRef };
   category?: string;
   ram?: Value;
   upload?: Value;
-  cooldown?: Value & { record: string };
+  /** The cooldown: its status effect, and that effect's duration group, which the writer appends to. */
+  cooldown?: Value & { record: string; group?: string };
   effects: Effect[];
   /** Why it cannot be used on a target, as the game says it. */
   notWhen: string[];
@@ -124,14 +136,23 @@ export function isShared(path: string): boolean {
   return /^QuickHack\.QuickHack_inline\d+$/.test(path);
 }
 
-/** Adds up modifiers for one stat (or every stat when none is named): the base, and what scales it. */
-export async function sumStat(r: Records, mods: Rec[], stat?: string, seen = new Set<string>()): Promise<Value> {
+/** The main effect of a list of effects: the first on the target that is the quickhack's own. */
+export function mainEffect(effects: Effect[]): Effect | undefined {
+  return effects.find((e) => e.on === "target" && !e.shared && !e.cooldown && (e.duration || e.damage.length));
+}
+
+/**
+ * Adds up modifiers for one stat (or every stat when none is named): the base, and what scales it.
+ * `own` holds the stats the effect gives itself, so a modifier reading them is worked out: Overheat's
+ * duration is 2 s plus 1 x its own Overheat Duration Increase of 3.
+ */
+export async function sumStat(r: Records, mods: Rec[], stat?: string, seen = new Set<string>(), own?: Map<string, number>): Promise<Value> {
   const out: Value = { base: 0, scaledBy: [] };
   for (const m of mods) {
     if (seen.has(m.path)) continue;
     seen.add(m.path);
     if (m.type === "StatModifierGroup") {
-      const inner = await sumStat(r, await r.all(m.flats.get("statModifiers")), stat, seen);
+      const inner = await sumStat(r, await r.all(m.flats.get("statModifiers")), stat, seen, own);
       out.base += inner.base;
       out.scaledBy.push(...inner.scaledBy);
       continue;
@@ -145,7 +166,9 @@ export async function sumStat(r: Records, mods: Rec[], stat?: string, seen = new
       const who = str(m, "refObject") ?? "";
       const owner = who === "Player" || who === "Instigator" ? "V's" : who === "Target" ? "the target's" : who === "Self" ? "its own" : `${who}'s`;
       const ref = str(m, "refStat");
-      if (ref) out.scaledBy.push(`${owner} ${words(ref)}`);
+      const known = who === "Self" && ref ? own?.get(ref) : undefined;
+      if (known !== undefined && str(m, "opSymbol") === "*") out.base += known * (num(m, "value") ?? 0);
+      else if (ref) out.scaledBy.push(`${owner} ${words(ref)}`);
     } else if (m.type === "CurveStatModifier") {
       out.scaledBy.push(`a curve on ${words(str(m, "refStat") ?? str(m, "column") ?? m.path)}`);
     } else if (m.type === "RandomStatModifier") {
@@ -202,7 +225,7 @@ class Reader {
     const type = str(atk, "damageType") ? words(str(atk, "damageType")!) : stat ? words(stat).replace(/ Damage$/, "") : "Physical";
     // Every additive modifier of the damage stat adds up: Overheat Lvl3 is 3 (base) + 20 (its tier).
     const sum = stat ? await sumStat(this.r, mods, stat) : { base: 0, scaledBy: [] };
-    return { type, perHit: sum.base, every, scaledBy: sum.scaledBy };
+    return { type, perHit: sum.base, every, scaledBy: sum.scaledBy, record: atk.path, stat };
   }
 
   /** What an effector does, in words, with its damage and stat changes. */
@@ -227,8 +250,16 @@ class Reader {
     const se = await this.get(path);
     const ui = await this.get(str(se, "uiData"));
     const name = (await this.r.text(ui, "displayName")) ?? words(path);
-    const durationGroup = await this.all([str(se, "duration")].filter(Boolean));
-    const duration = str(se, "duration") === "BaseStats.InfiniteDuration" ? { base: Infinity, scaledBy: [] } : durationGroup.length ? await sumStat(this.r, durationGroup, "BaseStats.MaxDuration") : undefined;
+    const own = new Map<string, number>();
+    for (const pkg of await this.all(se?.flats.get("packages"))) {
+      for (const m of await this.all(pkg.flats.get("stats"))) {
+        const type = str(m, "statType");
+        if (type && m.type === "ConstantStatModifier" && str(m, "modifierType") === "Additive") own.set(type, (own.get(type) ?? 0) + (num(m, "value") ?? 0));
+      }
+    }
+    const durationPath = str(se, "duration");
+    const durationGroup = await this.all([durationPath].filter(Boolean));
+    const duration = durationPath === "BaseStats.InfiniteDuration" ? { base: Infinity, scaledBy: [] } : durationGroup.length ? await sumStat(this.r, durationGroup, "BaseStats.MaxDuration", undefined, own) : undefined;
     const stacksGroup = await this.all([str(se, "maxStacks")].filter(Boolean));
     const stacks = stacksGroup.length ? (await sumStat(this.r, stacksGroup, "BaseStats.MaxStacks")).base : undefined;
     const damage: Damage[] = [];
@@ -250,6 +281,8 @@ class Reader {
       status: path,
       type: str(se, "statusEffectType") ? words(str(se, "statusEffectType")!) : undefined,
       duration,
+      durationGroup: durationPath && durationPath !== "BaseStats.InfiniteDuration" ? durationPath : undefined,
+      durationMods: list(durationGroup[0], "statModifiers"),
       stacks,
       tags: list(se, "gameplayTags"),
       damage,
@@ -280,6 +313,8 @@ class Reader {
         status: nested?.status,
         type: nested?.type,
         duration: nested?.duration,
+        durationGroup: nested?.durationGroup,
+        durationMods: nested?.durationMods,
         stacks: nested?.stacks,
         tags: nested?.tags ?? [],
         damage: [...e.damage, ...(nested?.damage ?? [])],
@@ -306,14 +341,14 @@ class Reader {
   }
 
   /** The cooldown: a status effect V gets, which the action's instigator prerequisites check for. */
-  async cooldown(action: Rec | undefined): Promise<(Value & { record: string }) | undefined> {
+  async cooldown(action: Rec | undefined): Promise<(Value & { record: string; group?: string }) | undefined> {
     for (const pre of await this.all(action?.flats.get("instigatorPrereqs"))) {
       const se = await this.get(str(pre, "statusEffect"));
       if (!se || pre.flats.get("invert") !== true) continue;
       const isCooldown = list(se, "gameplayTags").includes("QuickHackCooldown") || str(se, "statusEffectType") === "BaseStatusEffectTypes.PlayerCooldown";
       if (!isCooldown) continue;
       const group = await this.all([str(se, "duration")].filter(Boolean));
-      return { record: se.path, ...(await sumStat(this.r, group, "BaseStats.MaxDuration")) };
+      return { record: se.path, group: group[0]?.path, ...(await sumStat(this.r, group, "BaseStats.MaxDuration")) };
     }
     return undefined;
   }
@@ -321,7 +356,9 @@ class Reader {
   async variant(path: string | undefined): Promise<Variant | undefined> {
     const action = await this.get(path);
     if (!action) return undefined;
-    return { record: action.path, ram: await this.costs(action), upload: await this.upload(action) };
+    const cooldown = await this.cooldown(action);
+    const effects = [...(await this.effects(action.flats.get("startEffects"), "start", cooldown?.record)), ...(await this.effects(action.flats.get("completionEffects"), "upload", cooldown?.record))];
+    return { record: action.path, ram: await this.costs(action), upload: await this.upload(action), main: mainEffect(effects) };
   }
 }
 
@@ -390,6 +427,8 @@ export async function readTier(r: Records, itemPath: string | undefined, actionP
     wheelName: caption,
     wheelDescription: await r.text(ui, "description"),
     tooltip,
+    ui: ui?.path,
+    captionIcon: str(ui, "captionIcon"),
     icons: {
       item: str(item, "iconPath") ? await iconOf(r, `UIIcon.${str(item, "iconPath")}`) : undefined,
       wheel: await iconOf(r, str(await rd.get(str(ui, "captionIcon")), "texturePartID")),

@@ -1,5 +1,6 @@
 // The quickhack page's HTML, pure (no VS Code), so it can be checked outside the editor: the
 // family in the modder's words, the numbers per tier, and one panel per tier.
+import { mainEffect as mainOf } from "./read";
 import type { Effect, Family, IconRef, Tier, Value } from "./read";
 
 export const esc = (s: string | number | undefined): string =>
@@ -25,12 +26,19 @@ function cooldown(t: Tier): string {
 
 /** The main effect: the first one on the target that is the quickhack's own. */
 function mainEffect(t: Tier): Effect | undefined {
-  return t.effects.find((e) => e.on === "target" && !e.shared && !e.cooldown && (e.duration || e.damage.length));
+  return mainOf(t.effects);
+}
+
+/** Damage as the game's tooltip gives it, a second, with the tick beside it; or one hit. */
+function dps(d: Effect["damage"][number]): string {
+  const type = esc(d.type.toLowerCase());
+  if (!d.every) return `${esc(num(d.perHit))} ${type}`;
+  return `${esc(Math.ceil(d.perHit / d.every))} ${type} a second <span class="none">(${esc(num(d.perHit))} every ${esc(num(d.every))} s)</span>`;
 }
 
 function damage(e: Effect | undefined): string {
   if (!e?.damage.length) return `<span class="none">none</span>`;
-  return e.damage.map((d) => `${esc(num(d.perHit))} ${esc(d.type.toLowerCase())}${d.every ? ` every ${esc(num(d.every))} s` : ""}`).join("<br>");
+  return e.damage.map(dps).join("<br>");
 }
 
 export function iconsOf(fam: Family): IconRef[] {
@@ -133,7 +141,7 @@ function effectCard(e: Effect, icons: Map<string, string>): string {
   if (e.duration) facts.push(`lasts ${value(e.duration, "s")}`);
   if (e.stacks && e.stacks > 1) facts.push(`stacks ${esc(e.stacks)}`);
   const lines: string[] = [];
-  for (const d of e.damage) lines.push(`${esc(num(d.perHit))} ${esc(d.type.toLowerCase())} damage${d.every ? ` every ${esc(num(d.every))} s` : ""}`);
+  for (const d of e.damage) lines.push(`${dps(d)} damage`);
   for (const s of e.stats) lines.push(`${esc(s.stat)} ${s.value >= 0 ? "+" : ""}${esc(num(s.value))}${s.how !== "Additive" ? ` (${esc(s.how)})` : ""}`);
   if (e.spread) lines.push("starts the spread to nearby enemies");
   return `<div class="effect">${img(icons, e.icon, "icon small", e.name)}<div>
