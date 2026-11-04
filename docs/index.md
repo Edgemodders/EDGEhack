@@ -16,7 +16,7 @@ As of 2026-11-04. Each phase ends with a hand test by the owner, and an in-game 
 | Phase | Status |
 |---|---|
 | H0 Scaffold | Built 2026-11-04: the repo, the release workflow, the brand, the docs site, an empty extension with its three views, and the design (draft 1), agreed by the owner the same day |
-| H1 Read | Built 2026-11-04 (EDGEhack 0.0.3), awaiting the owner's hand test: the Quickhacks view, the read-only quickhack page, Open in EDGEhack from REDcode |
+| H1 Read | Done 2026-11-04: the Quickhacks view, the read-only quickhack page and Open in EDGEhack from REDcode passed the hand test (EDGEhack 0.0.3) |
 | H2 Edit | Not started |
 | H3 New and Effects | Not started |
 | H4 Try Live and MCP | Not started |

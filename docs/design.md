@@ -214,7 +214,7 @@ Device and vehicle quickhacks are read in H1 and edited after H3, once the peopl
 
 ### H1: built
 
-Built on 2026-11-04 in EDGEhack 0.0.2, with 0.0.3 fixing the page's broken icons, awaiting the owner's hand test ([Tests, "H1 Read"](testing.html#h1-read)). The open contract goes to REDcode after the test passes.
+Built on 2026-11-04 in EDGEhack 0.0.2, with 0.0.3 fixing the page's broken icons. **Passed the owner's hand test on 2026-11-04** ([Tests, "H1 Read"](testing.html#h1-read)).
 
 | Part | File | What it does |
 |---|---|---|

@@ -15,11 +15,11 @@ Last updated 2026-11-04.
 | [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1 | 2026-11-04 | Pass, 17 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
-| [H1 Read](#h1-read) | By hand, installed .vsix | H1 | Not run yet | Waiting |
+| [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 
 ## Waiting for a hand test
 
-- [H1 Read](#h1-read), EDGEhack 0.0.3.
+None.
 
 ## H1 Read
 
@@ -54,7 +54,10 @@ Then reload VS Code (**Developer: Reload Window**).
 | 17 | Command Palette: **EDGEhack: Open a Quickhack...**, type `Items.BlindLvl2Program` | Reboot Optics opens with **Rare** lit |
 | 18 | Right-click **Contagion** in the Quickhacks view, choose **Open the Record in REDcode** | REDcode's record page opens on Contagion's top tier item |
 
-Tell me anything that reads wrong or unclear on the page: the words are the point of H1.
+| Run | Result |
+|---|---|
+| 2026-11-04, EDGEhack 0.0.2 | Stopped at the page: every icon on it was a broken image (the webview refused them, the storage folder being allowed under its vscode-userdata URI). The tree showed its icons |
+| 2026-11-04, EDGEhack 0.0.3 | Pass, all 18 steps, by the owner |
 
 ## H1 outside VS Code
 
