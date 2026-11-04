@@ -330,9 +330,11 @@ So no new widget is needed, and the text is the one the record already holds (`I
 | The one copy | Every mod using it needs the same script, so it is one file at one path, `r6/scripts/EDGEhack/PlayerLine.reds` |
 | Safety | One compile error stops every script in the game, so it is checked with redscript-cli against a copy of `final.redscripts`, with and without Codeware's scripts, before any test, as REDnode does |
 
-**To decide with the owner:** whether the script shows the line on every quickhack, the game's own text included, or only on hacks a mod marks. Every hack is simplest and needs no new field, but one mod's script then changes every hack's tab. Marking needs one more flat on the action (`edgehackLine`), read by the script.
+**Decided by the owner on 2026-11-04:** the line shows on **every quickhack**, the game's own text included. If the tab gets overcrowded, it is turned off: the spike is there to see.
 
-**Steps:** after H2a, a small hand-written spike in the game, then the field in the editor (H2c). **Unverified:** that the 2.31 method body is the same in 2.5; how the moved panel and its `line` rectangle look; how long a line fits.
+**If the panels overflow** (the owner's idea, 2026-11-04: make the quickhack tooltips and panels scrollable rather than let them run off the screen). The game has scroll areas (`inkScrollArea`, in its full-screen menus: codex, crafting, shards, settings), but none in `scandetails.inkwidget`, and no tooltip or scanner script uses one. A scroll area can be added by script, as a parent of the panel, but something must drive it: the scanner's list and the inventory's tooltips take no scroll input of their own, and the mouse wheel and arrow keys may already move the selection in the list (unverified). So the likely form is a capped height with a slow automatic scroll, or a key of its own. Built only if the spike shows a need, panel by panel.
+
+**Steps:** after H2a, a small hand-written spike in the game, on hacks with long and short lines and with the most effect bullets, then the field in the editor (H2c). **Unverified:** that the 2.31 method body is the same in 2.5; how the moved panel and its `line` rectangle look; how long a line fits.
 
 ### Own icons (H3b)
 
