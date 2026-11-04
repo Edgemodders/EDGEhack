@@ -10,7 +10,7 @@ The source of EDGEhack's Nexus Mods page lives here, so updates are edits in the
 
 ## The page
 
-There is no page yet. The owner makes it on Nexus when the first release nears (H6), then puts its number in `nexus.json` as `"page"` and runs `npm run nexus:pull -- --ids-only`, so the first release pushes this draft over Nexus's template.
+The page is [37293](https://www.nexusmods.com/cyberpunk2077/mods/37293), made by the owner on 2026-11-04 (mod id 14315126034861 in `nexus.json`). It has no files yet. Pulled the same day, its description was still Nexus's template for a new page, so `description.bbcode` keeps EDGEhack's own draft (put back with `git checkout -- nexus/description.bbcode` after the pull, since a pull writes the live description over it). The pull's fingerprint of the template is in `nexus.json`, which lets the first release push the draft over it.
 
 From the first release on, the Release workflow's **Update Nexus Mods** box uploads each release: the zip as the main file (the first one on a new page, then a new version with the old one archived), the version's changelog, and `description.bbcode`. It stops first if the description was edited on Nexus since the last pull: then `npm run nexus:pull`, merge with `git diff nexus/`, commit, and run it again.
 
@@ -48,7 +48,7 @@ One main file: `EDGEhack-<version>-nexus.zip` (`tools/nexus-zip.mjs`), with:
 | Command | Does |
 |---|---|
 | `npm run nexus:status` | The page's version, its files and whether the description matches |
-| `npm run nexus:pull` | The live description into `description.bbcode`, the ids into `nexus.json`. Then `git diff nexus/` and merge. With `-- --ids-only`, the ids and the live description's hash, keeping the repo's description |
+| `npm run nexus:pull` | The live description into `description.bbcode`, the ids into `nexus.json`. Then `git diff nexus/` and merge. |
 | `node tools/nexus/nexus.mjs check --version <v>` | What a release would do, and whether it may |
 | `node tools/check-bbcode.mjs nexus/description.bbcode` | Checks the BBCode's tags before a push |
 
