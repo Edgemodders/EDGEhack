@@ -18,11 +18,11 @@ Last updated 2026-11-04.
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
-| [H2d Spike, second version](#h2d-spike-second-version) | By hand, in the game | H2 | Not run yet | Waiting |
+| [H2d Spike, second version](#h2d-spike-second-version) | By hand, in the game | H2 | 2026-11-04 | No line on any hack. The owner dropped the player's line; not looked into |
 
 ## Waiting for a hand test
 
-- [H2d Spike, second version](#h2d-spike-second-version), in the game.
+None.
 
 ## H2d Spike, second version
 

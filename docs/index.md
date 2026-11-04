@@ -17,7 +17,7 @@ As of 2026-11-04. Each phase ends with a hand test by the owner, and an in-game 
 |---|---|
 | H0 Scaffold | Built 2026-11-04: the repo, the release workflow, the brand, the docs site, an empty extension with its three views, and the design (draft 1), agreed by the owner the same day |
 | H1 Read | Done 2026-11-04: the Quickhacks view, the read-only quickhack page and Open in EDGEhack from REDcode passed the hand test (EDGEhack 0.0.3) |
-| H2 Edit | Plan agreed 2026-11-04; H2a's spike passed in the game the same day (numbers as differences work). H2d's spike, the player's line, fits in the game; its second version, on EDGEhack's hacks only, waits for its run; then H2b and H2c |
+| H2 Edit | Plan agreed 2026-11-04; H2a's spike passed in the game the same day (numbers as differences work). The player's line (H2d) tried and dropped by the owner. H2b and H2c under way |
 | H3 New and Effects | Not started |
 | H3b Own icons | Not started: pick, upload or generate each icon (asked for by the owner on 2026-11-04) |
 | H4 Try Live and MCP | Not started |

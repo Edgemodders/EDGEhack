@@ -319,7 +319,10 @@ What the spike answers:
 - Do the Boss versions keep their own numbers when only the normal action changes? (The spike changes only the normal one on purpose.)
 - Whichever Boss or normal action the game uses on an ordinary enemy (H1's open question) shows here too.
 
-### The player's line (H2d)
+### The player's line (H2d): dropped
+
+**Dropped by the owner on 2026-11-04**, after its second spike: "it's fine this way". The game's tab stays as it is, and the Player line field is not built. What follows is kept for if it ever comes back: the first spike worked on every hack, and the second, on marked hacks only, showed no line on any hack (not looked into; likely the mark, a new flat on a game record, never read as true). The wheel text stays editable in H2c, and the page says it shows only for a hack whose tab has no effects list.
+
 
 Asked for by the owner on 2026-11-04: a quickhack can give the player a short one-line description, in red, above the bullets of effects in the scanner's **Hacking** tab.
 
