@@ -330,11 +330,11 @@ So no new widget is needed, and the text is the one the record already holds (`I
 | Part | How |
 |---|---|
 | The script | redscript, a `@wrapMethod` of `OnQuickHackDataChanged`: after the game's own code, make the description visible with its text, tint it red, and move the `description` panel above `effects` |
-| The text | The action's own wheel text, which the editor already edits. The **Player line** is that field |
+| The text | The action's own wheel text, which the editor already edits. The **Player line** is that field. The editor refuses placeholders in it (`{float_0}`), since the tab shows them as written |
 | The one copy | Every mod using it needs the same script, so it is one file at one path, `r6/scripts/EDGEhack/PlayerLine.reds` |
 | Safety | One compile error stops every script in the game, so it is checked with redscript-cli against a copy of `final.redscripts`, with and without Codeware's scripts, before any test, as REDnode does |
 
-**Decided by the owner on 2026-11-04:** the line shows on **every quickhack**, the game's own text included. If the tab gets overcrowded, it is turned off: the spike is there to see.
+**Decided by the owner on 2026-11-04, after the first spike: the line shows only on quickhacks made with EDGEhack, as a perk.** The first version showed it on every quickhack, and everything fit, but the game's own lines show their placeholders as written (Memory Wipe's literal `{float_0}`) and repeat what the bullets say, which may be why the game hid them. An action shows the line when it has the flat `edgehackLine: true`, which EDGEhack writes on a hack with a **Player line**, Boss and Chimera actions included. The script puts its changes back on an unmarked hack, since the tab's widgets are shared by every hack.
 
 **If the panels overflow** (the owner's idea, 2026-11-04: make the quickhack tooltips and panels scrollable rather than let them run off the screen). The game has scroll areas (`inkScrollArea`, in its full-screen menus: codex, crafting, shards, settings), but none in `scandetails.inkwidget`, and no tooltip or scanner script uses one. A scroll area can be added by script, as a parent of the panel, but something must drive it: the scanner's list and the inventory's tooltips take no scroll input of their own, and the mouse wheel and arrow keys may already move the selection in the list (unverified). Built only if the spike shows a need, panel by panel, and judged by how cluttered the screen feels in the game. The options to try, in order (the owner, 2026-11-04):
 
@@ -344,7 +344,7 @@ So no new widget is needed, and the text is the one the record already holds (`I
 
 **The game's own lines (read on 2026-11-04):** the top tiers' run from 54 characters (Reboot Optics) to 292 (Blackwall Gateway); some are flavour text rather than a description (Blackwall Gateway, Contagion, Bait), and two hold placeholders (`{float_0}`: Memory Wipe, Synapse Burnout) that the tab may show as written.
 
-**Built: the spike** (`r6/scripts/EDGEhack/PlayerLine.reds`, in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H2d`), waiting for its run ([Tests, "H2d Spike"](testing.html#h2d-spike)). redscript-cli found no errors in it against a copy of 2.5's scripts, which also shows the method and fields exist in 2.5. Then the field in the editor (H2c). **Unverified:** how the moved panel and its `line` rectangle look; how long a line fits; whether a tint reaches a rich text box.
+**Built: the spike** (`r6/scripts/EDGEhack/PlayerLine.reds`, in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H2d`). The first version passed in the game on every hack; the second, on marked hacks only, waits for its run ([Tests, "H2d Spike, second version"](testing.html#h2d-spike-second-version)). redscript-cli found no errors in either against a copy of 2.5's scripts. Then the field in the editor (H2c). **Unverified:** that TweakXL takes a new flat on a game record (`edgehackLine`).
 
 ### Own icons (H3b)
 

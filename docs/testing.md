@@ -17,11 +17,30 @@ Last updated 2026-11-04.
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
-| [H2d Spike](#h2d-spike) | By hand, in the game | H2 | Not run yet | Waiting |
+| [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
+| [H2d Spike, second version](#h2d-spike-second-version) | By hand, in the game | H2 | Not run yet | Waiting |
 
 ## Waiting for a hand test
 
-- [H2d Spike](#h2d-spike), in the game.
+- [H2d Spike, second version](#h2d-spike-second-version), in the game.
+
+## H2d Spike, second version
+
+The line only on hacks marked by EDGEhack (the owner's choice after the first version, below). In the EDGEdeck library as **EDGEhack H2d spike v2**: the script, and a small YAML that marks only Rare Overheat (`edgehackLine: true` on `QuickHack.OverheatLvl2Hack`). Checked with redscript-cli: no errors alone, none in this file with Codeware's scripts. Keep **EDGEhack H2a spike** on, since it holds the line's text, and the first version off.
+
+**Before you start:** deploy with the game closed.
+
+| Step | Do | Expect |
+|---|---|---|
+| Timer | In REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below | Marks in the Mod log |
+| 1 | Load the save. Put **Rare Overheat** in the cyberdeck, with **Contagion** and **Memory Wipe**. Scan an enemy, and highlight Rare Overheat on the **Hacking** tab | "EDGEhack's spike: this text comes from the mod." in red, above the bullets. This is the mark working |
+| 2 | Highlight **Memory Wipe**, then **Contagion** | No red line and no `{float_0}`: the tab as the game shows it, bullets only. This is the marked hack's change put back |
+| 3 | Go back and forth between Rare Overheat and Contagion several times | The line comes and goes with the hack, and is always above the bullets. Nothing stays red, jumps or changes order |
+| 4 | Swap Rare Overheat for **Epic Overheat**, and highlight it | No line: Epic is not marked, though it shares its text with Rare |
+| 5 | Scan a device, such as a camera, and highlight a hack on it | The tab as the game shows it |
+| 6 | Quit the game | Tell me anything that looked wrong. I read TweakXL's and redscript's logs |
+
+**After:** turn the spikes off in EDGEdeck and deploy, if you don't want to keep them.
 
 ## H2d Spike
 
@@ -45,6 +64,10 @@ The hacks are the worst cases for crowding: the longest lines and the most bulle
 | 9 | Quit the game | Tell me how crowded it feels, and which hacks looked wrong. A screenshot of the worst one would help |
 
 **After:** turn both spikes off in EDGEdeck and deploy, if you don't want to keep them.
+
+| Run | Result |
+|---|---|
+| 2026-11-04, by the owner, on the dev PC's game 2.5 | The text all fits, including the longest line and the most bullets. Step 7: Memory Wipe's line showed a literal `{float_0}`, and it repeated what the bullets say. The owner's decision: off for the game's own hacks, on for EDGEhack's. No script errors in the logs. The timer was not used |
 
 ## H2a Spike
 
