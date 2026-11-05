@@ -16,7 +16,7 @@ Last updated 2026-11-04.
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
-| [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | Not run yet | Waiting |
+| [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-04 | Part A passed; Part B, in the game, waiting |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2 | 2026-11-04 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -24,7 +24,7 @@ Last updated 2026-11-04.
 
 ## Waiting for a hand test
 
-- [H2c Edit](#h2c-edit), EDGEhack 0.0.4, by hand and in the game.
+- [H2c Edit](#h2c-edit), EDGEhack 0.0.4, Part B in the game. Part A, in VS Code, passed on 2026-11-04.
 
 ## H2c Edit
 
