@@ -29,6 +29,11 @@ export interface Damage {
   /** The attack record, and the stat its damage is added up in: what the writer appends to. */
   record: string;
   stat?: string;
+  /** The attack's modifiers, the effector that runs it, and the package holding that effector with its list: what a new quickhack copies. */
+  attackMods?: string[];
+  effector?: string;
+  package?: string;
+  packageEffectors?: string[];
 }
 
 export interface StatChange {
@@ -56,6 +61,8 @@ export interface Effect {
   /** The status effect's duration group and its modifiers: what the writer copies with one more. */
   durationGroup?: string;
   durationMods?: string[];
+  /** The status effect's packages. */
+  packages?: string[];
   stacks?: number;
   tags: string[];
   damage: Damage[];
@@ -100,8 +107,10 @@ export interface Tier {
   ram?: Value;
   upload?: Value;
   /** The cooldown: its status effect, and that effect's duration group, which the writer appends to. */
-  cooldown?: Value & { record: string; group?: string };
+  cooldown?: Value & { record: string; group?: string; groupMods?: string[]; prereq?: string };
   effects: Effect[];
+  /** The record lists a new quickhack copies and changes. */
+  lists: { objectActions: string[]; startEffects: string[]; completionEffects: string[]; instigatorPrereqs: string[]; costs: string[]; activationTime: string[] };
   /** Why it cannot be used on a target, as the game says it. */
   notWhen: string[];
   spread: boolean;
@@ -225,7 +234,7 @@ class Reader {
     const type = str(atk, "damageType") ? words(str(atk, "damageType")!) : stat ? words(stat).replace(/ Damage$/, "") : "Physical";
     // Every additive modifier of the damage stat adds up: Overheat Lvl3 is 3 (base) + 20 (its tier).
     const sum = stat ? await sumStat(this.r, mods, stat) : { base: 0, scaledBy: [] };
-    return { type, perHit: sum.base, every, scaledBy: sum.scaledBy, record: atk.path, stat };
+    return { type, perHit: sum.base, every, scaledBy: sum.scaledBy, record: atk.path, stat, attackMods: list(atk, "statModifiers") };
   }
 
   /** What an effector does, in words, with its damage and stat changes. */
@@ -270,7 +279,7 @@ class Reader {
       for (const ef of list(pkg, "effectors")) {
         const e = await this.effector(ef);
         if (!e) continue;
-        damage.push(...e.damage);
+        damage.push(...e.damage.map((d) => ({ ...d, effector: ef, package: pkg.path, packageEffectors: list(pkg, "effectors") })));
         stats.push(...e.stats);
         spread ||= e.spread;
       }
@@ -283,6 +292,7 @@ class Reader {
       duration,
       durationGroup: durationPath && durationPath !== "BaseStats.InfiniteDuration" ? durationPath : undefined,
       durationMods: list(durationGroup[0], "statModifiers"),
+      packages: list(se, "packages"),
       stacks,
       tags: list(se, "gameplayTags"),
       damage,
@@ -341,14 +351,14 @@ class Reader {
   }
 
   /** The cooldown: a status effect V gets, which the action's instigator prerequisites check for. */
-  async cooldown(action: Rec | undefined): Promise<(Value & { record: string; group?: string }) | undefined> {
+  async cooldown(action: Rec | undefined): Promise<(Value & { record: string; group?: string; groupMods?: string[]; prereq?: string }) | undefined> {
     for (const pre of await this.all(action?.flats.get("instigatorPrereqs"))) {
       const se = await this.get(str(pre, "statusEffect"));
       if (!se || pre.flats.get("invert") !== true) continue;
       const isCooldown = list(se, "gameplayTags").includes("QuickHackCooldown") || str(se, "statusEffectType") === "BaseStatusEffectTypes.PlayerCooldown";
       if (!isCooldown) continue;
       const group = await this.all([str(se, "duration")].filter(Boolean));
-      return { record: se.path, group: group[0]?.path, ...(await sumStat(this.r, group, "BaseStats.MaxDuration")) };
+      return { record: se.path, group: group[0]?.path, groupMods: list(group[0], "statModifiers"), prereq: pre.path, ...(await sumStat(this.r, group, "BaseStats.MaxDuration")) };
     }
     return undefined;
   }
@@ -438,6 +448,14 @@ export async function readTier(r: Records, itemPath: string | undefined, actionP
     upload: await rd.upload(action),
     cooldown,
     effects,
+    lists: {
+      objectActions: list(item, "objectActions"),
+      startEffects: list(action, "startEffects"),
+      completionEffects: list(action, "completionEffects"),
+      instigatorPrereqs: list(action, "instigatorPrereqs"),
+      costs: list(action, "costs"),
+      activationTime: list(action, "activationTime"),
+    },
     notWhen,
     spread: effects.some((e) => e.spread),
     passives,

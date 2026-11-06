@@ -3,9 +3,13 @@ import * as assert from "node:assert/strict";
 import { Records } from "../src/records";
 import { readFamily } from "../src/read";
 import { writeTweaks } from "../src/tweaks";
-import { newDoc, parseDoc, printDoc, safeId, withField, withTierField } from "../src/document";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId, withField, withTierField } from "../src/document";
+import type { BridgeClient, ProjectRef } from "../src/redcode";
 import { gameValue, renderEditor } from "../src/editorHtml";
-import { isInside, mergeEntries } from "../src/projectFiles";
+import { isInside, mergeEntries, writeProject } from "../src/projectFiles";
 import { fetchRecord, fetchText } from "./fixture";
 
 const family = () =>
@@ -138,4 +142,115 @@ test("a change goes only inside the folder it is meant for", () => {
   assert.equal(isInside("E:/a/b/c.txt", "E:/a"), true);
   assert.equal(isInside("E:/ab/c.txt", "E:/a"), false);
   assert.equal(isInside("E:/a", "E:/a"), false);
+});
+
+const newOne = (fields: Partial<QuickhackDoc> = {}): QuickhackDoc => ({ ...newHackDoc("My Mod", "Zap", "Static Skull"), ...fields });
+const body = (yaml: string, path: string): string => {
+  const at = yaml.indexOf(`\n${path}:\n`);
+  assert.ok(at >= 0, `no record ${path}`);
+  const end = yaml.indexOf("\n\n", at + 1);
+  return yaml.slice(at, end < 0 ? undefined : end).trimEnd();
+};
+
+test("a new quickhack gets its own item and action per tier, with its own action name and shard type", async () => {
+  const { yaml, script, warnings } = writeTweaks(await family(), newOne());
+  assert.deepEqual(warnings, []);
+  const item = body(yaml!, "Items.EDGEhack_my_mod_static_skull_ZapLvl1Program");
+  assert.match(item, /\$base: Items\.ZapLvl1Program/);
+  assert.match(item, /shardType: EDGEhack_my_mod_static_skull/);
+  const action = body(yaml!, "QuickHack.EDGEhack_my_mod_static_skull_ZapLvl1Program");
+  assert.match(action, /\$base: QuickHack\.ZapLvl1Hack/);
+  assert.match(action, /actionName: EDGEhack_my_mod_static_skull\n/);
+  assert.match(script!, /StrBeginsWith\(NameToString\(record\.ActionName\(\)\), "EDGEhack"\)/);
+});
+
+test("each new item lists its own action and every lower tier's, and no Boss or Spread action", async () => {
+  const { yaml } = writeTweaks(await family(), newOne());
+  const base = body(yaml!, "Items.EDGEhack_my_mod_static_skull_ZapProgram");
+  assert.match(base, /objectActions:\n {4}- ItemAction\.ProgramDisassemble\n {4}- QuickHack\.EDGEhack_my_mod_static_skull_ZapProgram$/);
+  const top = body(yaml!, "Items.EDGEhack_my_mod_static_skull_ZapLvl1Program");
+  assert.match(top, /- QuickHack\.EDGEhack_my_mod_static_skull_ZapProgram\n {4}- QuickHack\.EDGEhack_my_mod_static_skull_ZapLvl1Program$/);
+  assert.doesNotMatch(yaml!, /Boss|HackSpread/);
+});
+
+test("a new quickhack has its own cooldown and no spread, and touches no game record", async () => {
+  const { yaml } = writeTweaks(await family(), newOne());
+  const action = body(yaml!, "QuickHack.EDGEhack_my_mod_static_skull_ZapProgram");
+  assert.match(action, /startEffects:\n {4}- QuickHack\.EDGEhack_my_mod_static_skull_CooldownStart\n/);
+  assert.match(action, /instigatorPrereqs:\n {4}- QuickHack\.EDGEhack_my_mod_static_skull_CooldownCheck\n/);
+  assert.doesNotMatch(action, /ZapSpreadInit|ZapStartCooldown|ZapCooldownPrereq/);
+  assert.match(body(yaml!, "QuickHack.EDGEhack_my_mod_static_skull_CooldownStart"), /\$base: QuickHack\.ZapStartCooldown\n {2}statusEffect: BaseStatusEffect\.EDGEhack_my_mod_static_skull_Cooldown/);
+  // Every record it writes is new: nothing starts with a game record's name or uses !append.
+  const heads = yaml!.split("\n").filter((l) => /^[A-Za-z]/.test(l));
+  assert.ok(heads.length > 0);
+  for (const h of heads) assert.match(h, /EDGEhack/, h);
+  assert.doesNotMatch(yaml!, /!append/);
+});
+
+test("a new quickhack's RAM and upload join copies of the game's lists", async () => {
+  const doc = withTierField(withTierField(newOne(), "Items.ZapProgram", "ram", 5, 3), "Items.ZapProgram", "upload", 1, 2);
+  const action = body(writeTweaks(await family(), doc).yaml!, "QuickHack.EDGEhack_my_mod_static_skull_ZapProgram");
+  assert.match(action, /costs:\n {4}- QuickHack\.ZapHack_cost\n {4}- EDGEhack\.my_mod_static_skull\.ZapProgram_Ram\n/);
+  assert.match(action, /activationTime:\n {4}- QuickHack\.ZapHack_upload\n {4}- EDGEhack\.my_mod_static_skull\.ZapProgram_Upload\n/);
+});
+
+test("a new quickhack's damage and duration copy the chain, leaving the family's alone", async () => {
+  let doc = withTierField(newOne(), "Items.ZapLvl1Program", "damage", 73, 23);
+  doc = withTierField(doc, "Items.ZapLvl1Program", "duration", 12, 6);
+  const { yaml, warnings } = writeTweaks(await family(), doc);
+  assert.deepEqual(warnings, []);
+  const p = "my_mod_static_skull";
+  assert.match(body(yaml!, `Attacks.EDGEhack_${p}_ZapLvl1Program`), /\$base: Attacks\.ZapLvl1Hack\n {2}statModifiers:\n {4}- Attacks\.ZapBase\n {4}- Attacks\.ZapLvl1Hack_tier\n {4}- EDGEhack\.my_mod_static_skull\.ZapLvl1Program_Damage/);
+  assert.match(body(yaml!, `EDGEhack.${p}.ZapLvl1Program_Effector`), /attackRecord: Attacks\.EDGEhack_my_mod_static_skull_ZapLvl1Program/);
+  assert.match(body(yaml!, `EDGEhack.${p}.ZapLvl1Program_Package`), /effectors:\n {4}- EDGEhack\.my_mod_static_skull\.ZapLvl1Program_Effector/);
+  const status = body(yaml!, `BaseStatusEffect.EDGEhack_${p}_ZapLvl1Program`);
+  assert.match(status, /duration: EDGEhack\.my_mod_static_skull\.ZapLvl1Program_Duration/);
+  assert.match(status, /packages:\n {4}- EDGEhack\.my_mod_static_skull\.ZapLvl1Program_Package/);
+  const action = body(yaml!, `QuickHack.EDGEhack_${p}_ZapLvl1Program`);
+  assert.match(action, /- QuickHack\.EDGEhack_my_mod_static_skull_ZapLvl1Program_Effect/);
+  assert.doesNotMatch(action, /ZapLvl1Hack_effect/);
+  // The tier left alone keeps the game's effect.
+  assert.match(body(yaml!, `QuickHack.EDGEhack_${p}_ZapProgram`), /- QuickHack\.ZapHack_effect/);
+});
+
+test("a new quickhack's texts, icons and cooldown go in its own records", async () => {
+  const { yaml, texts } = writeTweaks(await family(), newOne({ description: "Skulls.", wheelText: "Wheel words.", itemIcon: "UIIcon.quickhack_x", wheelIcon: "UIIcon.X", cooldown: 20 }));
+  assert.deepEqual(texts.map((t) => t.key), ["EDGEhack-my_mod_static_skull-Name", "EDGEhack-my_mod_static_skull-Description", "EDGEhack-my_mod_static_skull-Wheel"]);
+  const item = body(yaml!, "Items.EDGEhack_my_mod_static_skull_ZapProgram");
+  assert.match(item, /displayName: LocKey#EDGEhack-my_mod_static_skull-Name/);
+  assert.match(item, /iconPath: quickhack_x/);
+  const ui = body(yaml!, "Interactions.EDGEhack_my_mod_static_skull");
+  assert.match(ui, /caption: LocKey#EDGEhack-my_mod_static_skull-Name/);
+  assert.match(ui, /captionIcon: ChoiceCaptionParts\.EDGEhack_my_mod_static_skullIcon/);
+  assert.match(body(yaml!, "ChoiceCaptionParts.EDGEhack_my_mod_static_skullIcon"), /texturePartID: UIIcon\.X/);
+  const group = body(yaml!, "EDGEhack.my_mod_static_skull.Cooldown");
+  assert.match(group, /- BaseStatusEffect\.ZapCooldownDuration_inline0\n {4}- EDGEhack\.my_mod_static_skull\.CooldownMod/);
+  assert.match(body(yaml!, "EDGEhack.my_mod_static_skull.CooldownMod"), /value: 8\n/);
+});
+
+test("numbers against bosses are refused on a new quickhack, in words", async () => {
+  const { warnings } = writeTweaks(await family(), withTierField(newOne(), "Items.ZapProgram", "bossRam", 10));
+  assert.match(warnings[0], /no Boss action/);
+});
+
+test("a new quickhack's document reads and prints as one", () => {
+  const doc = parseDoc(printDoc(newHackDoc("My Mod", "Zap", "Static Skull")));
+  assert.equal(doc.newHack, true);
+  assert.equal(doc.id, "my_mod_static_skull");
+  assert.equal(parseDoc(printDoc(newDoc("My Mod", "Zap"))).newHack, undefined);
+});
+
+test("the project gets the shared script for a new quickhack, and not for a change", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ehscript"));
+  const project = { dir, resources: path.join(dir, "res"), modName: "My Mod" } as unknown as ProjectRef;
+  const onscreens = JSON.stringify({ Data: { RootChunk: { root: { Data: { entries: [] } } } } });
+  const bridge = { locProjectFiles: async () => [{ exists: true, file: "loc.json" }], fileToJson: async () => ({ json: onscreens }), fromJson: async () => ({}) } as unknown as BridgeClient;
+  const script = path.join(project.resources, "r6", "scripts", "EDGEhack", "NewQuickhacks.reds");
+  const change = writeTweaks(await family(), withTierField(newDoc("My Mod", "Zap"), "Items.ZapProgram", "ram", 5, 3));
+  assert.equal((await writeProject(project, bridge, newDoc("My Mod", "Zap"), change)).script, undefined);
+  assert.equal(fs.existsSync(script), false);
+  const made = await writeProject(project, bridge, newOne(), writeTweaks(await family(), newOne()));
+  assert.equal(made.script, script);
+  assert.match(fs.readFileSync(script, "utf8"), /^\/\/ Made by EDGEhack/);
+  fs.rmSync(dir, { recursive: true, force: true });
 });

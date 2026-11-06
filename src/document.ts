@@ -22,8 +22,10 @@ export interface QuickhackDoc {
   format: 1;
   /** Names the mod's records and text keys. Fixed once written: saves and other mods refer to them. */
   id: string;
-  /** The game's family this changes: Overheat. */
+  /** The game's family this changes, or a new quickhack's starting point: Overheat. */
   family: string;
+  /** A new quickhack beside the family, with records of its own, rather than a change to the family. */
+  newHack?: boolean;
   name?: string;
   description?: string;
   /** The wheel's text. The game shows it only for a hack whose tab has no effects list. */
@@ -48,6 +50,11 @@ export function safeId(name: string): string {
 export function newDoc(modName: string, family: string): QuickhackDoc {
   const id = safeId(`${modName}_${family}`);
   return { format: 1, id, family, tiers: {} };
+}
+
+/** A document for a new quickhack: the id comes from its name, since a mod may make several from one family. */
+export function newHackDoc(modName: string, family: string, name: string): QuickhackDoc {
+  return { format: 1, id: safeId(`${modName}_${name}`), family, newHack: true, name, tiers: {} };
 }
 
 function number(v: unknown, what: string): number | undefined {
@@ -88,6 +95,7 @@ export function parseDoc(source: string): QuickhackDoc {
     format: 1,
     id: o.id,
     family: o.family,
+    ...(o.newHack === true ? { newHack: true } : {}),
     name: text(o.name, "The name"),
     description: text(o.description, "The description"),
     wheelText: text(o.wheelText, "The wheel text"),

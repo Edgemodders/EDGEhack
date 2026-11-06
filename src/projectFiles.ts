@@ -6,6 +6,7 @@ import * as path from "node:path";
 import type { BridgeClient, ProjectRef } from "./redcode";
 import type { QuickhackDoc } from "./document";
 import type { TextEntry, WrittenTweaks } from "./tweaks";
+import { NEW_HACK_SCRIPT_PATH } from "./newHackScript";
 
 const MADE_BY = "# Made by EDGEhack";
 
@@ -14,6 +15,8 @@ export interface ProjectResult {
   yaml?: string;
   /** The onscreens file, when it was touched. */
   texts?: string;
+  /** The script a new quickhack needs, when the document wrote it. */
+  script?: string;
 }
 
 /** True when a file is inside a folder. */
@@ -49,6 +52,14 @@ export async function writeProject(project: ProjectRef, bridge: BridgeClient, do
     result.yaml = yaml;
   } else {
     fs.rmSync(yaml, { force: true });
+  }
+
+  // Never removed: another document in the project may need it, and it does nothing with no new hack.
+  if (written.script) {
+    const file = path.join(project.resources, ...NEW_HACK_SCRIPT_PATH);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, written.script);
+    result.script = file;
   }
 
   const files = await bridge.locProjectFiles(project.dir, "en-us");

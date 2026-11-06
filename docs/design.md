@@ -407,6 +407,8 @@ This changes the decision "Behaviour beyond records: out of scope": a new quickh
 
 The phase's test stays as written: a new quickhack crafted or bought, with two added effects working on an enemy.
 
+**H3.2 built (2026-11-05):** `writeNewHack` in `src/tweaks.ts`, with `newHack` in the document and the shared script in `src/newHackScript.ts`, which every EDGEhack mod ships at the same path so only one copy loads. Each tier gets its own item and action, the hack one wheel entry and cooldown, and a tier whose damage or duration changes gets copies of its status effect and of the attack's chain (attack, effector, package). Everything goes in the record's own body, so nothing relies on the order TweakXL applies flats in. Spread and the Boss and Chimera actions are left out, since they point at the family's records; numbers against bosses give a warning. Run against the real REDbridge on all 18 families: all 749 game records they name exist, and a Rare Overheat's action matches the spike's, apart from the spike's two added effects. **Not yet run in the game:** this writer's own output, several tiers, and copied damage or duration. H3.3 tries it.
+
 **What the spike answers:**
 
 - Does `$base` copy a tier's inline records, or does the copy still point at the original's?
@@ -480,7 +482,7 @@ The names and `target`'s fields are a first sketch. `target` folds the common re
 3. Each later rebuild shows the remembered answer and asks again, and refreshes only if the answer changed, so it cannot loop.
 4. With no answer within 1 s (the mod is off, it threw, it hung), the game's own result stands and the log says why.
 
-The spike measured answers in 0 to 0.03 s from the snapshot, and 0.06 s with three game calls. **The owner's note from it (2026-11-05):** that is too quick to read. Of the times tried, only 1 s gave enough time to notice and read "Checking". So the proposal is to hold it for 1 s the first time V scans an enemy, whatever the answer, with no wait on later scans. That also keeps a usable hack locked for that second, so H3c.1 tries it in a fight before it is decided. If a mod needs it shorter, a setting can come with the API. Should a future check need to be instant, the same function could move to Tier 1 with no change for modders.
+The spike measured answers in 0 to 0.03 s from the snapshot, and 0.06 s with three game calls. **The owner's note from it (2026-11-05):** that is too quick to read. Of the times tried, only 1 s gave enough time to notice and read "Checking". So it holds for 1 s the first time V scans an enemy, whatever the answer, with no wait on later scans; that also keeps a usable hack locked for that second. Tried in a fight and **kept by the owner on 2026-11-05**. If a mod needs it shorter, a setting can come with the API. Should a future check need to be instant, the same function could move to Tier 1 with no change for modders.
 
 **On land** has no such catch: nothing waits for it. A wrap on `ScriptableDeviceAction.CompleteAction` (people's hacks use it, and the game skips it if the target is dead) sends the event, and the function runs a frame or two later. It adds to what the hack does and cannot cancel it. The check for a hack that should not land at all is the scan check.
 
@@ -514,7 +516,7 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 
 **H3c.1's result (2026-11-05, game 2.5): passed.** Both wraps and the fallback work with no REDnode change, and a locked entry shows our text as the game's do. 90 rebuilds in about 4 minutes, with no loop. Lowering the health pool from a function works, and a kill that way looked normal. A hand-built `gameHitEvent` crashed the game.
 
-**Still open for H3c.2:** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, since V lacks the perk; Boss and Chimera actions; whether the 1 s hold stays.
+**Still open for H3c.2:** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, since V lacks the perk; Boss and Chimera actions.
 
 **Agreed with the owner on 2026-11-05:**
 

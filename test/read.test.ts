@@ -89,7 +89,20 @@ test("effects: the cooldown, a shared one, the spread and the burn with its dama
   assert.equal(burn.type, "Burning");
   assert.equal(burn.duration?.base, 6);
   assert.equal(burn.stacks, 2);
-  assert.deepEqual(burn.damage, [{ type: "Thermal", perHit: 23, every: 0.25, scaledBy: [], record: "Attacks.ZapLvl1Hack", stat: "BaseStats.ThermalDamage" }]);
+  assert.deepEqual(burn.damage, [
+    {
+      type: "Thermal",
+      perHit: 23,
+      every: 0.25,
+      scaledBy: [],
+      record: "Attacks.ZapLvl1Hack",
+      stat: "BaseStats.ThermalDamage",
+      attackMods: ["Attacks.ZapBase", "Attacks.ZapLvl1Hack_tier"],
+      effector: "BaseStatusEffect.ZapLvl1HackBurn_dot",
+      package: "BaseStatusEffect.ZapLvl1HackBurn_pkg",
+      packageEffectors: ["BaseStatusEffect.ZapLvl1HackBurn_dot"],
+    },
+  ]);
   assert.equal(burn.durationGroup, "BaseStatusEffect.ZapDuration");
   assert.deepEqual(burn.durationMods, ["BaseStatusEffect.ZapDuration_inline0"]);
   assert.deepEqual(burn.stats, [{ stat: "Armor", value: -10, how: "Additive" }]);
