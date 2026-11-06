@@ -18,7 +18,7 @@ Last updated 2026-11-06.
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
-| [H3.3 New](#h33-new) | By hand, then in the game | H3 | Not run yet | Waiting |
+| [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-06 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -26,7 +26,7 @@ Last updated 2026-11-06.
 
 ## Waiting for a hand test
 
-[H3.3 New](#h33-new), on the owner's laptop.
+None.
 
 ## H3.3 New
 
@@ -69,7 +69,7 @@ Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, a
 
 | Run | Result |
 |---|---|
-| | |
+| 2026-11-06, by the owner on the laptop, EDGEhack 0.0.5 | Pass: Parts A and B went as written, by the owner's report. The logs were not read here |
 
 ## H3.1 and H3c.1 Spikes
 

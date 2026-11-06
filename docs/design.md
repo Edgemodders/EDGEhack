@@ -444,6 +444,8 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 
 **H3.3 built (2026-11-06), EDGEhack 0.0.5:** **Make a New One From This** on the page and on a family or tier in the Quickhacks view, asking the name in VS Code's own box (the name must make a free id, and not the one a change to a game family takes). `src/projectDocs.ts` finds a project's documents, makes a new one and writes a document's mod files, with no VS Code. The mod files are written at once, since a save of an unchanged file writes nothing and Pack and Play would find none; Pack and Play now also waits for the files of a save. The Quickhacks view's **Project** group lists the project's documents, following them on disk. The new hack's editor drops the numbers against bosses and gives a Console line per tier until Get it (H3.6). The plan's `base` field was not needed: `family` with `newHack` says the same.
 
+**H3.3 passed in the game (2026-11-06), on the owner's laptop:** the first run of the writer's own output. A new hack made in the editor, with several tiers and copied damage and duration, sits beside the family it came from in the deck and on the wheel, with its own RAM, numbers and a 15 s cooldown of its own, while the game's Overheat keeps its own. That settles the separate cooldown the spike could not show, since Overheat's is 0.0001 s.
+
 **What the spike answers:**
 
 - Does `$base` copy a tier's inline records, or does the copy still point at the original's?
@@ -454,7 +456,7 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 
 **H3.1's result (2026-11-05, game 2.5): passed.** Spike Static, with its own `actionName` and `shardType` and the small script, sat beside Overheat on the wheel and worked on enemies. Both Overheat burns and the poison ran on one enemy at once, so two effects of one `statusEffectType` can sit side by side when they are different records, and a second upload of one record added a stack.
 
-**Still open for H3:** whether `$base` copies inline records (the spike listed its effects by hand); a separate cooldown, since Overheat's is 0.0001 s and the copy's too; how a boss's actions are picked; and perks tied to a family.
+**Still open for H3:** whether `$base` copies inline records (the spike listed its effects by hand); how a boss's actions are picked; and perks tied to a family.
 
 ### Own icons (H3b)
 
