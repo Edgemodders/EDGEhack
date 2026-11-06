@@ -1,12 +1,18 @@
-// The Quickhacks view: the game's quickhacks. People by category, family and tier; then device and
-// vehicle hacks. A click opens the quickhack in the editor page. The filter keeps families and hacks
-// whose name or records hold every word.
+// The Quickhacks view: the open project's quickhacks, then the game's. People by category, family and
+// tier; then device and vehicle hacks. A click opens the quickhack in the editor page. The filter keeps
+// families and hacks whose name or records hold every word.
+import * as path from "node:path";
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
 import type { ActionEntry, Catalog, FamilyEntry } from "./catalog";
 import { iconOf } from "./read";
+import { ProjectRef, redcode } from "./redcode";
+import { ProjectDoc, projectDocs } from "./projectDocs";
+import { EditorViewType } from "./editor";
 
 type Node =
+  | { kind: "project"; name: string; docs: ProjectDoc[] }
+  | { kind: "doc"; entry: ProjectDoc }
   | { kind: "group"; id: "people" | "devices" | "vehicles"; label: string }
   | { kind: "category"; name: string }
   | { kind: "family"; family: FamilyEntry }
@@ -45,17 +51,60 @@ export class QuickhacksView implements vscode.TreeDataProvider<Node> {
     return list.filter((a) => this.matches(a.name, a.path, a.category));
   }
 
+  /** Follows the open project's documents, so the Project group stays current. */
+  async watchProject(): Promise<vscode.Disposable> {
+    const api = await redcode();
+    let watcher: vscode.FileSystemWatcher | undefined;
+    const watch = (project: ProjectRef | undefined): void => {
+      watcher?.dispose();
+      watcher = undefined;
+      if (project) {
+        watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(project.raw), "edgehack/*.quickhack.json"));
+        const fire = (): void => this.changed.fire(undefined);
+        watcher.onDidCreate(fire);
+        watcher.onDidChange(fire);
+        watcher.onDidDelete(fire);
+      }
+      this.changed.fire(undefined);
+    };
+    watch(api.project());
+    const changes = api.onDidChangeProject(watch);
+    return new vscode.Disposable(() => {
+      changes.dispose();
+      watcher?.dispose();
+    });
+  }
+
+  refreshProject(): void {
+    this.changed.fire(undefined);
+  }
+
+  /** The Project group, when a project is open and holds a quickhack the filter keeps. */
+  private async projectGroup(): Promise<Node | undefined> {
+    let project: ProjectRef | undefined;
+    try {
+      project = (await redcode()).project();
+    } catch {
+      return undefined;
+    }
+    if (!project) return undefined;
+    const docs = projectDocs(project).filter((e) => this.matches(path.basename(e.file), e.doc?.name, e.doc?.family));
+    return docs.length ? { kind: "project", name: project.name, docs } : undefined;
+  }
+
   async getChildren(node?: Node): Promise<Node[]> {
+    if (node?.kind === "project") return node.docs.map((entry) => ({ kind: "doc", entry }));
+    const top = node ? [] : [await this.projectGroup()].filter((n): n is Node => !!n);
     let catalog: Catalog;
     try {
       catalog = await (this.view
         ? vscode.window.withProgress({ location: { viewId: "edgehack.quickhacks" }, title: "Reading the game's quickhacks" }, () => this.hub.catalog())
         : this.hub.catalog());
     } catch (e) {
-      return [{ kind: "note", text: e instanceof Error ? e.message : String(e) }];
+      return [...top, { kind: "note", text: e instanceof Error ? e.message : String(e) }];
     }
     if (!node) {
-      const groups: Node[] = [];
+      const groups: Node[] = top;
       if (this.families(catalog).length) groups.push({ kind: "group", id: "people", label: "People" });
       if (this.actions(catalog.devices).length) groups.push({ kind: "group", id: "devices", label: "Devices" });
       if (this.actions(catalog.vehicles).length) groups.push({ kind: "group", id: "vehicles", label: "Vehicles" });
@@ -76,6 +125,37 @@ export class QuickhacksView implements vscode.TreeDataProvider<Node> {
   async getTreeItem(node: Node): Promise<vscode.TreeItem> {
     const filtered = this.filter.length > 0;
     switch (node.kind) {
+      case "project": {
+        const item = new vscode.TreeItem(`Project: ${node.name}`, vscode.TreeItemCollapsibleState.Expanded);
+        item.id = `${filtered ? "f:" : ""}project`;
+        item.iconPath = new vscode.ThemeIcon("project");
+        return item;
+      }
+      case "doc": {
+        const { entry } = node;
+        const file = path.basename(entry.file);
+        const open = { command: "vscode.openWith", title: "Open", arguments: [vscode.Uri.file(entry.file), EditorViewType] };
+        if (!entry.doc) {
+          const item = new vscode.TreeItem(file, vscode.TreeItemCollapsibleState.None);
+          item.id = `${filtered ? "f:" : ""}doc:${entry.file}`;
+          item.description = "cannot be read";
+          item.tooltip = entry.error;
+          item.iconPath = new vscode.ThemeIcon("warning");
+          item.command = open;
+          return item;
+        }
+        const doc = entry.doc;
+        const family = await this.hub.catalog().then((c) => c.families.find((f) => f.key === doc.family), () => undefined);
+        const from = family?.name ?? doc.family;
+        const item = new vscode.TreeItem(doc.name || from, vscode.TreeItemCollapsibleState.None);
+        item.id = `${filtered ? "f:" : ""}doc:${entry.file}`;
+        item.description = doc.newHack ? `new, from ${from}` : `changes ${from}`;
+        item.tooltip = `${doc.name || from}\n${item.description}\n${entry.file}`;
+        item.iconPath = await this.icon(doc.itemIcon ?? family?.icon, "zap");
+        item.contextValue = "edgehack.doc";
+        item.command = open;
+        return item;
+      }
       case "group": {
         const item = new vscode.TreeItem(node.label, node.id === "people" || filtered ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed);
         item.id = `${filtered ? "f:" : ""}group:${node.id}`;
@@ -127,6 +207,11 @@ export class QuickhacksView implements vscode.TreeDataProvider<Node> {
         return item;
       }
     }
+  }
+
+  /** The family a node belongs to, for Make a New One From This. */
+  static familyOf(node: Node | undefined): string | undefined {
+    return node?.kind === "family" || node?.kind === "tier" ? node.family.key : undefined;
   }
 
   /** The record a node stands for, for Open in REDcode. */

@@ -4,6 +4,7 @@
 import type { QuickhackDoc, TierField } from "./document";
 import { mainEffect, type Family, type Tier } from "./read";
 import { esc, img, tierPanel } from "./pageHtml";
+import { newItemPath } from "./tweaks";
 
 /** What the game has for one of a tier's numbers, or undefined when the tier has none to change. */
 export function gameValue(t: Tier, field: TierField): number | undefined {
@@ -60,7 +61,9 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
   const tiers = fam.tiers;
   const top = tiers[tiers.length - 1];
   const head = tiers.map((t, i) => `<th data-tier="${i}"><button data-pick="${i}" data-tier="${i}">${esc(t.quality ?? `Tier ${i + 1}`)}</button></th>`).join("");
-  const rows = ROWS.filter((r) => tiers.some((t) => gameValue(t, r.field) !== undefined))
+  // A new quickhack has no Boss or Chimera action of its own, so nothing to set against bosses.
+  const rows = ROWS.filter((r) => !(doc.newHack && (r.field === "bossRam" || r.field === "bossUpload")))
+    .filter((r) => tiers.some((t) => gameValue(t, r.field) !== undefined))
     .map(
       (r) =>
         `<tr><th scope="row"${r.hint ? ` title="${esc(r.hint)}"` : ""}>${esc(r.label)}${r.unit ? ` <span class="none">(${r.unit})</span>` : ""}<button class="all" data-apply-all="${r.field}" title="Give every tier the selected tier's change">All tiers</button></th>${tiers.map((t, i) => numberCell(doc, t, i, r.field)).join("")}</tr>`,
@@ -71,11 +74,21 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
     ? `<p class="family"><label>Cooldown for every tier (s): <input type="number" min="0" step="any" data-set="cooldown" data-game="${esc(cooldown.base)}" placeholder="${cooldown.base < 0.01 ? "none" : esc(cooldown.base)}" value="${doc.cooldown === undefined ? "" : esc(doc.cooldown)}"></label></p>`
     : `<p class="family none">No cooldown: this quickhack's tiers have none to change.</p>`;
   const panels = tiers.map((t, i) => `<div class="tier" data-tier="${i}">${tierPanel(t, icons.all, { texts: false })}</div>`).join("");
-  return `<main data-start="${start}" class="edit">
+  const about = doc.newHack
+    ? `A new quickhack, started from the game's ${esc(fam.name)}, which it leaves as it is. Empty fields keep ${esc(fam.name)}'s value. Spread and the versions for bosses are left out for now.`
+    : `A change to the game's ${esc(fam.name)}. Empty fields keep the game's value.`;
+  // Until Get it (H3.6), a line for REDnode's Console, for the tier selected above.
+  const getIt = doc.newHack
+    ? `<section><h2>Give yourself one</h2>
+<p class="foot">Crafting and vendors come later. For now, in REDnode's Console, for the tier selected above:</p>
+${tiers.map((t, i) => (t.item ? `<div class="tier" data-tier="${i}"><code data-give>await game.player.addItem("${esc(newItemPath(doc, t))}")</code></div>` : "")).join("")}
+</section>`
+    : "";
+  return `<main data-start="${start}" class="edit"${doc.newHack ? " data-new-hack" : ""}>
 <header class="hack">
   ${icons.item ? `<img class="icon big" src="${esc(icons.item)}" alt="">` : img(icons.all, top.icons.item ?? top.icons.wheel, "icon big", fam.name)}
   <div><h1 data-title>${esc(doc.name || fam.name)}</h1><p class="sub">Quickhack${fam.category ? ` &middot; ${esc(fam.category)}` : ""} &middot; ${tiers.length} tier${tiers.length === 1 ? "" : "s"}</p></div>
-  <p class="ro">A change to the game's ${esc(fam.name)}. Empty fields keep the game's value. <b data-status>Each save writes the mod's files into the project.</b></p>
+  <p class="ro">${about} <b data-status>Each save writes the mod's files into the project.</b></p>
   <p class="actions"><button data-pack>Pack and Play</button></p>
   <ul class="warnings" data-warnings></ul>
 </header>
@@ -99,6 +112,7 @@ ${rows}
 </tbody></table>
 <p class="foot">Each field shows the game's value until you change it. The game also scales some of these at run time, by V's perks and the target's resistance.</p>
 </section>
+${getIt}
 <h2 class="game">What the game has for this tier</h2>
 ${panels}
 </main>`;

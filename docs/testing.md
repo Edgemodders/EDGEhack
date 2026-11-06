@@ -6,26 +6,70 @@ title: Tests
 
 Every test run on EDGEhack: how to run it again, what to expect, and what it showed. Each phase ends with a hand test by the owner ([design, "Phases"](design.html#phases)); new tests are added here when they are first run, and their later runs' results too.
 
-Last updated 2026-11-05.
+Last updated 2026-11-06.
 
 ## At a glance
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-05 | Pass, 39 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-06 | Pass, 47 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
-| [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2 | 2026-11-04 | Pass, every check |
+| [H3.3 New](#h33-new) | By hand, then in the game | H3 | Not run yet | Waiting |
+| [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-06 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
 | [H2d Spike, second version](#h2d-spike-second-version) | By hand, in the game | H2 | 2026-11-04 | No line on any hack. The owner dropped the player's line; not looked into |
 
 ## Waiting for a hand test
 
-None.
+[H3.3 New](#h33-new), on the owner's laptop.
+
+## H3.3 New
+
+EDGEhack 0.0.5: making a new quickhack, and the first run of the writer's own output in the game, with several tiers and copied damage and duration. The smoke test has already driven these pages; this checks them by hand, with the real REDcode, and in the game.
+
+**Before you start:**
+
+- Install: `code --install-extension edgehack-0.0.5.vsix`, then **Developer: Reload Window**. REDcode must be 0.10.5 or later.
+- Open a WolvenKit project in REDcode, a new test one. The mod goes into it.
+
+**Part A, in VS Code**
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Quickhacks view, click **Overheat** | The read-only page, with **Edit...** and **Make a New One From This...** |
+| 2 | Click **Make a New One From This...** and type `!!!` | VS Code's box asks for a name, and says it needs a letter or a digit |
+| 3 | Replace it with `Overheat` | It refuses: that name would take the file for changes to the game's Overheat |
+| 4 | Replace it with `Spike Static`, and press Enter | A new tab, `<your mod>_spike_static.quickhack.json`. The line under the title says it is a new quickhack started from Overheat. No "Against bosses" rows. A **Give yourself one** section with a Console line |
+| 5 | Look at the top of the Quickhacks view | **Project: <your project>**, with **Spike Static**, "new, from Overheat" |
+| 6 | Right-click **Contagion** in the view, choose **Make a New One From This...**, then press Esc | The box asks for a name. Esc makes nothing |
+| 7 | On Spike Static's page, click **Rare** in the Numbers table | The Console line now names `..._OverheatLvl2Program` |
+| 8 | Rare's RAM: `8`. Rare's Duration: `11`. Rare's Damage a hit: `65`. Legendary's RAM: `6`. Cooldown for every tier: `15`. Name: `Spike Prime`. Then **Ctrl+S** | Changed fields turn yellow. The line under the title says what it saved. The view's Project group now says **Spike Prime** |
+| 9 | In the project, look under `source/resources/r6` | `tweaks/<your mod>/<your mod>_spike_static.yaml`, and `scripts/EDGEhack/NewQuickhacks.reds` |
+
+**Part B, in the game**
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step.
+
+| Step | Do | Expect |
+|---|---|---|
+| 10 | Quit the game if it is running. Click **Pack and Play** on the page, then start the game. Say if it does something other than you expect | REDcode packs the project and installs it. New records and the script load at the start |
+| 11 | Load a save. In the launcher, switch on **Console**. Run the Console line for Rare and for Legendary, from the page's **Give yourself one**, then `await game.player.addItem("Items.OverheatLvl2Program")` | Three quickhacks in the backpack |
+| 12 | Look at Spike Prime's Rare in the inventory | Named **Spike Prime**, with Overheat's icon. Tooltip: about 260 damage a second, 11 s or more, RAM 8. Overheat's Rare keeps the game's numbers |
+| 13 | Put Spike Prime's Rare and Overheat's Rare in the cyberdeck | Both stay |
+| 14 | Scan an enemy, and look at the wheel | **Spike Prime** and **Overheat** side by side, both usable, Spike Prime at RAM 8 |
+| 15 | Upload Spike Prime on the enemy | It burns. Then Spike Prime is on cooldown for about 15 s |
+| 16 | While it cools down, upload Overheat on another enemy | Overheat is not on cooldown, costs its own RAM, and burns for the game's time |
+| 17 | After the fight, swap Spike Prime's Rare for its Legendary, and scan again | Spike Prime at RAM 6, with Legendary's damage |
+| 18 | Quit the game | Say what differed. If something failed, the lines with errors from TweakXL's log and `r6/logs/redscript_rCURRENT.log` help |
+
+| Run | Result |
+|---|---|
+| | |
 
 ## H3.1 and H3c.1 Spikes
 
@@ -120,12 +164,13 @@ npm run smoke
 
 Runs VS Code (EDGEwave's cached test build when there is one, so it stays apart from the VS Code in use), the built extension and the real REDbridge on the real game, with a stand-in REDcode (`tools/smoke/stub`) holding a scratch project in `%TEMP%\ehsmoke`. It only reads the game. `EH_BRIDGE`, `EH_GAME` and `EH_CODE` name another REDbridge, game or VS Code. Screenshots land in the scratch folder.
 
-It checks that images really load on both pages, the numbers against the game's tooltip, a record link, Edit making the document, inputs reaching the document, a save writing the YAML, the `.xl` and the texts, undo and redo, All tiers, the icon picker, the game's value clearing a change, and Pack and Play asking REDcode to pack.
+It checks that images really load on both pages, the numbers against the game's tooltip, a record link, Edit making the document, inputs reaching the document, a save writing the YAML, the `.xl` and the texts, undo and redo, All tiers, the icon picker, the game's value clearing a change, and Pack and Play asking REDcode to pack. For a new quickhack: the page's button and a name typed in VS Code's box, the document, the mod files written at once with the shared script, no game record changed, the editor's differences, the changed numbers in place when it packs, a used name refused, and the view's Project group.
 
 | Run | Result |
 |---|---|
 | 2026-11-04, first | Four failures, one bug: two quick changes lost one, since each edit started from a copy of the document that was not yet up to date |
 | 2026-11-04, second, with edits one at a time | Pass, every check |
+| 2026-11-06, with new quickhacks (EDGEhack 0.0.5) | Pass, every check |
 
 ## H2d Spike, second version
 

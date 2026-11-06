@@ -12,6 +12,8 @@ How to keep it (the Edgemodders convention):
 
 **New**
 
+- **Make a New One From This** on a quickhack's page and in the Quickhacks view: a new quickhack beside the game's, with its own name, item per tier, wheel entry and cooldown, which leaves the game's quickhack as it is. Spread and the versions for bosses are left out for now.
+- The Quickhacks view lists the open project's quickhacks in a Project group at the top.
 - The EDGEhack side bar with its Desk, Library and Quickhacks views (Desk and Library empty until their phases).
 - The Quickhacks view: the game's quickhacks by category, family and tier, with their icons, then device and vehicle hacks; a filter.
 - The quickhack page (read-only): a quickhack's texts, icons, RAM, upload, cooldown, duration and damage for every tier, its effects in plain words, who it works on, spread, what it does while equipped, its crafting spec, and every record behind it, each opening in REDcode.

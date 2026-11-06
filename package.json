@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -113,6 +113,11 @@
         "command": "edgehack.editQuickhack",
         "title": "Edit",
         "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.newQuickhack",
+        "title": "Make a New One From This...",
+        "category": "EDGEhack"
       }
     ],
     "menus": {
@@ -135,6 +140,11 @@
       ],
       "view/item/context": [
         {
+          "command": "edgehack.newQuickhack",
+          "when": "view == edgehack.quickhacks && viewItem =~ /^edgehack\\.(family|tier)$/",
+          "group": "navigation@0"
+        },
+        {
           "command": "edgehack.openInREDcode",
           "when": "view == edgehack.quickhacks && viewItem =~ /^edgehack\\.(family|tier|action)$/",
           "group": "navigation@1"
@@ -146,6 +156,10 @@
         }
       ],
       "commandPalette": [
+        {
+          "command": "edgehack.newQuickhack",
+          "when": "false"
+        },
         {
           "command": "edgehack.openQuickhackFromREDcode",
           "when": "false"

@@ -6,7 +6,8 @@ import type { Hub } from "./hub";
 import { parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, withField, withTierField, newDoc } from "./document";
 import { Family, iconOf, IconRef } from "./read";
 import { writeTweaks } from "./tweaks";
-import { isInside, writeProject } from "./projectFiles";
+import { isInside } from "./projectFiles";
+import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
 import { gameValue, renderEditor } from "./editorHtml";
 import { iconsOf } from "./pageHtml";
 import { bridge, redcode } from "./redcode";
@@ -19,6 +20,8 @@ const round = (n: number): number => Math.round(n * 10000) / 10000;
 
 export class QuickhackEditor implements vscode.CustomTextEditorProvider {
   private readonly panels = new Map<string, Set<vscode.WebviewPanel>>();
+  /** The mod files being written after a save, by document: Pack and Play waits for them. */
+  private readonly writing = new Map<string, Promise<void>>();
 
   constructor(private readonly hub: Hub) {}
 
@@ -26,7 +29,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     return vscode.Disposable.from(
       vscode.window.registerCustomEditorProvider(EditorViewType, this, { webviewOptions: { retainContextWhenHidden: true }, supportsMultipleEditorsPerDocument: false }),
       vscode.workspace.onDidSaveTextDocument((d) => {
-        if (d.fileName.endsWith(".quickhack.json")) void this.saved(d);
+        if (d.fileName.endsWith(".quickhack.json")) this.writing.set(d.uri.toString(), this.saved(d));
       }),
     );
   }
@@ -45,6 +48,45 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       fs.writeFileSync(file, printDoc(doc));
     }
     await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(file), EditorViewType);
+  }
+
+  /**
+   * Makes a new quickhack from a family of the game's, in the open project, and opens it. Its mod files
+   * are written at once, so Pack and Play works before any change (a save of an unchanged file writes
+   * nothing). Asks for the name unless given one. Returns the document's file, or undefined if none was made.
+   */
+  async makeNew(key: string, given?: string): Promise<string | undefined> {
+    if (key.startsWith("action:")) {
+      void vscode.window.showInformationMessage("A new quickhack can start only from one for people, for now. Device and vehicle hacks come later.");
+      return undefined;
+    }
+    const project = (await redcode()).project();
+    if (!project) {
+      void vscode.window.showWarningMessage("EDGEhack: open a WolvenKit project in REDcode first. A new quickhack goes into a project (the Desk, for working without one, comes later).");
+      return undefined;
+    }
+    const catalog = await this.hub.catalog();
+    const keys = catalog.families.map((f) => f.key);
+    const familyName = catalog.families.find((f) => f.key === key)?.name ?? key;
+    const name =
+      given ??
+      (await vscode.window.showInputBox({
+        title: `Make a New One From ${familyName}`,
+        prompt: "The new quickhack's name, as players see it. You can change it later, but its record names come from this first name and stay.",
+        placeHolder: "Spike Static",
+        validateInput: (text) => (text ? newHackProblem(project, keys, key, text) : undefined),
+      }));
+    if (!name) return undefined;
+    const { file, doc } = makeNewHackDoc(project, keys, key, name);
+    this.hub.log.appendLine(`Made ${doc.id} from ${key}: ${file}`);
+    try {
+      const result = await writeDocFiles(project, await bridge(), await this.hub.family(key), doc);
+      this.hub.log.appendLine(`Wrote ${doc.id}: ${result.yaml ?? "no YAML"}`);
+    } catch (e) {
+      void vscode.window.showErrorMessage(`EDGEhack made the document, but not its mod files: ${message(e)} Change something and save to try again.`);
+    }
+    await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(file), EditorViewType);
+    return file;
   }
 
   async resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): Promise<void> {
@@ -115,6 +157,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           }
           if (m.pack) {
             await document.save();
+            await this.writing.get(document.uri.toString());
             await (await redcode()).packAndPlay();
             await w.postMessage({ status: "Packed." });
           }
@@ -139,8 +182,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         return;
       }
       const fam = await this.hub.family(doc.family);
-      const written = writeTweaks(fam, doc);
-      const result = await writeProject(project, await bridge(), doc, written);
+      const result = await writeDocFiles(project, await bridge(), fam, doc);
       this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}`);
       say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
     } catch (e) {

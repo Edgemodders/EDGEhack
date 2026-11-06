@@ -24,6 +24,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const quickhacks = new QuickhacksView(hub);
   const view = vscode.window.createTreeView("edgehack.quickhacks", { treeDataProvider: quickhacks, showCollapseAll: true });
   quickhacks.view = view;
+  // Without REDcode the view says so itself, when it reads the catalog.
+  void quickhacks.watchProject().then((d) => context.subscriptions.push(d), () => undefined);
 
   const editor = new QuickhackEditor(hub);
 
@@ -60,6 +62,19 @@ export function activate(context: vscode.ExtensionContext): void {
         if (key) await editor.edit(key);
       } catch (err) {
         void vscode.window.showErrorMessage(err instanceof Error ? err.message : String(err));
+      }
+    }),
+    // From the page with a family's key, from the view with its node; a name skips the question.
+    vscode.commands.registerCommand("edgehack.newQuickhack", async (from?: unknown, name?: string) => {
+      try {
+        const key = typeof from === "string" ? from : QuickhacksView.familyOf(from as never);
+        if (!key) return undefined;
+        const file = await editor.makeNew(key, name);
+        quickhacks.refreshProject();
+        return file;
+      } catch (err) {
+        void vscode.window.showErrorMessage(err instanceof Error ? err.message : String(err));
+        return undefined;
       }
     }),
     vscode.commands.registerCommand("edgehack.quickhacks.filter", async () => {

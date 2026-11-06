@@ -78,3 +78,6 @@ figure.changed .icon { outline: 1px solid var(--yellow); outline-offset: 2px; }
 .grid button { padding: 4px; background: transparent; line-height: 0; }
 .grid button:hover { border-color: var(--yellow); }
 .grid img { width: 48px; height: 48px; object-fit: contain; }
+
+/* The Console line of a new quickhack. */
+code[data-give] { font-family: var(--vscode-editor-font-family); user-select: all; }

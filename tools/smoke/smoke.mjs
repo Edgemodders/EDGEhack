@@ -242,4 +242,74 @@ yaml = fs.readFileSync(yamlFile, "utf8");
 check(!/OverheatLvl2Hack\.costs/.test(yaml), "and its modifier is gone from the YAML");
 await shot("editor.png");
 log("document:", fs.readFileSync(docFile, "utf8").replace(/\s+/g, " ").slice(0, 300));
+
+// ---- Make a New One From This: the page's button, the name asked in VS Code's own box
+const main = (expression) => cdp("Runtime.evaluate", { expression, returnByValue: true }).then((r) => r.result.value);
+const typeName = async (text) => {
+  for (let i = 0; i < 20 && !(await main(`!!document.querySelector(".quick-input-widget input:focus")`)); i++) await sleep(300);
+  await cdp("Input.insertText", { text });
+  await sleep(500);
+};
+const press = async (key, vk) => {
+  await cdp("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: vk });
+  await cdp("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: vk });
+};
+await step({ command: "edgehack.openQuickhack", args: ["Overheat"] });
+const read2 = await pageWith("!!document.querySelector('[data-new]')", "the page's Make a New One button");
+await run(read2, `document.querySelector("[data-new]").click();`);
+await typeName("Smoke Static");
+await press("Enter", 13);
+const made = await pageWith("!!document.querySelector('main[data-new-hack]')", "the new quickhack's editor");
+const newFile = path.join(T, "proj", "source", "raw", "edgehack", "smokemod_smoke_static.quickhack.json");
+const newOf = () => JSON.parse(fs.readFileSync(newFile, "utf8"));
+check(fs.existsSync(newFile) && newOf().newHack === true && newOf().family === "Overheat" && newOf().name === "Smoke Static", "the button and the name made a new quickhack's document");
+const newYaml = path.join(T, "proj", "source", "resources", "r6", "tweaks", "smokemod", "smokemod_smoke_static.yaml");
+check(fs.existsSync(newYaml), "its mod files are written at once, before any change");
+check(fs.existsSync(path.join(T, "proj", "source", "resources", "r6", "scripts", "EDGEhack", "NewQuickhacks.reds")), "with the shared script");
+yaml = fs.readFileSync(newYaml, "utf8");
+check(/^Items\.EDGEhack_smokemod_smoke_static_OverheatLvl2Program:\n {2}\$base: Items\.OverheatLvl2Program\n/m.test(yaml), "the YAML copies each tier's item");
+check(/actionName: EDGEhack_smokemod_smoke_static/.test(yaml) && /shardType: EDGEhack_smokemod_smoke_static/.test(yaml), "with its own action name and shard type");
+check(!/^(Items\.Overheat|QuickHack\.Overheat)[^\n]*\.\w+:/m.test(yaml), "and changes no record of the game's");
+await step({ dumpLoc: true });
+check(JSON.parse(JSON.parse(fs.readFileSync(path.join(T, "loc.json"), "utf8"))).Data.RootChunk.root.Data.entries.some((e) => e.secondaryKey === "EDGEhack-smokemod_smoke_static-Name" && e.femaleVariant === "Smoke Static"), "the onscreens file holds its name, beside the other document's");
+check((await run(made, `return document.querySelector('[data-field="bossRam"]') === null;`)), "no fields for bosses");
+im = await images(made);
+check(im.total >= 3 && im.broken.length === 0, `its editor: ${im.total} images, broken ${JSON.stringify(im.broken)}`);
+check(/A new quickhack, started from the game's Overheat/.test(await run(made, `return document.querySelector(".ro").textContent;`)), "the page says what it is");
+await run(made, `document.querySelector('th button[data-pick="2"]').click();`);
+await sleep(300);
+check((await run(made, `return document.querySelector('.tier.on [data-give]').textContent;`)) === 'await game.player.addItem("Items.EDGEhack_smokemod_smoke_static_OverheatLvl2Program")', "the Console line follows the selected tier");
+await shot("newhack.png");
+
+// Its numbers copy the chain, and Pack and Play waits for the files.
+await setInput(made, '[data-tier-key="Items.OverheatLvl2Program"][data-field="damage"]', "65");
+await setInput(made, '[data-tier-key="Items.OverheatLvl2Program"][data-field="duration"]', "11");
+await sleep(500);
+fs.rmSync(path.join(T, "packed.json"), { force: true });
+await run(made, `document.querySelector("[data-pack]").click();`);
+for (let i = 0; i < 30 && !fs.existsSync(path.join(T, "packed.json")); i++) await sleep(200);
+check(fs.existsSync(path.join(T, "packed.json")), "Pack and Play on it asks REDcode to pack");
+yaml = fs.readFileSync(newYaml, "utf8");
+check(/^Attacks\.EDGEhack_smokemod_smoke_static_OverheatLvl2Program:\n {2}\$base: /m.test(yaml) && /^BaseStatusEffect\.EDGEhack_smokemod_smoke_static_OverheatLvl2Program:\n {2}\$base: /m.test(yaml), "changed damage and duration are in by the time it packs, as copies");
+
+// The same name is refused in the box, and nothing is made.
+await step({ command: "edgehack.openQuickhack", args: ["Overheat"] });
+await sleep(1500);
+const read3 = await pageWith("!!document.querySelector('[data-new]')", "the page again");
+await run(read3, `document.querySelector("[data-new]").click();`);
+await typeName("Smoke Static");
+const refusal = await main(`document.querySelector(".quick-input-widget .quick-input-message")?.textContent ?? ""`);
+check(/already has/.test(refusal), `the same name is refused: ${refusal}`);
+await press("Escape", 27);
+await sleep(300);
+
+// The view's Project group lists both, and opens them.
+await step({ command: "workbench.view.extension.edgehack" });
+await sleep(2500);
+const rows = await main(`[...document.querySelectorAll('.monaco-list-row')].map((r) => r.getAttribute("aria-label") ?? r.textContent)`);
+check(rows.some((r) => /Project: smoke/.test(r)), "the Quickhacks view has a Project group");
+check(rows.some((r) => /Smoke Static/.test(r) && /new, from Overheat/.test(r)), "listing the new quickhack");
+check(rows.some((r) => /Smoke Heat|Overheat/.test(r) && /changes Overheat/.test(r)), "and the change to the game's");
+await shot("view.png");
+log("new document:", fs.readFileSync(newFile, "utf8").replace(/\s+/g, " ").slice(0, 300));
 finish();
