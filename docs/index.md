@@ -18,9 +18,9 @@ As of 2026-11-05. Each phase ends with a hand test by the owner, and an in-game 
 | H0 Scaffold | Built 2026-11-04: the repo, the release workflow, the brand, the docs site, an empty extension with its three views, and the design (draft 1), agreed by the owner the same day |
 | H1 Read | Done 2026-11-04: the Quickhacks view, the read-only quickhack page and Open in EDGEhack from REDcode passed the hand test (EDGEhack 0.0.3) |
 | H2 Edit | Done 2026-11-05: editing a game quickhack's texts, icons and numbers passed the hand test and the in-game test (EDGEhack 0.0.4). The player's line (H2d) tried and dropped by the owner |
-| H3 New and Effects | Next: plan agreed 2026-11-05. Its spike, H3.1, is built and awaits the owner's in-game test |
+| H3 New and Effects | Under way: plan agreed 2026-11-05, and its spike H3.1 passed in the game the same day. Next: H3.2 Writer |
 | H3b Own icons | Not started: pick, upload or generate each icon (asked for by the owner on 2026-11-04) |
-| H3c Scripts | Plan agreed 2026-11-05: two REDnode functions on a quickhack, a scan check per enemy and on land. Comes after H3b; its spike, H3c.1, is built and runs with H3's |
+| H3c Scripts | Plan agreed 2026-11-05: two REDnode functions on a quickhack, a scan check per enemy and on land. Comes after H3b; its spike, H3c.1, passed in the game the same day |
 | H4 Try Live and MCP | Not started |
 | H5 Library | Not started |
 | H6 First release | Not started |

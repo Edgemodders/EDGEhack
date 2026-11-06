@@ -17,7 +17,7 @@ Last updated 2026-11-05.
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
-| [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | | Waiting |
+| [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2 | 2026-11-04 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -25,7 +25,7 @@ Last updated 2026-11-05.
 
 ## Waiting for a hand test
 
-- [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes), in the game.
+None.
 
 ## H3.1 and H3c.1 Spikes
 
@@ -66,6 +66,7 @@ Two hand-written test mods, run in one session ([design, "H3: plan"](design.html
 |---|---|
 | 2026-11-05, first, by the owner, on the dev PC's game 2.5 | Stopped at step 3: Spike Static and Overheat replaced each other in the deck, since the copy kept `shardType: Overheat`. Both scripts compiled in the game, TweakXL's log has no errors, and the items and step 2 were fine. Fixed in **EDGEhack H3.1 spike v2** (the first version stays in the library, off) |
 | 2026-11-05, second, by the owner, steps 1 to 15 passed | Spike Static sat beside Overheat on the wheel and worked, with both Overheat burns and the poison on the enemy at once. Answers took 0 to 0.03 s from the snapshot, 0.06 s with three game calls, 0.31 to 0.34 s with Slow. Silent, Throws and the app switched off all fell back as planned. **The game crashed at the old step 16**, a hand-built `gameHitEvent` from a function (null read inside the game, cause unverified). The owner confirmed steps 1 to 15 worked as written, and that of the "Checking..." times, only step 12's 1 s gave enough time to notice and read it. That method is gone in **H3c.1 spike v3**, which adds a **Hold** switch to try 1 s with a real answer, and the app now keeps trying until V is in the world, since at first it stopped trying during the load. Step 5's cooldown could not be checked: Overheat's is 0.0001 s, so the copy's is too |
+| 2026-11-05, third, by the owner, on v3, steps 17 to 21 | Pass, no crash, and TweakXL's log has no errors. **Pool kill** killed an enemy and the owner noted it looked normal. Hold and Yes, then Hold and No, as the steps say; the owner: "everything seemed to work fine". The Counts line: 90 rebuilds, 84 asks, none gave up, in about 4 minutes, so the list did not loop. **Not run:** step 16's **Effect** (no line for it in the log), and step 18, since V lacks the spread perk. Experience did not change on any kill, even a normal one (V is at the level cap), so it could not show whose kill it was |
 
 ## H2c Edit
 

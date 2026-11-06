@@ -415,6 +415,10 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 - Do the perks that name a family still reach a copy? Overheat's passive and its duration stat are tied to the `Overheat` tag.
 - Do two effects of one type stack or replace each other, and which status effects work on an enemy?
 
+**H3.1's result (2026-11-05, game 2.5): passed.** Spike Static, with its own `actionName` and `shardType` and the small script, sat beside Overheat on the wheel and worked on enemies. Both Overheat burns and the poison ran on one enemy at once, so two effects of one `statusEffectType` can sit side by side when they are different records, and a second upload of one record added a stack.
+
+**Still open for H3:** whether `$base` copies inline records (the spike listed its effects by hand); a separate cooldown, since Overheat's is 0.0001 s and the copy's too; how a boss's actions are picked; and perks tied to a family.
+
 ### Own icons (H3b)
 
 Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.
@@ -507,6 +511,10 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 - Does spread reach `CompleteAction`? Spread uses separate actions (`…HackSpread`), so `onLand` may need a `hack.spread` flag, or may not fire at all.
 - Do Boss and Chimera actions reach both wraps under the family's item?
 - What makes `target.damage` count as V's attack, so kills and experience go to V? A hand-built `gameHitEvent` crashed the game on 2026-11-05 (a null read, cause unverified): don't use it without finding out why. Lowering the health pool with V as instigator works, and a status effect from V is the next to try.
+
+**H3c.1's result (2026-11-05, game 2.5): passed.** Both wraps and the fallback work with no REDnode change, and a locked entry shows our text as the game's do. 90 rebuilds in about 4 minutes, with no loop. Lowering the health pool from a function works, and a kill that way looked normal. A hand-built `gameHitEvent` crashed the game.
+
+**Still open for H3c.2:** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, since V lacks the perk; Boss and Chimera actions; whether the 1 s hold stays.
 
 **Agreed with the owner on 2026-11-05:**
 
