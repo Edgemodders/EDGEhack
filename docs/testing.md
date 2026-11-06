@@ -59,18 +59,20 @@ EDGEhack 0.0.6: adding effects to a new quickhack. The smoke test has already dr
 
 **Part B, in the game**
 
-Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below.
+First: quit the game if it is running. Click **Pack and Play** at the top of the page, then start the game, and say if it does something other than you expect (REDcode packs the project and installs it). Load a save.
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below, so the Marks' numbers match the steps'.
 
 | Step | Do | Expect |
 |---|---|---|
-| 15 | Quit the game if it is running. Click **Pack and Play** at the top of the page, then start the game. Say if it does something other than you expect | REDcode packs the project and installs it |
-| 16 | Load a save. In the launcher, switch on **Console**. On the page, in the Numbers table, click **Rare** in its header row, and copy the line from **Give yourself one**. Run it in the Console. Do the same for **Epic** and **Legendary** | Three Triple Heat quickhacks in the backpack |
-| 17 | Put Triple Heat's Rare in the cyberdeck, scan an enemy, and upload it | They burn, are poisoned and bleed. The poison lasts about 20 s, well after the burn ends. Say what you see, and what the enemy's status icons show |
-| 18 | After the fight or on another enemy, swap it for its Epic, and upload it | Burn, poison for about 8 s and a bleed. V goes invisible for a moment, or says what happens instead |
-| 19 | Swap it for its Legendary, and upload it on another enemy | Burn and poison, no bleed, and V stays visible |
-| 20 | If a drone or robot is around, upload it there. Skip this if not | Say whether it takes the poison and the bleed. The page's warning leaves this unverified |
-| 21 | Run `await game.player.addItem("Items.OverheatLvl2Program")` in the Console, put it in the cyberdeck, and upload the game's own Overheat on another enemy | Only a burn, for the game's time. Nothing added reaches the game's quickhack |
-| 22 | Quit the game | Say what differed. If something failed, the lines with errors from TweakXL's log and `r6/logs/redscript_rCURRENT.log` help |
+| 1 | In the launcher, switch on **Console**. On the page in VS Code, in the Numbers table, click **Rare** in its header row, and copy the line from **Give yourself one**. Run it in the Console. Do the same for **Epic** and **Legendary** | Three Triple Heat quickhacks in the backpack |
+| 2 | Put Triple Heat's Rare in the cyberdeck, scan an enemy, and upload it | They burn, are poisoned and bleed. The poison lasts about 20 s, well after the burn ends. Say what you see, and what the enemy's status icons show |
+| 3 | Swap it for its Epic, and upload it on another enemy | Burn, poison for about 8 s and a bleed. V goes invisible for a moment; say what happens if not |
+| 4 | Swap it for its Legendary, and upload it on another enemy | Burn and poison, no bleed, and V stays visible |
+| 5 | If a drone or robot is around, upload it there. Skip this if not, and still press Mark | Say whether it takes the poison and the bleed. The page's warning leaves this unverified |
+| 6 | Run `await game.player.addItem("Items.OverheatLvl2Program")` in the Console, put it in the cyberdeck, and upload the game's own Overheat on another enemy | Only a burn, for the game's time. Nothing added reaches the game's quickhack |
+
+Then quit the game, and say what differed. If something failed, the lines with errors from TweakXL's log and `r6/logs/redscript_rCURRENT.log` help.
 
 | Run | Result |
 |---|---|
