@@ -182,7 +182,40 @@ Try Live needs from REDnode (REDnode issues, to file when H4 starts):
 
 ## MCP tools
 
-As EDGEmat and EDGEwave do, an MCP server comes with the extension (H4), so REDagent or Claude can work on quickhacks: `hack_find` (search the game's and the project's quickhacks), `hack_describe` (a quickhack in the editor's words), `hack_effects` (the effect pool, sorted), `hack_edit` and `hack_new` (change or make one, writing the document; ask first), `hack_try` (Try Live; ask first). Every editor feature has a tool, and every tool's result can be opened in the editor.
+EDGEhack gets an MCP server in H4, so REDagent, and Claude Code through EDGEchat, can make and change quickhacks. Every editor feature has a tool, and every tool's result can be opened in the editor. Agreed with the owner on 2026-11-06, with the routes and the rule below.
+
+| Tool | What it does | Asks first |
+|---|---|---|
+| `hack_find` | Search the game's and the project's quickhacks | No |
+| `hack_describe` | A quickhack in the editor's words | No |
+| `hack_effects` | The effect pool, sorted, and the parts attack features are built from | No |
+| `hack_new`, `hack_edit` | Make or change a quickhack, writing the document. Added effects and attack features go through these | Yes |
+| `hack_script` | Write a quickhack's scan check or on-land function (H3c) | Yes: it is code that runs in the player's game |
+| `hack_pack` | Pack a finished quickhack, so it can reach the game | Yes |
+| `hack_try` | Try Live | Yes |
+
+`hack_script` and `hack_pack` are the two names added on 2026-11-06, for what the first list lacked. Whether `hack_pack` wraps REDcode's `project_pack` or calls REDbridge itself is settled in H4.
+
+### Two routes to the server
+
+The server runs without VS Code, as EDGEmat's npm package does, because REDagent runs inside the game and cannot count on an open editor.
+
+| Assistant | How it gets the tools | What H4 does |
+|---|---|---|
+| **Claude Code, through EDGEchat** | The plugin lists each EDGE server, with one settings form | Publish the server on npm and add it to EDGEchat's plugin. The server's own tool text explains the tools, as EDGEmat's does; a skill only if that proves too little |
+| **REDagent** | REDnode ships EDGEmat's server and starts it for in-game assistants (`packages/overlay/attached.js`), with the game folder and REDbridge. Its tools show in the Tools Manager | A `request` issue on REDnode, filed when H4 starts, to attach EDGEhack's server the same way, and REDagent's briefing learns the tools. It reaches players with a REDnode release |
+
+An assistant in the game has no REDcode project open. `hack_new` with no project lands on the Desk (H3.7), so how REDagent's quickhack gets from there into a project to pack is settled in H4.
+
+### Logic outside the editor
+
+Anything a tool needs stays free of VS Code. This holds from H3.3 on, so H3 to H3c do not have to be moved apart later.
+
+| Where | State on 2026-11-06 |
+|---|---|
+| `catalog`, `document`, `icons`, `newHackScript`, `png`, `projectFiles`, `quickhack`, `read`, `records`, `tweaks` | Free of VS Code. They take only types from `redcode.ts`, so those types move to a file of their own in H4 |
+| `hub.ts`, `editor.ts` | Import VS Code, and hold two small pieces a tool needs: finding and caching a family (`hub.ts`), and writing a saved document into the project (`editor.ts`, `writeTweaks` then `writeProject`). Both move out by H4 |
+| `BridgeClient`, `ProjectRef` | Interfaces, filled by REDcode today. The server fills them itself, from the REDbridge and folders it is given |
 
 ## What EDGEhack depends on
 
@@ -208,7 +241,7 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H3 New and Effects** | Make a new quickhack from a family; Add Effect from other quickhacks and status effects (the sorted pool); attack features; Get it (crafting spec, vendor); the Desk | Hand test, and in the game: a new quickhack crafted or bought, with two added effects working on an enemy |
 | **H3b Own icons** | Each icon can be picked from the game, uploaded, or generated from a text prompt (see [Own icons](#own-icons-h3b)); the image goes into an atlas the mod ships | Hand test, and in the game: a new quickhack with its own icons in the inventory, on the wheel and on the target |
 | **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
-| **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server and Connect an Assistant, with a tool for scripts | Hand test and in-game test |
+| **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server, running without VS Code, and Connect an Assistant, with tools for scripts and packing; EDGEchat's plugin and REDnode's attached servers as its two routes (see [MCP tools](#mcp-tools)) | Hand test and in-game test, with REDagent making a quickhack in the game |
 | **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
 | **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page | The release gate: every hand test passed |
 
@@ -543,6 +576,7 @@ Agreed with the owner on 2026-11-04: the recommendation is the answer in each ro
 | Device and vehicle quickhacks in the first release? | Read in H1, edit after 0.1.0 |
 | Behaviour beyond records (redscript) | Out of scope until a quickhack idea needs it. Changed by the owner's scripts request on 2026-11-05: see [H3c Scripts](#h3c-scripts-plan) |
 | REDnode's editor channel with TweakDB writes (for Try Live) | File it on REDnode at H4, after the refresh spike |
+| How REDagent and EDGEchat reach the MCP server (2026-11-06) | A server that runs without VS Code, in EDGEchat's plugin and among REDnode's attached servers, with logic kept free of VS Code from H3.3 on (see [MCP tools](#mcp-tools)) |
 
 ## Unverified, to settle in their phases
 
@@ -554,3 +588,4 @@ Agreed with the owner on 2026-11-04: the recommendation is the answer in each ro
 - How quickly a scan check can answer, and how "Checking" looks in the panel (H3c.1).
 - Whether TweakDB changes reach an equipped quickhack without unequipping it, and how to refresh V's cached quickhack list (H4 spike).
 - Whether new `onscreens` texts can load without a game restart (H4).
+- How a quickhack REDagent makes in the game gets from the Desk into a project to pack (H4).
