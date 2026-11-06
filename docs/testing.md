@@ -6,7 +6,7 @@ title: Tests
 
 Every test run on EDGEhack: how to run it again, what to expect, and what it showed. Each phase ends with a hand test by the owner ([design, "Phases"](design.html#phases)); new tests are added here when they are first run, and their later runs' results too.
 
-Last updated 2026-11-04.
+Last updated 2026-11-05.
 
 ## At a glance
 
@@ -16,7 +16,7 @@ Last updated 2026-11-04.
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
-| [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-04 | Part A passed; Part B, in the game, waiting |
+| [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2 | 2026-11-04 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -24,7 +24,7 @@ Last updated 2026-11-04.
 
 ## Waiting for a hand test
 
-- [H2c Edit](#h2c-edit), EDGEhack 0.0.4, Part B in the game. Part A, in VS Code, passed on 2026-11-04.
+None.
 
 ## H2c Edit
 
@@ -63,6 +63,11 @@ Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, a
 | 14 | Upload it on an enemy | About 1 s to upload; burns for about 11 s |
 | 15 | Swap to Legendary | RAM 6 |
 | 16 | Quit the game | Tell me what differed. I read TweakXL's log |
+
+| Run | Result |
+|---|---|
+| 2026-11-04, Part A, by the owner | Pass |
+| 2026-11-05, Part B, by the owner, on the dev PC's game 2.5 | Pass, with the project `EDGEhack_Test1`. TweakXL's log reads the YAML with no errors. One observation: in the scanner's Hacking tab, Rare showed 8 s and 0.455 s upload, against 11 s and 1 s in the inventory ([design, "Two places, two numbers"](design.html#two-places-two-numbers)). The timer was not used; nothing depended on it |
 
 ## Smoke test
 

@@ -11,14 +11,14 @@ EDGEhack is a VS Code extension that edits Cyberpunk 2077's quickhacks. Open any
 
 ## Roadmap status
 
-As of 2026-11-04. Each phase ends with a hand test by the owner, and an in-game test where it changes the game.
+As of 2026-11-05. Each phase ends with a hand test by the owner, and an in-game test where it changes the game.
 
 | Phase | Status |
 |---|---|
 | H0 Scaffold | Built 2026-11-04: the repo, the release workflow, the brand, the docs site, an empty extension with its three views, and the design (draft 1), agreed by the owner the same day |
 | H1 Read | Done 2026-11-04: the Quickhacks view, the read-only quickhack page and Open in EDGEhack from REDcode passed the hand test (EDGEhack 0.0.3) |
-| H2 Edit | Plan agreed 2026-11-04; H2a's spike passed in the game the same day (numbers as differences work). The player's line (H2d) tried and dropped by the owner. H2b and H2c built 2026-11-04 (EDGEhack 0.0.4), awaiting the owner's hand and in-game tests |
-| H3 New and Effects | Not started |
+| H2 Edit | Done 2026-11-05: editing a game quickhack's texts, icons and numbers passed the hand test and the in-game test (EDGEhack 0.0.4). The player's line (H2d) tried and dropped by the owner |
+| H3 New and Effects | Next |
 | H3b Own icons | Not started: pick, upload or generate each icon (asked for by the owner on 2026-11-04) |
 | H4 Try Live and MCP | Not started |
 | H5 Library | Not started |

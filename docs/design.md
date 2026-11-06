@@ -321,7 +321,7 @@ What the spike answers:
 
 ### H2b and H2c: built
 
-Built on 2026-11-04 in EDGEhack 0.0.4, awaiting the owner's tests ([Tests, "H2c Edit"](testing.html#h2c-edit)).
+Built on 2026-11-04 in EDGEhack 0.0.4; passed the owner's tests, in the game too, on 2026-11-05 ([Tests, "H2c Edit"](testing.html#h2c-edit)).
 
 | Part | File | What it does |
 |---|---|---|
@@ -333,6 +333,17 @@ Built on 2026-11-04 in EDGEhack 0.0.4, awaiting the owner's tests ([Tests, "H2c 
 | The reader's fixes from H2a | `src/read.ts`, `src/pageHtml.ts` | A modifier reading the effect's own stat is worked out, so Overheat's duration is 5 s as in the game. Damage shows a second beside a hit |
 
 **The smoke test** (`npm run smoke`, `tools/smoke/`) runs VS Code, the built extension and the real REDbridge on the game, with a stand-in REDcode holding a scratch project, and drives the pages over DevTools. It exists because of two bugs nothing else could catch: icons refused by the webview (0.0.2), and two quick changes losing one (found by its first run). Its second run passed every check. It stands in for REDcode's Pack and Play, so the real one is for the hand test.
+
+### Two places, two numbers
+
+Found in H2c's in-game test (2026-11-05): Rare at 11 s and 1 s upload in the inventory read 8 s and 0.455 s in the scanner's Hacking tab. Read in game 2.5's scripts; the upload and duration numbers fit, but the steps below were not each measured in the game. **No enemy changed these numbers.** The game works them out in two ways:
+
+| Number | Inventory | Hacking tab |
+|---|---|---|
+| Upload | The hack's own modifiers: 2 - 1 = 1 s | The same, then V's upload reductions (`QuickHackUploadTimeDecrease` and the queue's two stats): 0.455 s here. The real upload uses these reductions too. The target's level is in the formula, but its curve (`pl_diff_to_upload_time_modifier`) is 0 everywhere in 2.5 |
+| Duration | The duration group, with no object to read a stat from (2 + 6 = 8 s), plus the 3 s of `OverheatDurationIncrease` found in the effect's packages: 11 s | The same group on the target, whose `OverheatDurationIncrease` is 0 until it burns: 8 s |
+
+So the tab's upload includes V's bonuses and the inventory's does not. For duration, the inventory's 11 s is likely the real burn, since the effect's package gives the target those 3 s while it burns and the effect has `dynamicDuration` (unverified: the burn was not timed). A game Overheat should show the same split: Epic, left alone, 5 s and 2 s in the inventory, and by these formulas 2 s and 0.91 s in the tab on this save (not checked). EDGEhack's page shows the inventory's numbers, so the two agree there.
 
 ### The player's line (H2d): dropped
 
