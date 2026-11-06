@@ -389,6 +389,8 @@ Agreed with the owner on 2026-11-05. Read from game 2.5's scripts and TweakDB; n
 | A new `actionName`, added by a small script when the game asks for a target's actions (a wrap on `GetAllChoices`) | One small script, shared by every EDGEhack mod, adds the new hacks in V's deck. Works on modded characters too | **Recommended, if the spike passes.** New quickhacks then need redscript |
 | A new `actionName`, added by a TweakXL scriptable tweak at the game's start | The same loop over every character, at each start | The second choice |
 
+**The deck has its own rule, found in the spike's first run (2026-11-05):** it holds one hack of each `shardType` and removes any other with the same value (`RemoveOtherShards`), and a `$base` copy keeps its base's. So a new quickhack needs its own `shardType` as well as its own `actionName`.
+
 This changes the decision "Behaviour beyond records: out of scope": a new quickhack needs this one script. It goes through redscript-cli against 2.5's scripts, with and without Codeware, before any test, since one compile error stops every script in the game.
 
 **Steps:**
@@ -396,7 +398,7 @@ This changes the decision "Behaviour beyond records: out of scope": a new quickh
 | Step | What | Test |
 |---|---|---|
 | **H3.1 Spike** | A hand-written new quickhack, as H2a was: a copy of Overheat with TweakXL's `$base`, a new `actionName`, two added effects, its own cooldown. It tries the routes above and answers the questions below | In the game, by the owner, in one session with H3c.1 |
-| **H3.2 Writer** | `src/tweaks.ts` learns new records: each tier's item, action and status effect under the mod's ids, with the wheel's records and the shared script | Automated, against what the spike proved |
+| **H3.2 Writer** | `src/tweaks.ts` learns new records: each tier's item, action and status effect under the mod's ids, with their own `actionName` and `shardType`, the wheel's records and the shared script | Automated, against what the spike proved |
 | **H3.3 New** | **Make a New One From This** on the page and in the Quickhacks view. The document gains `base` and new-hack fields, and the Quickhacks view shows a Project group | By hand |
 | **H3.4 Add Effect** | The picker's first two sources: another quickhack's effects and the sorted status effects, referenced until changed and then copied, with the warnings in [Adding effects](#adding-effects) | By hand, then in the game |
 | **H3.5 Attack features** | Extra damage, a stat change while hacked, a chance to apply something else, each written as a new status effect from the game's own effector classes | By hand, then in the game |
