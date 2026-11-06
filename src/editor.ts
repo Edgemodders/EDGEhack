@@ -3,12 +3,13 @@
 // REDcode's project (docs/design.md, "H2: plan").
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
-import { parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, withField, withTierField, newDoc } from "./document";
+import { AddedField, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc } from "./document";
 import { Family, iconOf, IconRef } from "./read";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
-import { gameValue, renderEditor } from "./editorHtml";
+import { addedIcons, gameValue, renderAddedEffects, renderEditor } from "./editorHtml";
+import { applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
 import { bridge, redcode } from "./redcode";
 import * as fs from "node:fs";
@@ -104,30 +105,43 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
 
     let doc: QuickhackDoc;
     let fam: Family;
+    let added: ResolvedAdded[];
+    let iconSet: Map<string, string>;
     try {
       doc = parseDoc(document.getText());
       fam = await this.hub.family(doc.family);
+      added = await this.hub.added(doc, fam);
       panel.title = path.basename(document.fileName);
-      w.html = this.shell(w, renderEditor(fam, doc, await this.icons(w, fam, doc), fam.tiers.length - 1));
+      const icons = await this.icons(w, fam, doc);
+      iconSet = icons.all;
+      await this.addIcons(w, iconSet, added);
+      w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added));
     } catch (e) {
       w.html = this.shell(w, `<p class="error">${message(e).replace(/</g, "&lt;")}</p>`);
       return;
     }
 
+    // Only the latest change is shown: reading a newly added effect can take longer than the next edit.
+    let turn = 0;
+    const show = async (): Promise<void> => {
+      const mine = ++turn;
+      const now = parseDoc(document.getText());
+      const read = await this.hub.added(now, fam);
+      await this.addIcons(w, iconSet, read);
+      if (mine !== turn) return;
+      doc = now;
+      added = read;
+      await w.postMessage({ doc, familyName: fam.name, warnings: writeTweaks(fam, doc, added).warnings, effectsHtml: renderAddedEffects(fam, added, iconSet) });
+    };
     const changed = vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.uri.toString() !== document.uri.toString() || !e.contentChanges.length) return;
-      try {
-        doc = parseDoc(document.getText());
-        void w.postMessage({ doc, familyName: fam.name, warnings: writeTweaks(fam, doc).warnings });
-      } catch (err) {
-        void w.postMessage({ status: message(err), bad: true });
-      }
+      show().catch((err: unknown) => void w.postMessage({ status: message(err), bad: true }));
     });
     panel.onDidDispose(() => {
       changed.dispose();
       shown.delete(panel);
     });
-    void w.postMessage({ warnings: writeTweaks(fam, doc).warnings });
+    void w.postMessage({ warnings: writeTweaks(fam, doc, added).warnings });
 
     // One message at a time, each from the document as it is now: two quick changes would otherwise
     // both start from the same text, and the second would undo the first.
@@ -140,6 +154,15 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         applyAll?: { field: TierField; tier?: string };
         chooseIcon?: "item" | "wheel";
         setIcon?: { which: "item" | "wheel"; value?: string };
+        addEffect?: boolean;
+        pickFamily?: string;
+        addFrom?: { from: string; effect: string };
+        addStatus?: { status: string; on?: "target" | "V" };
+        removeAdded?: string;
+        addedOn?: { id: string; tier: string; on: boolean };
+        addedWho?: { id: string; on: "target" | "V" };
+        addedValue?: { id: string; tier: string; field: AddedField; value?: number; game?: number };
+        addedAll?: { id: string; tier: string; field: AddedField };
         open?: string;
         pack?: boolean;
       }) => {
@@ -155,6 +178,15 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
             await apply(document, withField(current(), field, m.setIcon.value));
             await w.postMessage({ iconShown: { which: m.setIcon.which, changed: !!m.setIcon.value, src: await this.iconSrc(w, fam, m.setIcon.which, m.setIcon.value) } });
           }
+          if (m.addEffect) await this.offerEffects(w, fam);
+          if (m.pickFamily) await this.offerFamily(w, m.pickFamily);
+          if (m.addFrom) await apply(document, withAddedEffect(current(), { from: m.addFrom.from, effect: m.addFrom.effect }));
+          if (m.addStatus) await apply(document, withAddedEffect(current(), { status: m.addStatus.status, ...(m.addStatus.on === "V" ? { on: "V" as const } : {}) }));
+          if (m.removeAdded) await apply(document, withoutAddedEffect(current(), m.removeAdded));
+          if (m.addedOn) await apply(document, withAddedTier(current(), m.addedOn.id, m.addedOn.tier, m.addedOn.on));
+          if (m.addedWho) await apply(document, withAddedRecipient(current(), m.addedWho.id, m.addedWho.on));
+          if (m.addedValue) await apply(document, withAddedValue(current(), m.addedValue.id, m.addedValue.tier, m.addedValue.field, m.addedValue.value, m.addedValue.game));
+          if (m.addedAll) await apply(document, applyAddedToAll(current(), await this.hub.added(current(), fam), m.addedAll.id, m.addedAll.tier, m.addedAll.field));
           if (m.pack) {
             await document.save();
             await this.writing.get(document.uri.toString());
@@ -182,7 +214,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         return;
       }
       const fam = await this.hub.family(doc.family);
-      const result = await writeDocFiles(project, await bridge(), fam, doc);
+      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam));
       this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}`);
       say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
     } catch (e) {
@@ -200,6 +232,16 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     return { all, item: doc.itemIcon ? await this.src(w, await iconOf(this.hub.reader, doc.itemIcon)) : undefined, wheel: doc.wheelIcon ? await this.src(w, await iconOf(this.hub.reader, doc.wheelIcon)) : undefined };
   }
 
+  /** Adds the added effects' icons to those the page can show. */
+  private async addIcons(w: vscode.Webview, all: Map<string, string>, added: ResolvedAdded[]): Promise<void> {
+    for (const icon of addedIcons(added)) {
+      const key = `${icon.atlas}|${icon.part}`;
+      if (all.has(key)) continue;
+      const src = await this.src(w, icon);
+      if (src) all.set(key, src);
+    }
+  }
+
   private async iconSrc(w: vscode.Webview, fam: Family, which: "item" | "wheel", value?: string): Promise<string | undefined> {
     const top = fam.tiers[fam.tiers.length - 1];
     return this.src(w, value ? await iconOf(this.hub.reader, value) : which === "item" ? top.icons.item : top.icons.wheel);
@@ -208,6 +250,28 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
   private async src(w: vscode.Webview, icon: IconRef | undefined): Promise<string | undefined> {
     const file = await this.hub.icons.file(icon);
     return file ? w.asWebviewUri(vscode.Uri.file(file)).toString() : undefined;
+  }
+
+  /** Offers the picker's two sources on the page: the other families, and the status effects. */
+  private async offerEffects(w: vscode.Webview, fam: Family): Promise<void> {
+    await w.postMessage({ status: "Reading the game's status effects\u2026" });
+    const catalog = await this.hub.catalog();
+    const families = [];
+    for (const f of catalog.families) {
+      if (f.key === fam.key) continue;
+      families.push({ key: f.key, name: f.name, src: await this.src(w, await iconOf(this.hub.reader, f.icon)) });
+    }
+    await w.postMessage({ status: "Pick an effect.", effectPicker: { families, pool: await this.hub.effectPool() } });
+  }
+
+  /** Offers a family's effects on the page. */
+  private async offerFamily(w: vscode.Webview, key: string): Promise<void> {
+    const source = await this.hub.family(key);
+    const effects = [];
+    for (const o of offeredEffects(source)) {
+      effects.push({ key: o.key, name: plainName(o.effect.name), summary: effectSummary(o.effect), src: await this.src(w, o.effect.icon) });
+    }
+    await w.postMessage({ effectFamily: { key, name: source.name, effects } });
   }
 
   /** Offers the game's quickhack icons on the page. */

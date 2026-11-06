@@ -12,13 +12,14 @@ Last updated 2026-11-06.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-06 | Pass, 47 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-06 | Pass, 70 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | | Waiting |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-06 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -26,7 +27,53 @@ Last updated 2026-11-06.
 
 ## Waiting for a hand test
 
-None.
+- [H3.4 Add Effect](#h34-add-effect), EDGEhack 0.0.6.
+
+## H3.4 Add Effect
+
+EDGEhack 0.0.6: adding effects to a new quickhack. The smoke test has already driven these pages, and the writer ran against every family; this checks them by hand, with the real REDcode, and for the first time in the game.
+
+**Before you start:**
+
+- Install: `code --install-extension edgehack-0.0.6.vsix`, then **Developer: Reload Window**. REDcode must be 0.10.5 or later.
+- Open a WolvenKit project in REDcode. The H3.3 test's project is fine.
+
+**Part A, in VS Code**
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Quickhacks view, click **Overheat**, click **Make a New One From This...** on its page, type `Triple Heat`, and press Enter | A new tab with its editor |
+| 2 | On that page, scroll down to **Added effects**, below the Numbers table. Click **Add Effect...** | A panel opens with two tabs. **From another quickhack** shows 17 quickhacks with their icons: every family but Overheat |
+| 3 | Click **Contagion** in the panel | Below the icons, one row: **Poison**, on the target, Poisoned, with how long it lasts and its damage |
+| 4 | Click that row | The panel closes. A card for **Poison**: "From Contagion, following its tiers", "Uses the game's record", a row of ticked boxes **On this tier**, then Duration, Stacks and Damage a hit per tier. At the top of the page, a yellow warning that only Human NPCs react to it |
+| 5 | Click **Add Effect...**, then the **Status effects** tab | A long list under **Works on enemies**. At its end, a line saying how many more there are |
+| 6 | In the search box above the list, type `smasher` | "Nothing matches" |
+| 7 | Tick **Show all** beside the search box | Rows under **Boss fights** |
+| 8 | Untick **Show all**, and change the search to `bleeding` | A shorter list. Each row has a name, what the game calls it where that differs, and its record |
+| 9 | Click the row named **Bleeding** | A second card, with **Goes on** set to **the target** |
+| 10 | Click **Add Effect...**, then **Status effects**. Tick **Show all**, search `optical camo player buff common`, and click the row named **Optical Camo Player Buff Common** | A third card, with **Goes on** set to **V**, and no warning about it |
+| 11 | On that third card's **On this tier** row, clear every box except **Epic** | The boxes stay as you left them |
+| 12 | On the **Poison** card, in the **Duration** row, type `20` under **Rare**, and press Tab | The field turns yellow. The card says "A copy of its own on Rare; the game's record elsewhere" |
+| 13 | On the **Bleeding** card, clear the box under **Legendary**. Click an empty spot on the page, then press **Ctrl+Z** | The box comes back ticked. Press **Ctrl+Y**: it clears again |
+| 14 | Press **Ctrl+S** | The line under the title says what it saved. In the project, `source/resources/r6/tweaks/<your mod>/<your mod>_triple_heat.yaml` has a record ending `_a1_OverheatLvl2Program` |
+
+**Part B, in the game**
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below.
+
+| Step | Do | Expect |
+|---|---|---|
+| 15 | Quit the game if it is running. Click **Pack and Play** at the top of the page, then start the game. Say if it does something other than you expect | REDcode packs the project and installs it |
+| 16 | Load a save. In the launcher, switch on **Console**. On the page, in the Numbers table, click **Rare** in its header row, and copy the line from **Give yourself one**. Run it in the Console. Do the same for **Epic** and **Legendary** | Three Triple Heat quickhacks in the backpack |
+| 17 | Put Triple Heat's Rare in the cyberdeck, scan an enemy, and upload it | They burn, are poisoned and bleed. The poison lasts about 20 s, well after the burn ends. Say what you see, and what the enemy's status icons show |
+| 18 | After the fight or on another enemy, swap it for its Epic, and upload it | Burn, poison for about 8 s and a bleed. V goes invisible for a moment, or says what happens instead |
+| 19 | Swap it for its Legendary, and upload it on another enemy | Burn and poison, no bleed, and V stays visible |
+| 20 | If a drone or robot is around, upload it there. Skip this if not | Say whether it takes the poison and the bleed. The page's warning leaves this unverified |
+| 21 | Run `await game.player.addItem("Items.OverheatLvl2Program")` in the Console, put it in the cyberdeck, and upload the game's own Overheat on another enemy | Only a burn, for the game's time. Nothing added reaches the game's quickhack |
+| 22 | Quit the game | Say what differed. If something failed, the lines with errors from TweakXL's log and `r6/logs/redscript_rCURRENT.log` help |
+
+| Run | Result |
+|---|---|
 
 ## H3.3 New
 
@@ -99,7 +146,7 @@ Two hand-written test mods, run in one session ([design, "H3: plan"](design.html
 | 15 | Press **Pool**, then upload Overheat on an enemy with plenty of health | It works as usual, and the log's health drops by a further 30 on arrival |
 | 16 | Press **Effect**, then upload Overheat on another enemy | They burn, and are poisoned too. The log lists the poison, from V's function |
 | 17 | Press **Pool kill**, then upload Overheat on another enemy | They die. The log gives V's experience before and after. Does the kill show as V's, as a normal one does? |
-| 18 | If V has the perk that spreads Overheat, press **Nothing** and upload it into a group. Skip this if not | The log says whether a "Landed" line came for each enemy it spread to |
+| 18 | If V has a way to spread Overheat (the Spillover perk with Overclock active, Copy-Paste, or a cyberdeck's ability), press **Nothing** and upload it into a group. Skip this if not | The log says whether a "Landed" line came for each enemy it spread to |
 | 19 | Press **Nothing**, **Hold** and **Yes**. Get into a fight, scan a new enemy, and try to upload as soon as you can | "Checking..." for 1 s, then usable. Does a second's wait on each new enemy feel acceptable in a fight? |
 | 20 | Press **No**, then scan a new enemy | "Checking..." for 1 s, then "Not on this enemy (spike)". Scan the same enemy again: no wait this time |
 | 21 | Press **Counts** in the spike's window, then quit the game | Tell me anything that looked wrong. I read TweakXL's, redscript's and REDnode's logs |

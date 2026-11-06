@@ -51,7 +51,7 @@ Every quickhack shares four effects (`QuickHack.QuickHack_inline2`, `_inline6`, 
 | A quickhack comes in tiers, one item each: `Items.OverheatProgram` (Common), `OverheatLvl1Program` (Uncommon), `Lvl2` (Rare), `Lvl3` (Epic), `Lvl4` (Legendary), `Lvl4PlusPlus` (Legendary++) | The editor shows a **family** with a column per tier. The Quickhacks view groups by family |
 | Each item's `objectActions` lists its own action **and every lower tier's** | The game keeps one action per `actionName` and type (`RemoveDuplicatedHacks`); the last listed wins. A new tier must list the lower ones too, as the game's do |
 | Each tier has three actions: the normal one, `Boss…` and `Chimera…` (`QuickHack.BossOverheatLvl2Hack`, `actionName` `BossOverheat`), with their own effects | How the game picks the Boss or Chimera action for a target is **unverified** (not in the script code read so far). The editor shows them as "against bosses" under the normal action, and a change applies to all three unless the modder splits them |
-| Spread (Overheat spreads to nearby enemies with the right perk) is two more actions per tier (`…HackSpread`) started by `SpreadInitEffector` and `SpreadEffector` | Spread is one switch in the editor; EDGEhack keeps the Spread actions in step |
+| Spread (Overheat spreads to nearby enemies when V has a way to spread it: the Spillover perk with Overclock active, Copy-Paste, or a cyberdeck's ability) is two more actions per tier (`…HackSpread`) started by `SpreadInitEffector` and `SpreadEffector` | Spread is one switch in the editor; EDGEhack keeps the Spread actions in step |
 | Icons: the item's (`iconPath` → `UIIcon.quickhack_overheat`, in `item_icons21.inkatlas`), the wheel's (`UIIcon.Overheat`, in `quickhacks_icons.inkatlas`), and the status effect's (`uiData.iconPath`, on the target's status bar) | The editor shows all three, each picked separately, with "same as the item" as the default for a new quickhack |
 | Texts live in five places: the item's `displayName` and `localizedDescription`, the wheel's `caption` and `description`, the tier's tooltip line in `OnAttach` | The editor has one **Name** and one **Description** that fill them all, with "different text on the wheel" as an option |
 
@@ -120,9 +120,11 @@ An added effect is **referenced** when it is unchanged (the YAML adds the game's
 
 Combining has rules the editor checks, each as a warning, not a block:
 
-- Two effects of the same `statusEffectType` (two Burning effects) replace each other on the target rather than stack. Unverified per type; checked in H3.
-- An effect whose `AIData` needs a kind of NPC (humans only) does nothing to the rest.
-- Effects with `PlayerCooldown`, cyberware or boss-fight tags are V's or a boss's: shown only with **Show all**.
+- Two effects of the same `statusEffectType` may replace each other on the target. Two different burns ran side by side in H3.1's test, so Burning and Misc give no warning; other types are unverified.
+- The same status effect twice on a tier, its own and an added one: one upload may count as two stacks, or as one. Unverified.
+- An effect whose `AIData` needs a kind of NPC (humans only) has no reaction on the rest. Whether the effect itself runs on them is unverified.
+- A status effect with no duration may stay until something removes it. Unverified.
+- Effects with `PlayerCooldown`, cyberware or boss-fight tags are V's or a boss's: shown only with **Show all**, with a warning if one goes on a target.
 - The cooldown, the "was quickhacked" mark and the RAM cost always stay; they are not in the effects list.
 
 ## Views
@@ -446,6 +448,20 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 
 **H3.3 passed in the game (2026-11-06), on the owner's laptop:** the first run of the writer's own output. A new hack made in the editor, with several tiers and copied damage and duration, sits beside the family it came from in the deck and on the wheel, with its own RAM, numbers and a 15 s cooldown of its own, while the game's Overheat keeps its own. That settles the separate cooldown the spike could not show, since Overheat's is 0.0001 s.
 
+**H3.4 built (2026-11-06), EDGEhack 0.0.6:** **Add Effect** on the editor, with the picker's two sources. `src/effects.ts` has the pool, the sorting, another quickhack's effects, the warnings and `resolveAdded`, which reads a document's added effects for the writer; `document.ts` has `effects` in the document, and `tweaks.ts` writes them. The document stores what was picked, not records per tier: `status`, or `from` and `effect` (the record's name with its tier taken out). So a game patch that renames a tier's record still resolves, and one that removes it gives a warning, not a failure.
+
+| Decided while building | Why |
+|---|---|
+| An effect from another quickhack **follows that quickhack's tiers**, by rank | Adding Contagion's poison should give a Rare hack the Rare poison. The owner's "on all tiers by default" still holds, with a box per tier to leave it off |
+| The nearest tier that has the effect, at or below the rank first, never its place in a list | Short Circuit's EMP starts at Epic, and going by place gave a lower tier a weakspot effect for it. Checked on all 18 families |
+| The first source offers what a quickhack does **to its target** | V's own (cooldowns, helper states the hack needs for itself) and what is made for a boss stay in the status effects, under **Show all** |
+| Numbers per tier, each tier's copy its own | The decision "a column per tier"; two tiers can hold different numbers on one added effect |
+| A status effect picked by itself gets one effect record of EDGEhack's; another quickhack's uses that quickhack's record | Unchanged, nothing of the game's is copied |
+| An effect a game effector runs keeps its numbers | There is no plain status effect record to point at a copy; the card shows no field, and a document that sets one gets a warning |
+| A change to a game quickhack gets its added effects on its Boss and Chimera actions too | The rule "a change applies to all three"; a new quickhack has none |
+
+Checked against the real REDbridge on game 2.5: every family as a source, 26 effects, each with every number changed, and all 355 game records the YAML names exist. **Not yet run in the game:** `$type: ObjectActionEffect`, a stacks copy, a status effect on V, and whether an added effect from another quickhack works beside the hack's own.
+
 **What the spike answers:**
 
 - Does `$base` copy a tier's inline records, or does the copy still point at the original's?
@@ -553,7 +569,7 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 
 **H3c.1's result (2026-11-05, game 2.5): passed.** Both wraps and the fallback work with no REDnode change, and a locked entry shows our text as the game's do. 90 rebuilds in about 4 minutes, with no loop. Lowering the health pool from a function works, and a kill that way looked normal. A hand-built `gameHitEvent` crashed the game.
 
-**Still open for H3c.2:** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, since V lacks the perk; Boss and Chimera actions.
+**Still open for H3c.2:** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, not run yet, since nothing V has spread Overheat in that test (a way to spread: the Spillover perk with Overclock active, Copy-Paste, or a cyberdeck's ability); Boss and Chimera actions.
 
 **Agreed with the owner on 2026-11-05:**
 

@@ -56,7 +56,7 @@ export function img(icons: Map<string, string>, icon: IconRef | undefined, cls: 
   return src ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" title="${esc(`${icon!.record}: ${icon!.part}`)}">` : `<span class="${cls} blank" title="no icon"></span>`;
 }
 
-function rec(path: string | undefined, label?: string): string {
+export function rec(path: string | undefined, label?: string): string {
   return path ? `<a href="#" class="rec" data-record="${esc(path)}" title="Open in REDcode">${esc(label ?? path)}</a>` : "";
 }
 
@@ -113,7 +113,7 @@ ${own.filter((e) => e.icon).map((e) => `<figure>${img(icons, e.icon, "icon", e.n
 ${shared.length ? `<details><summary>Every quickhack also (${shared.length})</summary>${shared.map((e) => effectCard(e, icons)).join("")}</details>` : ""}</section>`;
   const worksOn = `<section><h2>Works on</h2>${t.notWhen.length ? `<p>Cannot be used when:</p><ul>${t.notWhen.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="none">No conditions on the target.</p>`}
 ${t.boss || t.chimera ? `<p>Against bosses it uses ${[rec(t.boss?.record, "its Boss action"), rec(t.chimera?.record, "its Chimera action")].filter(Boolean).join(" and ")}.</p>` : ""}</section>`;
-  const spread = `<section><h2>Spread</h2><p>${t.spread ? "Spreads to nearby enemies (with the perk that allows it)." : `<span class="none">Does not spread.</span>`}</p></section>`;
+  const spread = `<section><h2>Spread</h2><p>${t.spread ? "Spreads to nearby enemies, when V has a perk or cyberdeck ability that spreads quickhacks." : `<span class="none">Does not spread.</span>`}</p></section>`;
   const passives = `<section><h2>While equipped</h2>${
     t.passives.length
       ? `<ul>${t.passives.map((p) => `<li>${rec(p.record, p.name)}${p.effectors.length ? `: ${esc(p.effectors.join(", "))}` : ""}${p.stats.length ? ` (${p.stats.map((s) => `${esc(s.stat)} ${esc(num(s.value))}`).join(", ")})` : ""}</li>`).join("")}</ul>`

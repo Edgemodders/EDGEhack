@@ -6,10 +6,13 @@ import { Records } from "./records";
 import { Icons } from "./icons";
 import { Catalog, familyOfPath, readCatalog } from "./catalog";
 import { Family, IconRef, readAction, readFamily } from "./read";
+import { PoolEntry, readEffectPool, ResolvedAdded, resolveAdded } from "./effects";
+import type { QuickhackDoc } from "./document";
 
 export class Hub {
   private catalogP: Promise<Catalog> | undefined;
   private uiIcons: Promise<IconRef[]> | undefined;
+  private pool: Promise<PoolEntry[]> | undefined;
   private records = this.newRecords();
   private readonly families = new Map<string, Promise<Family>>();
   readonly icons: Icons;
@@ -116,8 +119,23 @@ export class Hub {
     return which === "item" ? icons.filter((i) => /^UIIcon\.quickhack_/.test(i.record)) : icons.filter((i) => /quickhacks_icons\.inkatlas$/i.test(i.atlas));
   }
 
+  /** The game's status effects, sorted for the Add Effect picker. Read once. */
+  effectPool(): Promise<PoolEntry[]> {
+    if (!this.pool) {
+      this.pool = (async () => readEffectPool(await bridge()))();
+      this.pool.catch(() => (this.pool = undefined));
+    }
+    return this.pool;
+  }
+
+  /** A document's added effects, read. */
+  added(doc: QuickhackDoc, fam: Family): Promise<ResolvedAdded[]> {
+    return resolveAdded(doc, fam, { family: (key) => this.family(key), records: this.records });
+  }
+
   refresh(): void {
     this.uiIcons = undefined;
+    this.pool = undefined;
     this.catalogP = undefined;
     this.records = this.newRecords();
     this.families.clear();

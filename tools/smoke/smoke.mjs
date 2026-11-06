@@ -292,6 +292,96 @@ check(fs.existsSync(path.join(T, "packed.json")), "Pack and Play on it asks REDc
 yaml = fs.readFileSync(newYaml, "utf8");
 check(/^Attacks\.EDGEhack_smokemod_smoke_static_OverheatLvl2Program:\n {2}\$base: /m.test(yaml) && /^BaseStatusEffect\.EDGEhack_smokemod_smoke_static_OverheatLvl2Program:\n {2}\$base: /m.test(yaml), "changed damage and duration are in by the time it packs, as copies");
 
+// Add Effect: from another quickhack, and a status effect.
+const newDocNow = async () => {
+  await step({ command: "workbench.action.files.save" });
+  await sleep(900);
+  return JSON.parse(fs.readFileSync(newFile, "utf8"));
+};
+await run(made, `document.querySelector("[data-add-effect]").click();`);
+for (let i = 0; i < 60; i++) {
+  if (await run(made, `return !document.querySelector("[data-effect-picker]").hidden;`)) break;
+  await sleep(500);
+}
+const families = await run(made, `return document.querySelectorAll("[data-effect-pick-family]").length;`);
+check(families === 17, `the picker offers the other families: ${families}`);
+await sleep(800);
+const famImages = await images(made);
+check(famImages.broken.length === 0, `their icons load: broken ${JSON.stringify(famImages.broken.slice(0, 3))}`);
+await run(made, `document.querySelector("[data-add-effect]").scrollIntoView();`);
+await sleep(200);
+await shot("effect-picker.png");
+await run(made, `document.querySelector('[data-effect-pick-family="Contagion"]').click();`);
+for (let i = 0; i < 40; i++) {
+  if (await run(made, `return !!document.querySelector("[data-add-from]");`)) break;
+  await sleep(250);
+}
+const poison = await run(made, `return [...document.querySelectorAll("[data-add-from]")].map((b) => b.querySelector("b").textContent);`);
+check(poison.includes("Poison"), `Contagion offers its poison: ${poison}`);
+await run(made, `document.querySelector("[data-add-from]").click();`);
+await sleep(1200);
+const withPoison = await newDocNow();
+check(withPoison.effects?.[0]?.from === "Contagion" && /ContagionPoison/.test(withPoison.effects?.[0]?.effect ?? ""), "the document holds Contagion's poison");
+check(await run(made, `return document.querySelectorAll("[data-added-card]").length === 1 && document.querySelector("[data-effect-picker]").hidden;`), "its card shows, and the picker closes");
+check(/Uses the game/.test(await run(made, `return document.querySelector("[data-added-uses]").textContent;`)), "and it says it uses the game's record");
+
+await run(made, `document.querySelector("[data-add-effect]").click();`);
+await sleep(800);
+await run(made, `document.querySelector('[data-effect-tab="status"]').click();`);
+const everyEnemy = await run(made, `return document.querySelectorAll("[data-add-status]").length;`);
+check(everyEnemy >= 100, `the status effects list: ${everyEnemy}`);
+await setInput(made, "[data-effect-search]", "bleeding");
+await run(made, `document.querySelector("[data-effect-search]").dispatchEvent(new Event("input", { bubbles: true }));`);
+await sleep(200);
+const bleeds = await run(made, `return [...document.querySelectorAll("[data-add-status]")].map((b) => b.dataset.addStatus);`);
+check(bleeds.includes("BaseStatusEffect.Bleeding") && bleeds.length < everyEnemy, `the search narrows them: ${bleeds.length}`);
+await run(made, `document.querySelector("[data-effect-all]").click();`);
+await sleep(200);
+const withAll = await run(made, `return document.querySelectorAll("[data-add-status]").length;`);
+check(withAll >= bleeds.length, `Show all adds to them: ${withAll}`);
+await run(made, `document.querySelector("[data-effect-all]").click();`);
+await run(made, `document.querySelector("[data-add-effect]").scrollIntoView();`);
+await sleep(200);
+await shot("effect-status.png");
+await run(made, `document.querySelector('[data-add-status="BaseStatusEffect.Bleeding"]').click();`);
+await sleep(1200);
+check((await newDocNow()).effects?.[1]?.status === "BaseStatusEffect.Bleeding", "the document holds the status effect");
+check((await run(made, `return document.querySelectorAll("[data-added-card]").length;`)) === 2, "two cards show");
+
+// A number makes a copy, and only there; a tier can be left off; undo reaches the cards.
+await setInput(made, '[data-added="a1"][data-added-tier="Items.OverheatLvl2Program"][data-added-field="duration"]', "20");
+await sleep(800);
+check((await newDocNow()).effects[0].values?.["Items.OverheatLvl2Program"]?.duration === 20, "a number goes in the document");
+check(/copy of its own on Rare/.test(await run(made, `return document.querySelector('[data-added-card="a1"] [data-added-uses]').textContent;`)), "and the card says Rare has a copy");
+await run(made, `document.querySelector('[data-added-on="a2"][data-added-tier="Items.OverheatProgram"]').click();`);
+await sleep(800);
+check(JSON.stringify((await newDocNow()).effects[1].off) === JSON.stringify(["Items.OverheatProgram"]), "a cleared box leaves it off that tier");
+await run(made, `document.querySelector("[data-add-effect]").scrollIntoView();`);
+await sleep(200);
+await shot("effect-cards.png");
+await step({ command: "workbench.action.files.save" });
+await sleep(1500);
+yaml = fs.readFileSync(newYaml, "utf8");
+check(/^BaseStatusEffect\.EDGEhack_smokemod_smoke_static_a1_OverheatLvl2Program:\n {2}\$base: BaseStatusEffect\.ContagionPoisonLvl2\n {2}duration: /m.test(yaml), "the YAML copies the poison for Rare");
+check(/^QuickHack\.EDGEhack_smokemod_smoke_static_a2:\n {2}\$type: ObjectActionEffect\n {2}recipient: ObjectActionReference\.Target\n {2}statusEffect: BaseStatusEffect\.Bleeding/m.test(yaml), "the YAML makes the bleed's effect record");
+const baseTier = yaml.split("QuickHack.EDGEhack_smokemod_smoke_static_OverheatProgram:\n")[1].split("\n\n")[0];
+const rareTier = yaml.split("QuickHack.EDGEhack_smokemod_smoke_static_OverheatLvl2Program:\n")[1].split("\n\n")[0];
+check(!/static_a2/.test(baseTier) && /static_a2/.test(rareTier), "the bleed is off Common and on Rare");
+check(/ContagionHack_inline|ContagionPoison|QuickHack\.Contagion/.test(baseTier), "Common takes Contagion's own effect record");
+check(/static_a1_OverheatLvl2Program_Effect/.test(rareTier), "Rare takes its copy");
+await run(made, `document.activeElement && document.activeElement.blur();`);
+await step({ command: "undo" });
+await sleep(800);
+check((await run(made, `return document.querySelector('[data-added-on="a2"][data-added-tier="Items.OverheatProgram"]').checked;`)) === true, "undo reaches the card");
+await step({ command: "redo" });
+await sleep(800);
+await run(made, `document.querySelector('[data-added-remove="a2"]').click();`);
+await sleep(800);
+check((await run(made, `return document.querySelectorAll("[data-added-card]").length;`)) === 1, "Remove takes a card away");
+await step({ command: "workbench.action.files.save" });
+await sleep(1200);
+check(!/static_a2/.test(fs.readFileSync(newYaml, "utf8")), "and the YAML follows");
+
 // The same name is refused in the box, and nothing is made.
 await step({ command: "edgehack.openQuickhack", args: ["Overheat"] });
 await sleep(1500);

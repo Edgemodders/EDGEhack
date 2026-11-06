@@ -6,6 +6,7 @@ import type { BridgeClient, ProjectRef } from "./redcode";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId } from "./document";
 import type { Family } from "./read";
 import { writeTweaks } from "./tweaks";
+import type { ResolvedAdded } from "./effects";
 import { ProjectResult, writeProject } from "./projectFiles";
 
 /** Where a document lives in a project: source/raw/edgehack/<id>.quickhack.json. */
@@ -61,7 +62,7 @@ export function makeNewHackDoc(project: ProjectRef, familyKeys: string[], family
   return { file, doc };
 }
 
-/** A document's mod files, written into the project. */
-export function writeDocFiles(project: ProjectRef, bridge: BridgeClient, fam: Family, doc: QuickhackDoc): Promise<ProjectResult> {
-  return writeProject(project, bridge, doc, writeTweaks(fam, doc));
+/** A document's mod files, written into the project. `added` is its added effects, read. */
+export function writeDocFiles(project: ProjectRef, bridge: BridgeClient, fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = []): Promise<ProjectResult> {
+  return writeProject(project, bridge, doc, writeTweaks(fam, doc, added));
 }

@@ -64,6 +64,11 @@ export interface Effect {
   /** The status effect's packages. */
   packages?: string[];
   stacks?: number;
+  /** The status effect's stacks group and its modifiers: what the writer copies with one more. */
+  stacksGroup?: string;
+  stacksMods?: string[];
+  /** The kinds of NPC that react to it, in words, when not every kind does. */
+  npcTypes?: string[];
   tags: string[];
   damage: Damage[];
   stats: StatChange[];
@@ -271,6 +276,12 @@ class Reader {
     const duration = durationPath === "BaseStats.InfiniteDuration" ? { base: Infinity, scaledBy: [] } : durationGroup.length ? await sumStat(this.r, durationGroup, "BaseStats.MaxDuration", undefined, own) : undefined;
     const stacksGroup = await this.all([str(se, "maxStacks")].filter(Boolean));
     const stacks = stacksGroup.length ? (await sumStat(this.r, stacksGroup, "BaseStats.MaxStacks")).base : undefined;
+    // Through the plain reader: this is not one of the tier's records, so Advanced does not list it.
+    const npcTypes: string[] = [];
+    for (const pre of await this.r.all((await this.r.get(str(se, "AIData")))?.flats.get("activationPrereqs"))) {
+      const allowed = list(pre, "allowedTypes");
+      if (str(pre, "prereqClassName") === "NPCTypePrereq" && pre.flats.get("invert") !== true && allowed.length && allowed.length < 3) npcTypes.push(...allowed.map((t) => words(t)));
+    }
     const damage: Damage[] = [];
     const stats: StatChange[] = [];
     let spread = false;
@@ -294,6 +305,9 @@ class Reader {
       durationMods: list(durationGroup[0], "statModifiers"),
       packages: list(se, "packages"),
       stacks,
+      stacksGroup: stacksGroup[0]?.path,
+      stacksMods: list(stacksGroup[0], "statModifiers"),
+      npcTypes: npcTypes.length ? [...new Set(npcTypes)] : undefined,
       tags: list(se, "gameplayTags"),
       damage,
       stats,
@@ -370,6 +384,16 @@ class Reader {
     const effects = [...(await this.effects(action.flats.get("startEffects"), "start", cooldown?.record)), ...(await this.effects(action.flats.get("completionEffects"), "upload", cooldown?.record))];
     return { record: action.path, ram: await this.costs(action), upload: await this.upload(action), main: mainEffect(effects) };
   }
+}
+
+/** What a tier is called in a document: its item record, or its action for a hack with no item. */
+export const tierKey = (t: Tier): string => t.item ?? t.action;
+
+/** A status effect as an effect a quickhack could add, or undefined when there is no such record. It has no action effect of its own yet, so `record` is empty. */
+export async function readStatus(r: Records, path: string, on: Effect["on"] = "target"): Promise<Effect | undefined> {
+  if (!(await r.get(path))) return undefined;
+  const s = await new Reader(r).status(path);
+  return { ...s, record: "", on, when: "upload", shared: false, cooldown: false };
 }
 
 /** Reads one tier: an item (or none, for a device hack) and its own action. */

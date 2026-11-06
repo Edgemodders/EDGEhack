@@ -18,6 +18,37 @@ export interface TierEdit {
 export type TierField = keyof TierEdit;
 export const TIER_FIELDS: TierField[] = ["ram", "upload", "damage", "duration", "bossRam", "bossUpload"];
 
+/** An added effect's numbers on one tier. Any of them makes it a copy of its own on that tier. */
+export interface AddedValues {
+  duration?: number;
+  stacks?: number;
+  /** Damage a hit (a tick, for damage over time). */
+  damage?: number;
+}
+
+export type AddedField = keyof AddedValues;
+export const ADDED_FIELDS: AddedField[] = ["duration", "stacks", "damage"];
+
+/**
+ * An effect added to the quickhack: a status effect, or another quickhack's effect, which follows that
+ * quickhack's tiers. It uses the game's own record until a number on a tier changes.
+ */
+export interface AddedEffect {
+  /** Names its records. Fixed once written, and not used again in the document. */
+  id: string;
+  /** A status effect's record. */
+  status?: string;
+  /** Or another quickhack's family, and which of its effects (effectKey). */
+  from?: string;
+  effect?: string;
+  /** Who a status effect goes on: the target unless set. Another quickhack's effect keeps its own. */
+  on?: "target" | "V";
+  /** The tiers it is left off, by tier item. Missing, it is on every tier. */
+  off?: string[];
+  /** Numbers by tier item. */
+  values?: Record<string, AddedValues>;
+}
+
 export interface QuickhackDoc {
   format: 1;
   /** Names the mod's records and text keys. Fixed once written: saves and other mods refer to them. */
@@ -37,6 +68,8 @@ export interface QuickhackDoc {
   cooldown?: number;
   /** By the tier's item record. */
   tiers: Record<string, TierEdit>;
+  /** Effects added to it. Missing when there are none. */
+  effects?: AddedEffect[];
 }
 
 /** A name fit for record paths and text keys: lowercase letters, digits and underscores. */
@@ -67,6 +100,41 @@ function text(v: unknown, what: string): string | undefined {
   if (v === undefined || v === null) return undefined;
   if (typeof v !== "string") throw new Error(`${what} must be text.`);
   return v;
+}
+
+function addedEffects(v: unknown): AddedEffect[] | undefined {
+  if (v === undefined || v === null) return undefined;
+  if (!Array.isArray(v)) throw new Error("The effects must be a list.");
+  const seen = new Set<string>();
+  const out = v.map((raw: Record<string, unknown>) => {
+    if (!raw || typeof raw.id !== "string" || !/^[a-z0-9_]+$/.test(raw.id)) throw new Error("An added effect needs an id of lowercase letters, digits and underscores.");
+    if (seen.has(raw.id)) throw new Error(`Two added effects have the id ${raw.id}.`);
+    seen.add(raw.id);
+    const status = text(raw.status, `Effect ${raw.id}'s status effect`);
+    const from = text(raw.from, `Effect ${raw.id}'s quickhack`);
+    const effect = text(raw.effect, `Effect ${raw.id}'s effect`);
+    if (!status && !(from && effect)) throw new Error(`Effect ${raw.id} needs a status effect, or a quickhack and one of its effects.`);
+    if (raw.on !== undefined && raw.on !== "target" && raw.on !== "V") throw new Error(`Effect ${raw.id} goes on the target or on V.`);
+    const off = raw.off === undefined ? undefined : Array.isArray(raw.off) ? raw.off.filter((x): x is string => typeof x === "string") : undefined;
+    const values: Record<string, AddedValues> = {};
+    for (const [tier, edit] of Object.entries((raw.values ?? {}) as Record<string, Record<string, unknown>>)) {
+      const t: AddedValues = {};
+      for (const f of ADDED_FIELDS) {
+        const n = number(edit?.[f], `Effect ${raw.id}'s ${f} on ${tier}`);
+        if (n !== undefined) t[f] = n;
+      }
+      if (Object.keys(t).length) values[tier] = t;
+    }
+    const e: AddedEffect = { id: raw.id };
+    if (status) e.status = status;
+    if (from) e.from = from;
+    if (effect) e.effect = effect;
+    if (raw.on) e.on = raw.on as "target" | "V";
+    if (off?.length) e.off = off;
+    if (Object.keys(values).length) e.values = values;
+    return e;
+  });
+  return out.length ? out : undefined;
 }
 
 /** Reads a document's text. Throws with a message for the modder when it cannot be used. */
@@ -103,6 +171,7 @@ export function parseDoc(source: string): QuickhackDoc {
     wheelIcon: text(o.wheelIcon, "The wheel icon"),
     cooldown: number(o.cooldown, "The cooldown"),
     tiers,
+    effects: addedEffects(o.effects),
   };
 }
 
@@ -129,4 +198,52 @@ export function withTierField(doc: QuickhackDoc, tier: string, field: TierField,
   if (value === undefined || value === game) delete edit[field];
   else edit[field] = value;
   return { ...doc, tiers: { ...doc.tiers, [tier]: edit } };
+}
+
+/** A document with one more effect. Its id is never one the document has used, so a copy's records keep their names. */
+export function withAddedEffect(doc: QuickhackDoc, effect: Omit<AddedEffect, "id">): QuickhackDoc {
+  const used = (doc.effects ?? []).map((e) => Number(/^a(\d+)$/.exec(e.id)?.[1] ?? 0));
+  const id = `a${Math.max(0, ...used) + 1}`;
+  return { ...doc, effects: [...(doc.effects ?? []), { id, ...effect }] };
+}
+
+export function withoutAddedEffect(doc: QuickhackDoc, id: string): QuickhackDoc {
+  const effects = (doc.effects ?? []).filter((e) => e.id !== id);
+  const { effects: _gone, ...rest } = doc;
+  return effects.length ? { ...rest, effects } : rest;
+}
+
+function mapAdded(doc: QuickhackDoc, id: string, change: (e: AddedEffect) => AddedEffect): QuickhackDoc {
+  return { ...doc, effects: (doc.effects ?? []).map((e) => (e.id === id ? change(e) : e)) };
+}
+
+/** Puts an added effect on a tier, or leaves it off. */
+export function withAddedTier(doc: QuickhackDoc, id: string, tier: string, on: boolean): QuickhackDoc {
+  return mapAdded(doc, id, (e) => {
+    const off = (e.off ?? []).filter((t) => t !== tier);
+    if (!on) off.push(tier);
+    const { off: _old, ...rest } = e;
+    return off.length ? { ...rest, off } : rest;
+  });
+}
+
+/** Who a status effect goes on. The target is the default, so it is not written. */
+export function withAddedRecipient(doc: QuickhackDoc, id: string, on: "target" | "V"): QuickhackDoc {
+  return mapAdded(doc, id, (e) => {
+    const { on: _old, ...rest } = e;
+    return on === "V" ? { ...rest, on } : rest;
+  });
+}
+
+/** One number of an added effect on one tier, unset with undefined or a value equal to the game's. */
+export function withAddedValue(doc: QuickhackDoc, id: string, tier: string, field: AddedField, value: number | undefined, game?: number): QuickhackDoc {
+  return mapAdded(doc, id, (e) => {
+    const edit: AddedValues = { ...e.values?.[tier] };
+    if (value === undefined || value === game) delete edit[field];
+    else edit[field] = value;
+    const values = { ...e.values, [tier]: edit };
+    if (!Object.keys(edit).length) delete values[tier];
+    const { values: _old, ...rest } = e;
+    return Object.keys(values).length ? { ...rest, values } : rest;
+  });
 }

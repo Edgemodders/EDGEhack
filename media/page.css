@@ -81,3 +81,23 @@ figure.changed .icon { outline: 1px solid var(--yellow); outline-offset: 2px; }
 
 /* The Console line of a new quickhack. */
 code[data-give] { font-family: var(--vscode-editor-font-family); user-select: all; }
+.added { border: 1px solid var(--line); padding: 8px 10px; margin-bottom: 10px; }
+.added .effect { border-bottom: 0; padding-top: 0; }
+.added table.numbers input[type="number"] { width: 76px; }
+button.remove { margin-left: 8px; font-size: .85em; padding: 0 6px; }
+.who { display: inline-block; margin-top: 4px; color: var(--dim); }
+main.edit select { background: var(--vscode-dropdown-background); color: var(--vscode-dropdown-foreground); border: 1px solid var(--vscode-dropdown-border, var(--line)); padding: 2px 4px; }
+.effect-picker { border: 1px solid var(--line); padding: 8px 10px; margin-bottom: 10px; }
+.effect-picker nav button:last-child { margin-left: auto; }
+.families { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); max-height: 240px; }
+.families button { display: flex; align-items: center; gap: 6px; line-height: 1.2; text-align: left; font-size: .9em; }
+.families button.on { border-color: var(--yellow); color: var(--yellow); }
+.families img { width: 28px; height: 28px; flex: none; }
+.filters input[type="search"] { width: 280px; max-width: 100%; }
+.effect-list { max-height: 360px; overflow-y: auto; }
+.effect-list h3 { font-size: .85em; color: var(--dim); margin: 10px 0 4px; font-weight: normal; }
+.effect-row { display: block; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 4px 6px; }
+.effect-row:hover { background: rgba(252, 238, 10, .08); }
+.effect-row img { width: 24px; height: 24px; float: left; margin-right: 8px; }
+.effect-row b { display: block; font-weight: normal; }
+.effect-row small { color: var(--dim); }

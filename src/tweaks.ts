@@ -3,8 +3,9 @@
 // gets one more modifier, and the game's own records stay as they are. A new quickhack is the other way
 // round: every record it changes is its own copy (docs/design.md, "H3: plan"). Pure, no VS Code.
 import type { QuickhackDoc, TierEdit } from "./document";
-import { mainEffect, Tier, Family, Variant, Effect } from "./read";
+import { mainEffect, Tier, Family, Variant, Effect, tierKey } from "./read";
 import { NEW_HACK_SCRIPT } from "./newHackScript";
+import { addedGameValue, addedWarnings, ResolvedAdded } from "./effects";
 
 export interface TextEntry {
   key: string;
@@ -43,6 +44,11 @@ class Out {
 
   append(flat: string, value: string): void {
     this.changes.push(`${flat}:\n  - !append ${value}\n`);
+  }
+
+  /** Several values on one list: one key, since a second key of the same name would replace the first. */
+  appendAll(flat: string, values: string[]): void {
+    if (values.length) this.changes.push(`${flat}:\n${values.map((v) => `  - !append ${v}\n`).join("")}`);
   }
 
   set(flat: string, value: string): void {
@@ -114,9 +120,9 @@ function variant(out: Out, v: Variant | undefined, name: string, edit: TierEdit,
   if (v.main?.durationGroup) duration(out, v.main, diffs.duration, name);
 }
 
-/** The YAML and texts for a document. */
-export function writeTweaks(fam: Family, doc: QuickhackDoc): WrittenTweaks {
-  if (doc.newHack) return writeNewHack(fam, doc);
+/** The YAML and texts for a document. `added` is its added effects, read (resolveAdded). */
+export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = []): WrittenTweaks {
+  if (doc.newHack) return writeNewHack(fam, doc, added);
   const out = new Out(`EDGEhack.${doc.id}`);
   const texts: TextEntry[] = [];
   const textKey = (field: string, text: string): string => {
@@ -141,7 +147,15 @@ export function writeTweaks(fam: Family, doc: QuickhackDoc): WrittenTweaks {
     duration(out, main, diffs.duration, name);
     variant(out, t.boss, `${name}_Boss`, edit, diffs);
     variant(out, t.chimera, `${name}_Chimera`, edit, diffs);
+    // A change to a game quickhack reaches its Boss and Chimera actions too.
+    const more = addedOnTier(out, doc, added, t, name);
+    for (const action of [t.action, t.boss?.record, t.chimera?.record]) {
+      if (!action) continue;
+      out.appendAll(`${action}.startEffects`, more.start);
+      out.appendAll(`${action}.completionEffects`, more.completion);
+    }
   }
+  out.warnings.push(...addedWarnings(fam, doc, added));
 
   // The cooldown: the tiers share a status effect, so one difference for each one the family has.
   if (doc.cooldown !== undefined) {
@@ -204,13 +218,98 @@ function copy(path: string, base: string, fields: Record<string, Field>): string
   return text;
 }
 
+/** Differences in a status effect's numbers: what a copy of it adds. */
+interface StatusDiffs {
+  damage: number;
+  duration: number;
+  stacks: number;
+}
+
+/**
+ * A copy of a status effect with its numbers changed, or undefined when it could not be made. Damage sits
+ * at the end of a chain, each link naming the next, so each is copied. `label` names the records.
+ */
+function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs: StatusDiffs): string | undefined {
+  const fields: Record<string, Field> = {};
+  if (round(diffs.duration) !== 0 && e.durationGroup) {
+    const group = `${out.prefix}.${label}_Duration`;
+    out.records.push(`${group}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n${[...(e.durationMods ?? []), out.modifier(`${label}_DurationMod`, "BaseStats.MaxDuration", diffs.duration)].map((m) => `    - ${m}\n`).join("")}`);
+    fields.duration = group;
+  }
+  if (round(diffs.stacks) !== 0 && e.stacksGroup) {
+    const group = `${out.prefix}.${label}_Stacks`;
+    out.records.push(`${group}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n${[...(e.stacksMods ?? []), out.modifier(`${label}_StacksMod`, "BaseStats.MaxStacks", diffs.stacks)].map((m) => `    - ${m}\n`).join("")}`);
+    fields.maxStacks = group;
+  }
+  if (round(diffs.damage) !== 0) {
+    const damage = e.damage[0];
+    if (damage?.stat && damage.effector && damage.package) {
+      const attack = `Attacks.EDGEhack_${doc.id}_${label}`;
+      const effector = `${out.prefix}.${label}_Effector`;
+      const pkg = `${out.prefix}.${label}_Package`;
+      out.records.push(copy(attack, damage.record, { statModifiers: [...(damage.attackMods ?? []), out.modifier(`${label}_Damage`, damage.stat, diffs.damage)] }));
+      out.records.push(copy(effector, damage.effector, { attackRecord: attack }));
+      out.records.push(copy(pkg, damage.package, { effectors: (damage.packageEffectors ?? []).map((x) => (x === damage.effector ? effector : x)) }));
+      fields.packages = (e.packages ?? []).map((p) => (p === damage.package ? pkg : p));
+    } else {
+      out.warnings.push(`${label}: its damage is not in a status effect's package, so it was left as it is.`);
+    }
+  }
+  if (!Object.keys(fields).length || !e.status) return undefined;
+  const status = `BaseStatusEffect.EDGEhack_${doc.id}_${label}`;
+  out.records.push(copy(status, e.status, fields));
+  return status;
+}
+
+/** An effect record of our own, for a status effect picked by itself. */
+function ownEffect(path: string, on: Effect["on"], status: string): string {
+  return `${path}:\n  $type: ObjectActionEffect\n  recipient: ObjectActionReference.${on === "V" ? "Instigator" : "Target"}\n  statusEffect: ${status}\n`;
+}
+
+/**
+ * The added effects on one tier, as effect records for the action's lists. Unchanged, each uses the game's
+ * record; a changed number gives this tier a copy of the status effect, under a name of its own.
+ */
+function addedOnTier(out: Out, doc: QuickhackDoc, added: ResolvedAdded[], t: Tier, label: string): { start: string[]; completion: string[] } {
+  const result = { start: [] as string[], completion: [] as string[] };
+  const key = tierKey(t);
+  for (const r of added) {
+    if (r.entry.off?.includes(key)) continue;
+    const e = r.byTier.get(key);
+    if (!e) continue;
+    const want = r.entry.values?.[key] ?? {};
+    const diff = (field: "duration" | "stacks" | "damage"): number => {
+      const game = addedGameValue(e, field);
+      const value = want[field];
+      return value !== undefined && game !== undefined ? value - game : 0;
+    };
+    const diffs: StatusDiffs = { duration: diff("duration"), stacks: diff("stacks"), damage: diff("damage") };
+    const own = `QuickHack.EDGEhack_${doc.id}_${r.entry.id}`;
+    const status = round(diffs.duration) !== 0 || round(diffs.stacks) !== 0 || round(diffs.damage) !== 0 ? copyStatus(out, doc, `${r.entry.id}_${label}`, e, diffs) : undefined;
+    let path: string;
+    if (status) {
+      path = `${own}_${label}_Effect`;
+      out.records.push(r.entry.from ? copy(path, e.record, { statusEffect: status }) : ownEffect(path, e.on, status));
+    } else if (r.entry.from) {
+      path = e.record;
+    } else {
+      // One effect record for the tiers that use the game's status effect.
+      path = own;
+      const text = ownEffect(path, e.on, e.status!);
+      if (!out.records.includes(text)) out.records.push(text);
+    }
+    (e.when === "start" ? result.start : result.completion).push(path);
+  }
+  return result;
+}
+
 /**
  * The records of a new quickhack beside its family: an item and an action per tier, its own wheel entry
  * and cooldown, and copies of the status effect and attack when their numbers change. Spread and the Boss
  * and Chimera actions are left out, since they point at the family's own records. Proved in the game with
  * one tier by the H3.1 spike.
  */
-function writeNewHack(fam: Family, doc: QuickhackDoc): WrittenTweaks {
+function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[]): WrittenTweaks {
   const out = new Out(`EDGEhack.${doc.id}`);
   if (fam.kind !== "people") {
     return { texts: [], warnings: [`${fam.name} is a ${fam.kind} hack: a new quickhack can start only from one for people, for now.`] };
@@ -287,30 +386,9 @@ function writeNewHack(fam: Family, doc: QuickhackDoc): WrittenTweaks {
     if (edit.duration !== undefined && !main?.duration) out.warnings.push(`${label}: its main effect has no duration to change.`);
     // A copied status effect needs its effect on the action to be the plain kind that names it.
     if ((round(damageDiff) !== 0 || round(durationDiff) !== 0) && main?.status && !main.effector) {
-      const fields: Record<string, Field> = {};
-      if (round(durationDiff) !== 0 && main.durationGroup) {
-        const group = `${out.prefix}.${label}_Duration`;
-        records.push(`${group}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n${[...(main.durationMods ?? []), out.modifier(`${label}_DurationMod`, "BaseStats.MaxDuration", durationDiff)].map((m) => `    - ${m}\n`).join("")}`);
-        fields.duration = group;
-      }
-      if (round(damageDiff) !== 0) {
-        if (damage?.stat && damage.effector && damage.package) {
-          // The damage sits at the end of a chain, each link naming the next, so each is copied.
-          const attack = `Attacks.EDGEhack_${doc.id}_${label}`;
-          const effector = `${out.prefix}.${label}_Effector`;
-          const pkg = `${out.prefix}.${label}_Package`;
-          records.push(copy(attack, damage.record, { statModifiers: [...(damage.attackMods ?? []), out.modifier(`${label}_Damage`, damage.stat, damageDiff)] }));
-          records.push(copy(effector, damage.effector, { attackRecord: attack }));
-          records.push(copy(pkg, damage.package, { effectors: (damage.packageEffectors ?? []).map((e) => (e === damage.effector ? effector : e)) }));
-          fields.packages = (main.packages ?? []).map((p) => (p === damage.package ? pkg : p));
-        } else {
-          out.warnings.push(`${label}: its damage is not in a status effect's package, so it was left as it is.`);
-        }
-      }
-      if (Object.keys(fields).length) {
-        const status = `BaseStatusEffect.EDGEhack_${doc.id}_${label}`;
+      const status = copyStatus(out, doc, label, main, { damage: damageDiff, duration: durationDiff, stacks: 0 });
+      if (status) {
         const effect = `QuickHack.EDGEhack_${doc.id}_${label}_Effect`;
-        records.push(copy(status, main.status, fields));
         records.push(copy(effect, main.record, { statusEffect: status }));
         completionEffects = completionEffects.map((e) => (e === main.record ? effect : e));
       }
@@ -329,6 +407,7 @@ function writeNewHack(fam: Family, doc: QuickhackDoc): WrittenTweaks {
     const uploadDiff = edit.upload !== undefined && t.upload ? edit.upload - t.upload.base : 0;
     const activationTime = [...t.lists.activationTime];
     if (round(uploadDiff) !== 0) activationTime.push(out.modifier(`${label}_Upload`, "BaseStats.QuickHackUpload", uploadDiff));
+    const more = addedOnTier(out, doc, added, t, label);
 
     records.push(
       copy(newActionPath(doc, t), t.action, {
@@ -337,8 +416,8 @@ function writeNewHack(fam: Family, doc: QuickhackDoc): WrittenTweaks {
         costs,
         activationTime,
         instigatorPrereqs: t.lists.instigatorPrereqs.map((p) => (p === own?.fromCheck ? own.check : p)),
-        startEffects,
-        completionEffects,
+        startEffects: [...startEffects, ...more.start],
+        completionEffects: [...completionEffects, ...more.completion],
       }),
     );
     if (!t.item) continue;
@@ -354,6 +433,7 @@ function writeNewHack(fam: Family, doc: QuickhackDoc): WrittenTweaks {
     );
   }
 
+  out.warnings.push(...addedWarnings(fam, doc, added));
   const yaml = [`# Made by EDGEhack from ${doc.id}.quickhack.json. Change that document, not this file: saving it writes this again.\n`, ...records].join("\n");
   return { yaml, texts, warnings: out.warnings, script: NEW_HACK_SCRIPT };
 }
