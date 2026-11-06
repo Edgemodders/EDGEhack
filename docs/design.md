@@ -476,7 +476,7 @@ The names and `target`'s fields are a first sketch. `target` folds the common re
 3. Each later rebuild shows the remembered answer and asks again, and refreshes only if the answer changed, so it cannot loop.
 4. With no answer within 1 s (the mod is off, it threw, it hung), the game's own result stands and the log says why.
 
-The expected cost is a few frames of "Checking" the first time V scans an enemy. The spike measures it. If it looks bad, the script asks earlier, when the scanner's target changes. Should a future check need to be instant, the same function could move to Tier 1 with no change for modders.
+The spike measured answers in 0 to 0.03 s from the snapshot, and 0.06 s with three game calls. **The owner's note from it (2026-11-05):** that is too quick to read. Of the times tried, only 1 s gave enough time to notice and read "Checking". So the proposal is to hold it for 1 s the first time V scans an enemy, whatever the answer, with no wait on later scans. That also keeps a usable hack locked for that second, so H3c.1 tries it in a fight before it is decided. If a mod needs it shorter, a setting can come with the API. Should a future check need to be instant, the same function could move to Tier 1 with no change for modders.
 
 **On land** has no such catch: nothing waits for it. A wrap on `ScriptableDeviceAction.CompleteAction` (people's hacks use it, and the game skips it if the target is dead) sends the event, and the function runs a frame or two later. It adds to what the hack does and cannot cancel it. The check for a hack that should not land at all is the scan check.
 

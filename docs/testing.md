@@ -29,7 +29,7 @@ Last updated 2026-11-05.
 
 ## H3.1 and H3c.1 Spikes
 
-Two hand-written test mods, run in one session ([design, "H3: plan"](design.html#h3-plan) and ["H3c Scripts: plan"](design.html#h3c-scripts-plan)). They are in the EDGEdeck library as **EDGEhack H3.1 spike v2** (a new quickhack, Spike Static) and **EDGEhack H3c.1 spike v2** (the app **EDGEhack scripts spike** with its script). Sources and zips are in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H3_spike`. Checked first: redscript-cli found no errors in either script, alone or with Codeware's, and the app's rules passed in plain Node against a stand-in `rednode`, 15 checks. None of it has run in the game before this test.
+Two hand-written test mods, run in one session ([design, "H3: plan"](design.html#h3-plan) and ["H3c Scripts: plan"](design.html#h3c-scripts-plan)). They are in the EDGEdeck library as **EDGEhack H3.1 spike v2** (a new quickhack, Spike Static) and **EDGEhack H3c.1 spike v3** (the app **EDGEhack scripts spike** with its script). Sources and zips are in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H3_spike`. Checked first: redscript-cli found no errors in either script, alone or with Codeware's, and the app's rules passed in plain Node against a stand-in `rednode`, 15 checks. None of it has run in the game before this test.
 
 **Before you start:** with the game closed, deploy in EDGEdeck, with v2 on and the first version off. That adds the two spikes and takes out **EDGEhack_Test1** (Part A's Test Heat), so Overheat is the game's own again. If the game shows a script error at the start, turn both spikes off, deploy, and tell me.
 
@@ -56,14 +56,16 @@ Two hand-written test mods, run in one session ([design, "H3: plan"](design.html
 | 16 | Press **Effect**, then upload Overheat on another enemy | They burn, and are poisoned too. The log lists the poison, from V's function |
 | 17 | Press **Pool kill**, then upload Overheat on another enemy | They die. The log gives V's experience before and after. Does the kill show as V's, as a normal one does? |
 | 18 | If V has the perk that spreads Overheat, press **Nothing** and upload it into a group. Skip this if not | The log says whether a "Landed" line came for each enemy it spread to |
-| 19 | Press **Counts** in the spike's window, then quit the game | Tell me anything that looked wrong. I read TweakXL's, redscript's and REDnode's logs |
+| 19 | Press **Nothing**, **Hold** and **Yes**. Get into a fight, scan a new enemy, and try to upload as soon as you can | "Checking..." for 1 s, then usable. Does a second's wait on each new enemy feel acceptable in a fight? |
+| 20 | Press **No**, then scan a new enemy | "Checking..." for 1 s, then "Not on this enemy (spike)". Scan the same enemy again: no wait this time |
+| 21 | Press **Counts** in the spike's window, then quit the game | Tell me anything that looked wrong. I read TweakXL's, redscript's and REDnode's logs |
 
 **After:** turn the two spikes off in EDGEdeck and deploy, unless you want them for the next step. EDGEhack_Test1 stays in the library, off.
 
 | Run | Result |
 |---|---|
 | 2026-11-05, first, by the owner, on the dev PC's game 2.5 | Stopped at step 3: Spike Static and Overheat replaced each other in the deck, since the copy kept `shardType: Overheat`. Both scripts compiled in the game, TweakXL's log has no errors, and the items and step 2 were fine. Fixed in **EDGEhack H3.1 spike v2** (the first version stays in the library, off) |
-| 2026-11-05, second, by the owner, steps 1 to 15 passed | Spike Static sat beside Overheat on the wheel and worked, with both Overheat burns and the poison on the enemy at once. Answers took 0 to 0.03 s from the snapshot, 0.06 s with three game calls, 0.31 to 0.34 s with Slow. Silent, Throws and the app switched off all fell back as planned. **The game crashed at the old step 16**, a hand-built `gameHitEvent` from a function (null read inside the game, cause unverified). That method is gone in **H3c.1 spike v2**, and the app now keeps trying until V is in the world, since at first it stopped trying during the load. Step 5's cooldown could not be checked: Overheat's is 0.0001 s, so the copy's is too |
+| 2026-11-05, second, by the owner, steps 1 to 15 passed | Spike Static sat beside Overheat on the wheel and worked, with both Overheat burns and the poison on the enemy at once. Answers took 0 to 0.03 s from the snapshot, 0.06 s with three game calls, 0.31 to 0.34 s with Slow. Silent, Throws and the app switched off all fell back as planned. **The game crashed at the old step 16**, a hand-built `gameHitEvent` from a function (null read inside the game, cause unverified). The owner confirmed steps 1 to 15 worked as written, and that of the "Checking..." times, only step 12's 1 s gave enough time to notice and read it. That method is gone in **H3c.1 spike v3**, which adds a **Hold** switch to try 1 s with a real answer, and the app now keeps trying until V is in the world, since at first it stopped trying during the load. Step 5's cooldown could not be checked: Overheat's is 0.0001 s, so the copy's is too |
 
 ## H2c Edit
 
