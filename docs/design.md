@@ -75,13 +75,13 @@ A quickhack mod is plain files a modder can read:
 | Records (changes and new ones) | TweakXL YAML in `r6/tweaks/<mod>/` | TweakXL |
 | New names and descriptions | An ArchiveXL `onscreens` file, keys the mod owns | ArchiveXL |
 | New icons | An `.inkatlas` and its `.xbm`, packed in the mod's archive, listed in the `.xl` file | ArchiveXL |
-| Behaviour no record can express | redscript (a custom effector class) | Out of scope until asked for |
+| Behaviour no record can express | REDnode functions ([H3c Scripts](#h3c-scripts-plan)); one small shared script, if [H3's spike](#h3-plan) confirms new quickhacks need it | REDnode, for a mod with functions; redscript, for a new quickhack |
 
 **EDGEhack's own document.** The modder's work is a `<name>.quickhack.json` file in the project's `source/raw/edgehack/` (or on the Desk): what the quickhack starts from, what changed, the effects added, the texts and icons. EDGEhack writes the YAML, the `onscreens` file and the atlas from it, into REDcode's project, on **Add to Project** and on every save after that. The written YAML carries a header saying it is made by EDGEhack. This is EDGEwave's way (`.edgewave` document, rendered WAV) and EDGEquest's. The reasons: the YAML for one quickhack spans many records with generated names; a document in the modder's words survives a change of how EDGEhack writes it; and a modder can still open and read the YAML.
 
 **Changing a game quickhack** writes TweakXL changes to its own records (`Items.OverheatLvl2Program: { … }`). Records it shares with other quickhacks (the four common effects, `BaseOverheat_inline0` that every Overheat tier uses) are copied under the mod's names first and the copy is changed, so nothing else changes by accident. A copy is a new record id, so the YAML stays small: only what differs.
 
-**A new quickhack** is a copy of a family under the mod's own ids (`Items.EDGEhack_<Name>Program`, `QuickHack.EDGEhack_<Name>Hack`, ...) with TweakXL's `$base`, then the changes. A new quickhack also needs a way into V's hands: a crafting spec V knows from the start, a vendor's stock, or a gift through REDnode's console while testing. The editor's **Get it** section picks one.
+**A new quickhack** is a copy of a family under the mod's own ids (`Items.EDGEhack_<Name>Program`, `QuickHack.EDGEhack_<Name>Hack`, ...) with TweakXL's `$base`, then the changes. It also has to reach the enemy's own list of hacks ([H3: plan](#h3-plan)). And it needs a way into V's hands: a crafting spec V knows from the start, a vendor's stock, or a gift through REDnode's console while testing. The editor's **Get it** section picks one.
 
 Names given to new records are fixed once written (saves and other mods refer to them); renaming the quickhack later changes only its texts.
 
@@ -191,7 +191,7 @@ As EDGEmat and EDGEwave do, an MCP server comes with the extension (H4), so REDa
 | REDcode (`edgemodders.redcode-cyberpunk`, API 1) | The game folder, REDbridge, the project, Pack and Play, the record pages | Yes, as `extensionDependencies` (the Quickhacks view needs REDbridge) |
 | REDbridge | TweakDB reads (`tweakdb.*`), texts (`loc.*`), icons (`texture.toPng` for atlas parts), packing | Yes, through REDcode |
 | TweakXL and ArchiveXL | In the player's game, for the mods EDGEhack makes | Yes, in the mod's requirements |
-| REDnode | Try Live (H4) | No |
+| REDnode | Try Live (H4); a quickhack's functions (H3c) | No, except in the player's game for a mod with functions |
 | EDGE Library | The Library view | No: never required |
 
 New REDbridge needs, if any, are asked for as `request` issues on REDbridge. One is likely in H5: building an `.inkatlas` from images.
@@ -207,7 +207,8 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H2 Edit** | The `.quickhack.json` document; edit a game quickhack's texts, icons (picked from the game's atlases), costs, durations and damage; shared records copied; YAML and `onscreens` written into REDcode's project; Pack and Play | Hand test, and in the game: a changed Overheat shows the new name, icon and numbers and burns as set |
 | **H3 New and Effects** | Make a new quickhack from a family; Add Effect from other quickhacks and status effects (the sorted pool); attack features; Get it (crafting spec, vendor); the Desk | Hand test, and in the game: a new quickhack crafted or bought, with two added effects working on an enemy |
 | **H3b Own icons** | Each icon can be picked from the game, uploaded, or generated from a text prompt (see [Own icons](#own-icons-h3b)); the image goes into an atlas the mod ships | Hand test, and in the game: a new quickhack with its own icons in the inventory, on the wheel and on the target |
-| **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server and Connect an Assistant | Hand test and in-game test |
+| **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Proposed; its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
+| **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server and Connect an Assistant, with a tool for scripts | Hand test and in-game test |
 | **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
 | **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page | The release gate: every hand test passed |
 
@@ -375,6 +376,43 @@ So no new widget is needed, and the text is the one the record already holds (`I
 
 **Built: the spike** (`r6/scripts/EDGEhack/PlayerLine.reds`, in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H2d`). The first version passed in the game on every hack; the second, on marked hacks only, waits for its run ([Tests, "H2d Spike, second version"](testing.html#h2d-spike-second-version)). redscript-cli found no errors in either against a copy of 2.5's scripts. Then the field in the editor (H2c). **Unverified:** that TweakXL takes a new flat on a game record (`edgehackLine`).
 
+### H3: plan
+
+To agree with the owner (proposed 2026-11-05). Read from game 2.5's scripts and TweakDB; nothing here has run in the game yet.
+
+**A new quickhack needs more than a copy of its records.** The game builds the scan's list by matching V's hacks against the **target's own list**, by `actionName`: `ScriptedPuppet.SendQuickhackCommands` reads the character record's `objectActions`, and a hack of V's with no match shows locked. So:
+
+| Way | What happens | Verdict |
+|---|---|---|
+| Keep the family's `actionName` | Matches every enemy at once, but the game keeps one action per name, so the new hack **replaces** that family in the deck instead of sitting beside it | Fine as a quick fallback, not what "a new quickhack" means |
+| A new `actionName`, added by YAML | 5,796 of the game's 6,762 character records carry a quickhack in their own list (41 different lists), so the YAML would add thousands of lines, and it would miss other mods' characters | No |
+| A new `actionName`, added by a small script when the game asks for a target's actions (a wrap on `GetAllChoices`) | One small script, shared by every EDGEhack mod, adds the new hacks in V's deck. Works on modded characters too | **Recommended, if the spike passes.** New quickhacks then need redscript |
+| A new `actionName`, added by a TweakXL scriptable tweak at the game's start | The same loop over every character, at each start | The second choice |
+
+This changes the decision "Behaviour beyond records: out of scope": a new quickhack needs this one script. It goes through redscript-cli against 2.5's scripts, with and without Codeware, before any test, since one compile error stops every script in the game.
+
+**Steps:**
+
+| Step | What | Test |
+|---|---|---|
+| **H3.1 Spike** | A hand-written new quickhack, as H2a was: a copy of Overheat with TweakXL's `$base`, a new `actionName`, two added effects, its own cooldown. It tries the routes above and answers the questions below | In the game, by the owner, in one session with H3c.1 |
+| **H3.2 Writer** | `src/tweaks.ts` learns new records: each tier's item, action and status effect under the mod's ids, with the wheel's records and the shared script | Automated, against what the spike proved |
+| **H3.3 New** | **Make a New One From This** on the page and in the Quickhacks view. The document gains `base` and new-hack fields, and the Quickhacks view shows a Project group | By hand |
+| **H3.4 Add Effect** | The picker's first two sources: another quickhack's effects and the sorted status effects, referenced until changed and then copied, with the warnings in [Adding effects](#adding-effects) | By hand, then in the game |
+| **H3.5 Attack features** | Extra damage, a stat change while hacked, a chance to apply something else, each written as a new status effect from the game's own effector classes | By hand, then in the game |
+| **H3.6 Get it** | A crafting spec and a vendor's stock. REDnode's Console stays the way to get one while testing | In the game |
+| **H3.7 Desk** | The Desk view and folder. A quickhack made with no project open lands there | By hand |
+
+The phase's test stays as written: a new quickhack crafted or bought, with two added effects working on an enemy.
+
+**What the spike answers:**
+
+- Does `$base` copy a tier's inline records, or does the copy still point at the original's?
+- Does a new `actionName` sit beside the family it came from in the deck and on the wheel, with its own cooldown?
+- Do the Boss and Chimera actions need their own new names, and how does the game pick them? (This is the design's open question from H1.)
+- Do the perks that name a family still reach a copy? Overheat's passive and its duration stat are tied to the `Overheat` tag.
+- Do two effects of one type stack or replace each other, and which status effects work on an enemy?
+
 ### Own icons (H3b)
 
 Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.
@@ -403,6 +441,73 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 
 **Unverified, to settle in H3b:** how close a fixed prompt gets to the game's look, which needs real generated images and the owner's eye, so the prompts will be tuned in that phase's test; the Status look's size; whether the atlas needs a 1080p texture as well as the 4K one the game's have.
 
+### H3c Scripts: plan
+
+Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Proposed, to agree. Read from game 2.5's scripts; nothing here has run in the game yet.
+
+| Function | When | Gets | Does |
+|---|---|---|---|
+| **Scan check** (`canUse`) | While V scans an enemy, for each hack with a check | The enemy | Returns true or false: the hack shows enabled or disabled on that enemy |
+| **On land** (`onLand`) | When the upload finishes on the enemy | The enemy | Runs any logic: more damage, more effects, damage worked out from the enemy's state |
+
+A modder's file:
+
+```js
+import { quickhacks } from "rednode";
+
+quickhacks.define("Items.EDGEhack_StaticSkullProgram", {
+  canUse(target) {
+    return target.isHuman;
+  },
+  async onLand(target, hack) {
+    if (target.healthPercent < 50) await target.damage(40 * hack.tier, "Electric");
+  },
+});
+```
+
+The names and `target`'s fields are a first sketch. `target` folds the common reads and changes into one object, with `api` still there for the rest.
+
+**The catch in the scan check.** The game builds the scan's list in one go on its own thread, and REDnode mods run outside the game (Tier 2), so it cannot wait for an answer. A game call costs about a frame (I1 measured it). Tier 1, which could answer at once, is not built (P4). So the check asks, remembers and refreshes:
+
+1. A small REDnode script wraps `TranslateChoicesIntoQuickSlotCommands`. For a hack with a check and no answer yet, it sets `m_isLocked` with the text "Checking" and sends REDnode an event with the target. The event carries a small snapshot (level, health, kind, tags), so a plain check needs no game call.
+2. The mod's function answers. The script remembers the answer per target and hack, and asks the game to rebuild the list (`QuickhackModule.RequestRefreshQuickhackMenu`, which works only while that target's panel is open).
+3. Each later rebuild shows the remembered answer and asks again, and refreshes only if the answer changed, so it cannot loop.
+4. With no answer within 1 s (the mod is off, it threw, it hung), the game's own result stands and the log says why.
+
+The expected cost is a few frames of "Checking" the first time V scans an enemy. The spike measures it. If it looks bad, the script asks earlier, when the scanner's target changes. Should a future check need to be instant, the same function could move to Tier 1 with no change for modders.
+
+**On land** has no such catch: nothing waits for it. A wrap on `ScriptableDeviceAction.CompleteAction` (people's hacks use it, and the game skips it if the target is dead) sends the event, and the function runs a frame or two later. It adds to what the hack does and cannot cancel it. The check for a hack that should not land at all is the scan check.
+
+**Who builds what:**
+
+| Part | Where |
+|---|---|
+| The script, the event carrying an entity and hack, `quickhacks` in the `rednode` package, and a test app | **REDnode**: open to any mod, not only EDGEhack's. A `request` issue there once this is agreed, with its own version and in-game test |
+| A **Scripts** section on the page, with **Create** and **Open** for each function, and a text for "disabled" | **EDGEhack** |
+| `scripts` in the document, naming the file and functions | **EDGEhack**. The modder owns that file and EDGEhack never rewrites it |
+| The mod's REDnode package, in `source/resources/red4ext/plugins/REDnode/apps/<mod>/` | **EDGEhack** writes its manifest. That Pack and Play installs it is **unverified** |
+
+A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't change.
+
+**Steps:**
+
+| Step | What | Test |
+|---|---|---|
+| **H3c.1 Spike** | A REDnode test app with the two wraps, on the game's own Overheat. It measures the time to an answer and how "Checking" looks, and answers the questions below | In the game, by the owner, in one session with H3.1 |
+| **H3c.2 REDnode's `quickhacks`** | The API, docs, types, a sample, and a package stopping cleanly (its checks go, the game's results come back) | In the game |
+| **H3c.3 EDGEhack's Scripts** | The section, the document's fields, the package and a starter file with its types | By hand |
+| **H3c.4 Together** | A new quickhack with both: disabled on the wrong enemy, and extra damage on land by the enemy's health | In the game |
+
+**What the spike answers:**
+
+- Does a locked entry with our own text behave like the game's, and can the list be rebuilt that often without a flicker?
+- Does the panel rebuild while the scan's slow motion runs, and do REDnode's calls keep their pace there?
+- Does spread reach `CompleteAction`? Spread uses separate actions (`…HackSpread`), so `onLand` may need a `hack.spread` flag, or may not fire at all.
+- Do Boss and Chimera actions reach both wraps under the family's item?
+- What makes `target.damage` count as V's attack, so kills and experience go to V?
+
+**Limits to agree:** people only, since devices build their list in other code and are edited after 0.1.0 anyway. A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
+
 ## Decisions
 
 Agreed with the owner on 2026-11-04: the recommendation is the answer in each row.
@@ -415,7 +520,7 @@ Agreed with the owner on 2026-11-04: the recommendation is the answer in each ro
 | The open contract on REDcode (`"edgemodders": { "opens": [...] }`): file it? | Yes, after H1's menu entry works, so the request shows a working consumer |
 | The Library kind `quickhack` on EDGEbuilder: file it? | Yes, before H5 |
 | Device and vehicle quickhacks in the first release? | Read in H1, edit after 0.1.0 |
-| Behaviour beyond records (redscript) | Out of scope until a quickhack idea needs it |
+| Behaviour beyond records (redscript) | Out of scope until a quickhack idea needs it. Changed by the owner's scripts request on 2026-11-05: see [H3c Scripts](#h3c-scripts-plan) |
 | REDnode's editor channel with TweakDB writes (for Try Live) | File it on REDnode at H4, after the refresh spike |
 
 ## Unverified, to settle in their phases
@@ -424,5 +529,7 @@ Agreed with the owner on 2026-11-04: the recommendation is the answer in each ro
 - Whether TweakXL takes a LocKey by an `onscreens` secondary key for `displayName` and `caption`, and the exact syntax (H2).
 - Whether two effects of the same status effect type stack or replace each other on a target (H3).
 - Which status effects work on enemies without a quest or boss state (H3, from the game's own uses first, then in the game).
+- How a new `actionName` reaches every enemy's list, and whether `$base` copies a tier's inline records (H3.1).
+- How quickly a scan check can answer, and how "Checking" looks in the panel (H3c.1).
 - Whether TweakDB changes reach an equipped quickhack without unequipping it, and how to refresh V's cached quickhack list (H4 spike).
 - Whether new `onscreens` texts can load without a game restart (H4).
