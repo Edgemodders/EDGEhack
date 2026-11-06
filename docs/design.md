@@ -207,7 +207,7 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H2 Edit** | The `.quickhack.json` document; edit a game quickhack's texts, icons (picked from the game's atlases), costs, durations and damage; shared records copied; YAML and `onscreens` written into REDcode's project; Pack and Play | Hand test, and in the game: a changed Overheat shows the new name, icon and numbers and burns as set |
 | **H3 New and Effects** | Make a new quickhack from a family; Add Effect from other quickhacks and status effects (the sorted pool); attack features; Get it (crafting spec, vendor); the Desk | Hand test, and in the game: a new quickhack crafted or bought, with two added effects working on an enemy |
 | **H3b Own icons** | Each icon can be picked from the game, uploaded, or generated from a text prompt (see [Own icons](#own-icons-h3b)); the image goes into an atlas the mod ships | Hand test, and in the game: a new quickhack with its own icons in the inventory, on the wheel and on the target |
-| **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Proposed; its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
+| **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
 | **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server and Connect an Assistant, with a tool for scripts | Hand test and in-game test |
 | **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
 | **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page | The release gate: every hand test passed |
@@ -378,7 +378,7 @@ So no new widget is needed, and the text is the one the record already holds (`I
 
 ### H3: plan
 
-To agree with the owner (proposed 2026-11-05). Read from game 2.5's scripts and TweakDB; nothing here has run in the game yet.
+Agreed with the owner on 2026-11-05. Read from game 2.5's scripts and TweakDB; nothing here has run in the game yet.
 
 **A new quickhack needs more than a copy of its records.** The game builds the scan's list by matching V's hacks against the **target's own list**, by `actionName`: `ScriptedPuppet.SendQuickhackCommands` reads the character record's `objectActions`, and a hack of V's with no match shows locked. So:
 
@@ -443,7 +443,7 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 
 ### H3c Scripts: plan
 
-Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Proposed, to agree. Read from game 2.5's scripts; nothing here has run in the game yet.
+Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Agreed the same day. Read from game 2.5's scripts; nothing here has run in the game yet.
 
 | Function | When | Gets | Does |
 |---|---|---|---|
@@ -506,7 +506,16 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 - Do Boss and Chimera actions reach both wraps under the family's item?
 - What makes `target.damage` count as V's attack, so kills and experience go to V?
 
-**Limits to agree:** people only, since devices build their list in other code and are edited after 0.1.0 anyway. A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
+**Agreed with the owner on 2026-11-05:**
+
+- The order: the spikes H3.1 and H3c.1 in one game session, then H3, H3b, H3c, H4.
+- While a check has no answer, the hack shows locked, with "Checking".
+- With no answer within 1 s, the game's own result stands, and the log says why.
+- People only for now, since devices build their list in other code and are edited after 0.1.0 anyway.
+- One script per family, with the tier passed in.
+- A fixed "disabled" text set in the editor, since the function returns only true or false.
+
+A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
 
 ## Decisions
 

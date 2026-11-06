@@ -17,6 +17,7 @@ Last updated 2026-11-05.
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
+| [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | | Waiting |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2 | 2026-11-04 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -24,7 +25,41 @@ Last updated 2026-11-05.
 
 ## Waiting for a hand test
 
-None.
+- [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes), in the game.
+
+## H3.1 and H3c.1 Spikes
+
+Two hand-written test mods, run in one session ([design, "H3: plan"](design.html#h3-plan) and ["H3c Scripts: plan"](design.html#h3c-scripts-plan)). They are in the EDGEdeck library as **EDGEhack H3.1 spike** (a new quickhack, Spike Static) and **EDGEhack H3c.1 spike** (the app **EDGEhack scripts spike** with its script). Sources and zips are in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H3_spike`. Checked first: redscript-cli found no errors in either script, alone or with Codeware's, and the app's rules passed in plain Node against a stand-in `rednode`, 15 checks. None of it has run in the game before this test.
+
+**Before you start:** with the game closed, deploy in EDGEdeck. That adds the two spikes and takes out **EDGEhack_Test1** (Part A's Test Heat), so Overheat is the game's own again. If the game shows a script error at the start, turn both spikes off, deploy, and tell me.
+
+**Each time you change a rule in the app:** press F10, click the button, press F10, then scan an enemy again.
+
+| Step | Do | Expect |
+|---|---|---|
+| Timer | In REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below | Marks in the Mod log |
+| 1 | Load a save. In the launcher, switch on **Console** and **EDGEhack scripts spike**. In the Console, run `await game.player.addItem("Items.EDGEhack_H31Program")`, then the same with `Items.OverheatLvl2Program` | Two quickhacks in the backpack. The spike's window opens, and its log says "Watching" |
+| 2 | Look at **Spike Static** in the inventory | That name, Short Circuit's item icon, Rare, and the spike's description |
+| 3 | Put Spike Static and Rare Overheat in the cyberdeck, then scan an enemy | **Both** on the wheel, side by side, both usable. Spike Static shows Short Circuit's wheel icon. If it is missing or locked, tell me what it says |
+| 4 | Upload Spike Static on the enemy, and watch them for 15 s | They burn and are poisoned. The spike's log lists what is on them each second until it ends |
+| 5 | Right after, look at both on the wheel, on another enemy | Spike Static is on cooldown, Overheat is not. Then upload Overheat: it works as usual |
+| 6 | In the spike's window, press **No**. Scan a new enemy, and watch Overheat and Spike Static as the wheel opens | A brief "Checking...", then both disabled, with "Not on this enemy (spike)". Say how the brief part looks: not noticeable, a flicker, or annoying |
+| 7 | Try to upload one of them | It will not upload |
+| 8 | Press **Yes**, then scan a new enemy | Usable. Did you see "Checking..." at all? |
+| 9 | Press **Humans**. Scan a person, then a drone or a robot, if one is handy | Usable on the person, disabled on the machine |
+| 10 | Press **Slow**, then scan a new enemy | "Checking..." for about a third of a second, then disabled. Is that wait acceptable? |
+| 11 | Press **Reads**, then scan a new enemy | Disabled, like step 6. The log shows how long three game calls took |
+| 12 | Press **Silent**, then scan a new enemy | "Checking..." for about 1 s, then usable: no answer, so the game's own result stands |
+| 13 | Press **Throws**, then scan a new enemy | The same as step 12, and the log says it threw |
+| 14 | Press **Yes**. In the launcher, switch **EDGEhack scripts spike** off, then scan a new enemy. Then switch it back on | "Checking..." for about 1 s, then usable: a mod that is off cannot lock a hack |
+| 15 | Press **Pool**, then upload Overheat on an enemy with plenty of health | It works as usual, and the log's health drops by a further 30 on arrival |
+| 16 | Press **Hit**, then upload Overheat on another enemy | One more hit lands. The log shows the health |
+| 17 | Press **Kill**, then upload Overheat on another enemy | They die. The log gives V's experience before and after |
+| 18 | Press **Pool kill**, then upload Overheat on another enemy | They die. Again the experience before and after |
+| 19 | If V has the perk that spreads Overheat, upload it into a group. Skip this if not | The log says whether a "Landed" line came for each enemy it spread to |
+| 20 | Press **Counts** in the spike's window, then quit the game | Tell me anything that looked wrong. I read TweakXL's, redscript's and REDnode's logs |
+
+**After:** turn the two spikes off in EDGEdeck and deploy, unless you want them for the next step. EDGEhack_Test1 stays in the library, off.
 
 ## H2c Edit
 
