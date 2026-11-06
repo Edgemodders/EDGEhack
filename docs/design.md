@@ -506,7 +506,7 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 - Does the panel rebuild while the scan's slow motion runs, and do REDnode's calls keep their pace there?
 - Does spread reach `CompleteAction`? Spread uses separate actions (`…HackSpread`), so `onLand` may need a `hack.spread` flag, or may not fire at all.
 - Do Boss and Chimera actions reach both wraps under the family's item?
-- What makes `target.damage` count as V's attack, so kills and experience go to V?
+- What makes `target.damage` count as V's attack, so kills and experience go to V? A hand-built `gameHitEvent` crashed the game on 2026-11-05 (a null read, cause unverified): don't use it without finding out why. Lowering the health pool with V as instigator works, and a status effect from V is the next to try.
 
 **Agreed with the owner on 2026-11-05:**
 
