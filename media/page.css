@@ -54,6 +54,15 @@ ul.records { columns: 2 320px; font-family: var(--vscode-editor-font-family); pa
 input, textarea { background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border, var(--line)); padding: 3px 6px; font: inherit; box-sizing: border-box; }
 input:focus, textarea:focus { outline: 1px solid var(--vscode-focusBorder); }
 input.changed, textarea.changed { border-color: var(--yellow); color: var(--yellow); }
+/* Checkboxes drawn from the theme's checkbox colours (the HUD theme's: dark box, yellow tick), not Chromium's blue. */
+input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; margin: 0; padding: 0; vertical-align: middle; cursor: pointer; position: relative;
+  background: var(--vscode-checkbox-background, var(--vscode-input-background)); border: 1px solid var(--vscode-checkbox-border, var(--line)); border-radius: 3px; }
+input[type="checkbox"]:hover { border-color: var(--vscode-checkbox-foreground, var(--yellow)); }
+input[type="checkbox"]:checked { border-color: var(--vscode-checkbox-foreground, var(--yellow)); }
+input[type="checkbox"]:checked::after { content: ""; position: absolute; left: 4px; top: 1px; width: 5px; height: 9px; border: solid var(--vscode-checkbox-foreground, var(--yellow)); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+input[type="checkbox"]:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
+input[type="checkbox"]:focus:not(:focus-visible) { outline: none; }
+label > input[type="checkbox"] { margin-right: 5px; }
 input::placeholder, textarea::placeholder { color: var(--dim); opacity: .8; }
 dl.texts { grid-template-columns: auto minmax(0, 1fr); }
 dl.texts input, dl.texts textarea { width: 100%; }
