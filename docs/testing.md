@@ -34,7 +34,7 @@ Last updated 2026-11-07.
 
 ## H3.5 Attack features spike
 
-Can EDGEhack write status effects of its own, from nothing, for H3.5's three kinds of attack feature? The file [`tools/spikes/edgehack_h35_spike.yaml`](https://github.com/Edgemodders/EDGEhack/blob/main/tools/spikes/edgehack_h35_spike.yaml) gives the game's own Ping Epic four extra effects on its target. Ping is used rather than Overheat because a burning enemy flails about, which would hide a change in speed.
+Can EDGEhack write status effects of its own, from nothing, for H3.5's three kinds of attack feature? The file [`tools/spikes/edgehack_h35_spike.yaml`](https://github.com/Edgemodders/EDGEhack/blob/main/tools/spikes/edgehack_h35_spike.yaml) gives the game's own Ping (Common) four extra effects on its target. Ping Epic (`Items.PingLvl3Program`) is deprecated in 2.5 and has no quickhack, which the first run found. Ping is used rather than Overheat because a burning enemy flails about, which would hide a change in speed.
 
 | Effect | What it is | What it checks |
 |---|---|---|
@@ -49,16 +49,17 @@ Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, a
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | Run `await game.player.addItem("Items.PingLvl3Program")` in the Console, and put Ping Epic in the cyberdeck | The Console answers without an error |
-| 2 | Upload Ping Epic on an enemy | Blue electric numbers about every half second for about 8 s. Say which icons show over the enemy: shock, lowered stats, jammed weapon, blinded |
+| 1 | Run `await game.player.addItem("Items.PingProgram")` in the Console, and put Ping (Common) in the cyberdeck | The Console answers without an error |
+| 2 | Upload Ping on an enemy | Blue electric numbers about every half second for about 8 s. Say which icons show over the enemy: shock, lowered stats, jammed weapon, blinded |
 | 3 | Watch that enemy for 15 s | It moves at about a third of its speed; it acts blinded; its weapon jams when it shoots. Say which of these you saw |
-| 4 | Run `await tweakdb.set("EDGEhack.Spike.ShockTick.delayTime", 0.1)`, then upload Ping Epic on another enemy | `true`, then blue numbers five times as often. Say whether they keep up or bunch together |
-| 5 | Run `await tweakdb.set("EDGEhack.Spike.JamChance.value", 0.5)` and `await tweakdb.set("EDGEhack.Spike.BlindChance.value", 0.5)`, then upload Ping Epic on four more enemies | `true` twice. Count how many got a jammed weapon and how many were blinded: about half of each, if the roll works |
+| 4 | Run `await tweakdb.set("EDGEhack.Spike.ShockTick.delayTime", 0.1)`, then upload Ping on another enemy | `true`, then blue numbers five times as often. Say whether they keep up or bunch together |
+| 5 | Run `await tweakdb.set("EDGEhack.Spike.JamChance.value", 0.5)` and `await tweakdb.set("EDGEhack.Spike.BlindChance.value", 0.5)`, then upload Ping on four more enemies | `true` twice. Count how many got a jammed weapon and how many were blinded: about half of each, if the roll works |
 
 Then quit the game, remove `edgehack_h35_spike.yaml` from `r6\tweaks`, and say what differed. If an effect did not show at all, the lines with errors from TweakXL's log help.
 
 | Run | Result |
 |---|---|
+| 1 (2026-11-07, dev PC, file for Ping Epic) | Stopped at step 2: Ping Epic did not show on the quickhack wheel. It is deprecated in 2.5 (`deprecated: true`, no quickhack); the spike moved to Ping Common. TweakXL read the file with no errors |
 
 ## H3.4b Machines
 

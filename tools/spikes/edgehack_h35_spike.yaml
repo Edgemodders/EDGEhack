@@ -1,7 +1,8 @@
-# EDGEhack H3.5 spike: attack features on the game's own Ping Epic (Items.PingLvl3Program).
+# EDGEhack H3.5 spike: attack features on the game's own Ping (Common, Items.PingProgram).
+# Ping Epic (Items.PingLvl3Program) is deprecated in 2.5: it has no quickhack.
 # Test only. Put it in the game's r6/tweaks folder, test, then remove it.
 #
-# Ping Epic gets four extra effects on its target:
+# Ping gets four extra effects on its target:
 #   A. Shock: electric damage, 3 a hit every 0.5 s for 8 s. A status effect written from nothing.
 #   B. Slow: movement speed x0.3 for 15 s. A status effect written from nothing.
 #   C. Jam: the game's chance part run straight from the quickhack (100%), applying Weapon Malfunction.
@@ -202,9 +203,9 @@ EDGEhack.Spike.BlindOnTarget:
   recipient: ObjectActionReference.Target
   statusEffect: EDGEhack.Spike.BlindCarrier
 
-# Ping Epic runs all four when its upload completes.
+# Ping runs all four when its upload completes. Ping Rare and Legendary run this quickhack too.
 
-QuickHack.PingLvl3Hack.completionEffects:
+QuickHack.PingHack.completionEffects:
   - !append EDGEhack.Spike.ShockOnTarget
   - !append EDGEhack.Spike.SlowOnTarget
   - !append EDGEhack.Spike.JamOnTarget
