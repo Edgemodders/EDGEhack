@@ -128,7 +128,7 @@ Combining has rules the editor checks, each as a warning, not a block:
 
 The editor also shows **notes**, apart from the warnings. A warning means something may not work as the modder expects: the game may do something irregular, or nobody has seen it run. A note is the game working as designed, worth knowing when combining (the owner's distinction, 2026-11-07). Notes are grey with an info mark; warnings are yellow.
 
-- An effect whose `AIData` needs a kind of NPC (humans only) has no reaction on the rest, but the effect itself runs on them: a drone took Contagion's poison (Human only) and a bleed in H3.4's test.
+- An effect whose `AIData` needs a kind of NPC (humans only): the rest do not act it out, but the effect itself runs on them (a drone took Contagion's poison, Human only, and a bleed in H3.4's test). No message: that machines do not act out a poison is self-evident to players (the owner, 2026-11-07).
 - A burn and Contagion's poison on one tier: Contagion Epic and better give V a passive in the cyberdeck (`EquipmentGLP.ContagionLvl3Passive`). A hit on a burning target removes every poison tagged `ContagionPoison`, and the game's own Epic and better poisons (`ContagionPoisonLvl3`, `Lvl4`, `Lvl4PlusPlus`, checked by record name) explode too (`Attacks.ContagionBurnCombo`). So a copy with changed numbers is removed without the explosion. Found in H3.4's test; without that Contagion in the deck, both ran for their whole time.
 
 ## Views
