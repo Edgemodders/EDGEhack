@@ -1,0 +1,211 @@
+# EDGEhack H3.5 spike: attack features on the game's own Ping Epic (Items.PingLvl3Program).
+# Test only. Put it in the game's r6/tweaks folder, test, then remove it.
+#
+# Ping Epic gets four extra effects on its target:
+#   A. Shock: electric damage, 3 a hit every 0.5 s for 8 s. A status effect written from nothing.
+#   B. Slow: movement speed x0.3 for 15 s. A status effect written from nothing.
+#   C. Jam: the game's chance part run straight from the quickhack (100%), applying Weapon Malfunction.
+#   D. Blind: the same chance part inside a short carrier status effect (100%), applying Blind.
+
+# A. Shock
+
+EDGEhack.Spike.ShockDamage:
+  $type: ConstantStatModifier
+  statType: BaseStats.ElectricDamage
+  modifierType: Additive
+  value: 3
+
+EDGEhack.Spike.ShockAttack:
+  $base: Attacks.OverheatQuickHackAttackLevel3
+  attackTag: EDGEhack
+  damageType: DamageTypes.Electric
+  hitFlags: [ QuickHack, DamageOverTime ]
+  statModifiers:
+    - EDGEhack.Spike.ShockDamage
+
+EDGEhack.Spike.ShockTick:
+  $type: ContinuousAttackEffector
+  effectorClassName: TriggerContinuousAttackEffector
+  attackRecord: EDGEhack.Spike.ShockAttack
+  delayTime: 0.5
+  timeDilationDriver: Effectors.TDD_World
+  prereqRecord: Prereqs.AlwaysTruePrereq
+
+EDGEhack.Spike.ShockPackage:
+  $type: GameplayLogicPackage
+  effectors:
+    - EDGEhack.Spike.ShockTick
+
+EDGEhack.Spike.ShockTime:
+  $type: ConstantStatModifier
+  statType: BaseStats.MaxDuration
+  modifierType: Additive
+  value: 8
+
+EDGEhack.Spike.ShockDuration:
+  $type: StatModifierGroup
+  statModifiers:
+    - EDGEhack.Spike.ShockTime
+
+EDGEhack.Spike.ShockUI:
+  $type: StatusEffectUIData
+  displayName: EDGEhack Shock
+  description: ""
+  fluffText: ""
+  iconPath: electricuted
+  priority: -3
+
+EDGEhack.Spike.Shock:
+  $type: StatusEffect
+  statusEffectType: BaseStatusEffectTypes.Misc
+  gameplayTags: [ Debuff, DoT, Quickhack, DamageOverTime ]
+  duration: EDGEhack.Spike.ShockDuration
+  maxStacks: RTDB.StatusEffect_inline0
+  packages:
+    - EDGEhack.Spike.ShockPackage
+  uiData: EDGEhack.Spike.ShockUI
+  isAffectedByTimeDilationNPC: true
+  isAffectedByTimeDilationPlayer: true
+  removeAllStacksWhenDurationEnds: true
+  savable: true
+  stopActiveSfxOnDeactivate: true
+
+EDGEhack.Spike.ShockOnTarget:
+  $type: ObjectActionEffect
+  recipient: ObjectActionReference.Target
+  statusEffect: EDGEhack.Spike.Shock
+
+# B. Slow
+
+EDGEhack.Spike.SlowSpeed:
+  $type: ConstantStatModifier
+  statType: BaseStats.MaxSpeed
+  modifierType: Multiplier
+  value: 0.3
+
+EDGEhack.Spike.SlowPackage:
+  $type: GameplayLogicPackage
+  stats:
+    - EDGEhack.Spike.SlowSpeed
+
+EDGEhack.Spike.SlowTime:
+  $type: ConstantStatModifier
+  statType: BaseStats.MaxDuration
+  modifierType: Additive
+  value: 15
+
+EDGEhack.Spike.SlowDuration:
+  $type: StatModifierGroup
+  statModifiers:
+    - EDGEhack.Spike.SlowTime
+
+EDGEhack.Spike.SlowUI:
+  $type: StatusEffectUIData
+  displayName: EDGEhack Slow
+  description: ""
+  fluffText: ""
+  iconPath: decreased_stats_icon
+  priority: -3
+
+EDGEhack.Spike.Slow:
+  $type: StatusEffect
+  statusEffectType: BaseStatusEffectTypes.Misc
+  gameplayTags: [ Debuff, Quickhack ]
+  duration: EDGEhack.Spike.SlowDuration
+  maxStacks: RTDB.StatusEffect_inline0
+  packages:
+    - EDGEhack.Spike.SlowPackage
+  uiData: EDGEhack.Spike.SlowUI
+  isAffectedByTimeDilationNPC: true
+  isAffectedByTimeDilationPlayer: true
+  savable: true
+  stopActiveSfxOnDeactivate: true
+
+EDGEhack.Spike.SlowOnTarget:
+  $type: ObjectActionEffect
+  recipient: ObjectActionReference.Target
+  statusEffect: EDGEhack.Spike.Slow
+
+# C. Jam: the chance part straight from the quickhack
+
+EDGEhack.Spike.JamChance:
+  $type: ConstantStatModifier
+  statType: BaseStats.EffectorChance
+  modifierType: Additive
+  value: 1
+
+EDGEhack.Spike.JamRoll:
+  $type: ApplyStatusEffectByChanceEffector
+  effectorClassName: ApplyStatusEffectByChanceEffector
+  effectorChance:
+    - EDGEhack.Spike.JamChance
+  statusEffect: BaseStatusEffect.WeaponMalfunction
+  count: 1
+  instigator: ""
+  removeWithEffector: false
+  prereqRecord: Prereqs.AlwaysTruePrereq
+
+EDGEhack.Spike.JamOnTarget:
+  $type: ObjectActionEffect
+  recipient: ObjectActionReference.Target
+  effectorToTrigger: EDGEhack.Spike.JamRoll
+
+# D. Blind: the chance part inside a short carrier status effect
+
+EDGEhack.Spike.BlindChance:
+  $type: ConstantStatModifier
+  statType: BaseStats.EffectorChance
+  modifierType: Additive
+  value: 1
+
+EDGEhack.Spike.BlindRoll:
+  $type: ApplyStatusEffectByChanceEffector
+  effectorClassName: ApplyStatusEffectByChanceEffector
+  effectorChance:
+    - EDGEhack.Spike.BlindChance
+  statusEffect: BaseStatusEffect.Blind
+  count: 1
+  instigator: ""
+  removeWithEffector: false
+  prereqRecord: Prereqs.AlwaysTruePrereq
+
+EDGEhack.Spike.BlindPackage:
+  $type: GameplayLogicPackage
+  effectors:
+    - EDGEhack.Spike.BlindRoll
+
+EDGEhack.Spike.BlindCarrierTime:
+  $type: ConstantStatModifier
+  statType: BaseStats.MaxDuration
+  modifierType: Additive
+  value: 1
+
+EDGEhack.Spike.BlindCarrierDuration:
+  $type: StatModifierGroup
+  statModifiers:
+    - EDGEhack.Spike.BlindCarrierTime
+
+EDGEhack.Spike.BlindCarrier:
+  $type: StatusEffect
+  statusEffectType: BaseStatusEffectTypes.Misc
+  gameplayTags: [ Debuff ]
+  duration: EDGEhack.Spike.BlindCarrierDuration
+  maxStacks: RTDB.StatusEffect_inline0
+  packages:
+    - EDGEhack.Spike.BlindPackage
+  isAffectedByTimeDilationNPC: true
+  isAffectedByTimeDilationPlayer: true
+  savable: true
+
+EDGEhack.Spike.BlindOnTarget:
+  $type: ObjectActionEffect
+  recipient: ObjectActionReference.Target
+  statusEffect: EDGEhack.Spike.BlindCarrier
+
+# Ping Epic runs all four when its upload completes.
+
+QuickHack.PingLvl3Hack.completionEffects:
+  - !append EDGEhack.Spike.ShockOnTarget
+  - !append EDGEhack.Spike.SlowOnTarget
+  - !append EDGEhack.Spike.JamOnTarget
+  - !append EDGEhack.Spike.BlindOnTarget

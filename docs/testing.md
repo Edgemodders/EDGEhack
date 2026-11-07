@@ -6,7 +6,7 @@ title: Tests
 
 Every test run on EDGEhack: how to run it again, what to expect, and what it showed. Each phase ends with a hand test by the owner ([design, "Phases"](design.html#phases)); new tests are added here when they are first run, and their later runs' results too.
 
-Last updated 2026-11-06.
+Last updated 2026-11-07.
 
 ## At a glance
 
@@ -19,6 +19,7 @@ Last updated 2026-11-06.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.5 Attack features spike](#h35-attack-features-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | | Waiting |
 | [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | 2026-11-07 | Pass (EDGEhack 0.0.9): a drone and an android took only the burn, with no poison or bleed icon; humans the burn, poison and bleed |
 | [H3.4b Machines spike](#h34b-machines-spike) | By hand, in the game, with REDnode's Console | H3 | 2026-11-07 | An immunity did nothing; a check on the damage effector stopped the damage on a drone, not on a human |
 | [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | 2026-11-07 | Pass, Parts A and B (EDGEhack 0.0.6). The poison beside a burn is ended by Contagion Epic's passive, a game rule, now a note; a drone took the poison and the bleed |
@@ -29,7 +30,35 @@ Last updated 2026-11-06.
 
 ## Waiting for a hand test
 
-- None.
+- [H3.5 Attack features spike](#h35-attack-features-spike).
+
+## H3.5 Attack features spike
+
+Can EDGEhack write status effects of its own, from nothing, for H3.5's three kinds of attack feature? The file [`tools/spikes/edgehack_h35_spike.yaml`](https://github.com/Edgemodders/EDGEhack/blob/main/tools/spikes/edgehack_h35_spike.yaml) gives the game's own Ping Epic four extra effects on its target. Ping is used rather than Overheat because a burning enemy flails about, which would hide a change in speed.
+
+| Effect | What it is | What it checks |
+|---|---|---|
+| Shock | Electric damage, 3 a hit every 0.5 s for 8 s, with the electric icon | A damage over time in a status effect written from nothing |
+| Slow | Movement speed ×0.3 for 15 s, with the lowered-stats icon | A stat change in a status effect written from nothing |
+| Jam | The game's chance part (`ApplyStatusEffectByChanceEffector`) run straight from the quickhack, 100%, applying Weapon Malfunction | Whether a quickhack can roll a chance with no status effect around it |
+| Blind | The same chance part inside a carrier status effect of 1 s, 100%, applying Blind | The way the game's EMP does it |
+
+**Before you start:** quit the game. Copy `edgehack_h35_spike.yaml` into the game's `r6\tweaks` folder. Start the game and load a save with enemies nearby.
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below. Switch on **Console** in the launcher.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Run `await game.player.addItem("Items.PingLvl3Program")` in the Console, and put Ping Epic in the cyberdeck | The Console answers without an error |
+| 2 | Upload Ping Epic on an enemy | Blue electric numbers about every half second for about 8 s. Say which icons show over the enemy: shock, lowered stats, jammed weapon, blinded |
+| 3 | Watch that enemy for 15 s | It moves at about a third of its speed; it acts blinded; its weapon jams when it shoots. Say which of these you saw |
+| 4 | Run `await tweakdb.set("EDGEhack.Spike.ShockTick.delayTime", 0.1)`, then upload Ping Epic on another enemy | `true`, then blue numbers five times as often. Say whether they keep up or bunch together |
+| 5 | Run `await tweakdb.set("EDGEhack.Spike.JamChance.value", 0.5)` and `await tweakdb.set("EDGEhack.Spike.BlindChance.value", 0.5)`, then upload Ping Epic on four more enemies | `true` twice. Count how many got a jammed weapon and how many were blinded: about half of each, if the roll works |
+
+Then quit the game, remove `edgehack_h35_spike.yaml` from `r6\tweaks`, and say what differed. If an effect did not show at all, the lines with errors from TweakXL's log (`red4ext\plugins\TweakXL\TweakXL.log`) help.
+
+| Run | Result |
+|---|---|
 
 ## H3.4b Machines
 
