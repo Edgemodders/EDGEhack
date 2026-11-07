@@ -262,6 +262,11 @@ function tierEffects(t: Tier, added: ResolvedAdded[]): { name: string; e: Effect
  */
 export function addedNotes(fam: Family, added: ResolvedAdded[]): string[] {
   const out: string[] = [];
+  // AIData's NPC types choose who plays the reaction. The effect itself ran on a drone in H3.4's test (Contagion's poison, Human only).
+  for (const r of added) {
+    const top = r.problem ? undefined : [...r.byTier.values()].pop();
+    if (top?.on === "target" && top.npcTypes?.length) out.push(`${r.name}: only ${top.npcTypes.join(" and ")} NPCs play its reaction. On others, such as drones, the effect still runs, without the reaction.`);
+  }
   // Contagion Epic and better in V's cyberdeck (EquipmentGLP.ContagionLvl3Passive): a hit on a burning target removes every
   // Contagion poison (by its tag), and the game's own Epic and better poisons explode (by their record names). Seen in H3.4's test.
   const combo = fam.tiers.some((t) => {
@@ -288,7 +293,6 @@ export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdd
       if (kind === "boss") out.push(`${r.name} belongs to a boss fight, so it may do nothing on other enemies.`);
       if (kind === "v") out.push(`${r.name} looks like one of V's own, so it may do nothing on an enemy.`);
     }
-    if (onTarget && top.npcTypes?.length) out.push(`${r.name}: only ${top.npcTypes.join(" and ")} NPCs react to it. On others its reaction will not play, and whether the effect itself runs is unverified.`);
     if (top.status && (!top.duration || !isFinite(top.duration.base))) out.push(`${r.name} has no duration of its own, so it may stay until something removes it (unverified).`);
   }
   // Tier by tier: what the tier ends up with, its own effects and the added ones.

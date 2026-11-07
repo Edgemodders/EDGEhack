@@ -12,7 +12,7 @@ How to keep it (the Edgemodders convention):
 
 **New**
 
-- **Add Effect** in the quickhack editor: add another quickhack's effect, which follows that quickhack's tiers, or any status effect, sorted by who it works on and searchable by name, tag and type. Each added effect can be left off some tiers, and has its own duration, stacks and damage per tier; a changed number gives that tier a copy of its own. The editor warns about combinations that may not work.
+- **Add Effect** in the quickhack editor: add another quickhack's effect, which follows that quickhack's tiers, or any status effect, sorted by who it works on and searchable by name, tag and type. Each added effect can be left off some tiers, and has its own duration, stacks and damage per tier; a changed number gives that tier a copy of its own. The editor warns about combinations that may not work, and notes what the game does with others, as it should (a burn ends Contagion's poison when V has Contagion Epic or better).
 - **Clone and Modify** on a quickhack's page and in the Quickhacks view: a new quickhack beside the game's, with its own name, item per tier, wheel entry and cooldown, which leaves the game's quickhack as it is. Spread and the versions for bosses are left out for now.
 - The Quickhacks view lists the open project's quickhacks in a Project group at the top.
 - The EDGEhack side bar with its Desk, Library and Quickhacks views (Desk and Library empty until their phases).

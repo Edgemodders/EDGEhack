@@ -290,8 +290,10 @@ test("the warnings: a repeat, V's own or a boss's on a target, kinds of NPC, no 
   assert.ok(!w.some((x) => /one of V's own/.test(x)), "not when it goes on V");
   w = addedWarnings(fam, doc, [mk({ status: "AdamSmasher.Dot" }, effect({ status: "AdamSmasher.Dot" }))]);
   assert.ok(w.some((x) => /boss fight/.test(x)), w.join());
-  w = addedWarnings(fam, doc, [mk({ status: "BaseStatusEffect.X" }, effect({ status: "BaseStatusEffect.X", npcTypes: ["Human"] }))]);
-  assert.ok(w.some((x) => /only Human NPCs react/.test(x)), w.join());
+  // Who plays the reaction is a note: the effect itself ran on a drone in H3.4's test.
+  const humanOnly = [mk({ status: "BaseStatusEffect.X" }, effect({ status: "BaseStatusEffect.X", npcTypes: ["Human"] }))];
+  assert.ok(addedNotes(fam, humanOnly).some((x) => /only Human NPCs play its reaction/.test(x)));
+  assert.ok(!addedWarnings(fam, doc, humanOnly).some((x) => /Human/.test(x)), "a note, not a warning");
   w = addedWarnings(fam, doc, [mk({ status: "BaseStatusEffect.X" }, effect({ status: "BaseStatusEffect.X", duration: undefined }))]);
   assert.ok(w.some((x) => /no duration of its own/.test(x)), w.join());
   // Two burns ran side by side in the game, so Burning says nothing; another type is unverified.

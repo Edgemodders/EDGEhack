@@ -122,13 +122,13 @@ Combining has rules the editor checks, each as a warning, not a block:
 
 - Two effects of the same `statusEffectType` may replace each other on the target. Two different burns ran side by side in H3.1's test, so Burning and Misc give no warning; other types are unverified.
 - The same status effect twice on a tier, its own and an added one: one upload may count as two stacks, or as one. Unverified.
-- An effect whose `AIData` needs a kind of NPC (humans only) has no reaction on the rest. Whether the effect itself runs on them is unverified.
 - A status effect with no duration may stay until something removes it. Unverified.
 - Effects with `PlayerCooldown`, cyberware or boss-fight tags are V's or a boss's: shown only with **Show all**, with a warning if one goes on a target.
 - The cooldown, the "was quickhacked" mark and the RAM cost always stay; they are not in the effects list.
 
 The editor also shows **notes**, apart from the warnings. A warning means something may not work as the modder expects: the game may do something irregular, or nobody has seen it run. A note is the game working as designed, worth knowing when combining (the owner's distinction, 2026-11-07). Notes are grey with an info mark; warnings are yellow.
 
+- An effect whose `AIData` needs a kind of NPC (humans only) has no reaction on the rest, but the effect itself runs on them: a drone took Contagion's poison (Human only) and a bleed in H3.4's test.
 - A burn and Contagion's poison on one tier: Contagion Epic and better give V a passive in the cyberdeck (`EquipmentGLP.ContagionLvl3Passive`). A hit on a burning target removes every poison tagged `ContagionPoison`, and the game's own Epic and better poisons (`ContagionPoisonLvl3`, `Lvl4`, `Lvl4PlusPlus`, checked by record name) explode too (`Attacks.ContagionBurnCombo`). So a copy with changed numbers is removed without the explosion. Found in H3.4's test; without that Contagion in the deck, both ran for their whole time.
 
 ## Views

@@ -19,7 +19,7 @@ Last updated 2026-11-06.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | 2026-11-07 | Part A passed. Part B under way: the poison beside a burn is ended by Contagion Epic's passive, a game rule, now a note in the editor |
+| [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | 2026-11-07 | Pass, Parts A and B (EDGEhack 0.0.6). The poison beside a burn is ended by Contagion Epic's passive, a game rule, now a note; a drone took the poison and the bleed |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-06 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
@@ -27,7 +27,7 @@ Last updated 2026-11-06.
 
 ## Waiting for a hand test
 
-- [H3.4 Add Effect](#h34-add-effect), EDGEhack 0.0.6.
+- None.
 
 ## H3.4 Add Effect
 
@@ -76,7 +76,7 @@ Then quit the game, and say what differed. If something failed, the lines with e
 
 | Run | Result |
 |---|---|
-| 2026-11-07, EDGEhack 0.0.6, the laptop, game 2.5 | **Part A: pass**, every step. Seen: Chromium drew the checkboxes in its own blue, not the theme's (fixed after), and the owner asked to rename **Make a New One From This** to **Clone and Modify** (done after). **Part B, steps 2 and 3:** burn and bleed numbers, but one green poison number only, on Rare (the 20 s copy) and on Epic (the game's record); Epic's was followed by a large red number. With the damage numbers set to individual, the same. A Contagion with an added bleed showed green and white numbers together, so the poison works from another hack. Cause, from the records: `EquipmentGLP.ContagionLvl3Passive`, which Contagion Epic and better give V in the cyberdeck. A hit on a burning target that has any poison tagged `ContagionPoison` removes it, and with the game's own `ContagionPoisonLvl3`, `Lvl4` or `Lvl4PlusPlus` it also triggers `Attacks.ContagionBurnCombo` (thermal, 5 m). With V's Legendary Contagion out of the deck, a new **Heat Plague** (Overheat plus Contagion's poison, game records) showed green numbers for the poison's whole time. EDGEhack had no fault; the editor now shows a note (not a warning: the game works as designed) about a burn and Contagion's poison on one tier. Steps 4 to 6 to come |
+| 2026-11-07, EDGEhack 0.0.6, the laptop, game 2.5 | **Part A: pass**, every step. Seen: Chromium drew the checkboxes in its own blue, not the theme's (fixed after), and the owner asked to rename **Make a New One From This** to **Clone and Modify** (done after). **Part B, steps 2 and 3:** burn and bleed numbers, but one green poison number only, on Rare (the 20 s copy) and on Epic (the game's record); Epic's was followed by a large red number. With the damage numbers set to individual, the same. A Contagion with an added bleed showed green and white numbers together, so the poison works from another hack. Cause, from the records: `EquipmentGLP.ContagionLvl3Passive`, which Contagion Epic and better give V in the cyberdeck. A hit on a burning target that has any poison tagged `ContagionPoison` removes it, and with the game's own `ContagionPoisonLvl3`, `Lvl4` or `Lvl4PlusPlus` it also triggers `Attacks.ContagionBurnCombo` (thermal, 5 m). With V's Legendary Contagion out of the deck, a new **Heat Plague** (Overheat plus Contagion's poison, game records) showed green numbers for the poison's whole time. EDGEhack had no fault; the editor now shows a note (not a warning: the game works as designed) about a burn and Contagion's poison on one tier. **Steps 4 to 6: pass.** Legendary burned and poisoned with no bleed and V stayed visible. A drone took Triple Heat's poison and bleed (the effect runs on a kind of NPC its AIData leaves out; the editor now says so in a note, not a warning). The game's own Overheat only burned. **H3.4 passes** |
 
 ## H3.3 New
 
