@@ -50,9 +50,9 @@ Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, a
 | Step | Do | Expect |
 |---|---|---|
 | 1 | Run `await game.player.addItem("Items.PingProgram")` in the Console, and put Ping (Common) in the cyberdeck | The Console answers without an error |
-| 2 | Upload Ping on an enemy | Blue electric numbers about every half second for about 8 s. Say which icons show over the enemy: shock, lowered stats, jammed weapon, blinded |
+| 2 | Upload Ping on an enemy | Yellow numbers about every half second for about 8 s (the game's colour for an electric damage over time). Say which icons show over the enemy: shock, lowered stats, jammed weapon, blinded |
 | 3 | Watch that enemy for 15 s | It moves at about a third of its speed; it acts blinded; its weapon jams when it shoots. Say which of these you saw |
-| 4 | Run `await tweakdb.set("EDGEhack.Spike.ShockTick.delayTime", 0.1)`, then upload Ping on another enemy | `true`, then blue numbers five times as often. Say whether they keep up or bunch together |
+| 4 | Run `await tweakdb.set("EDGEhack.Spike.ShockTick.delayTime", 0.1)`, then upload Ping on another enemy | `true`, then numbers five times as often. Say whether they keep up or bunch together |
 | 5 | Run `await tweakdb.set("EDGEhack.Spike.JamChance.value", 0.5)` and `await tweakdb.set("EDGEhack.Spike.BlindChance.value", 0.5)`, then upload Ping on four more enemies | `true` twice. Count how many got a jammed weapon and how many were blinded: about half of each, if the roll works |
 
 Then quit the game, remove `edgehack_h35_spike.yaml` from `r6\tweaks`, and say what differed. If an effect did not show at all, the lines with errors from TweakXL's log help.
@@ -60,6 +60,7 @@ Then quit the game, remove `edgehack_h35_spike.yaml` from `r6\tweaks`, and say w
 | Run | Result |
 |---|---|
 | 1 (2026-11-07, dev PC, file for Ping Epic) | Stopped at step 2: Ping Epic did not show on the quickhack wheel. It is deprecated in 2.5 (`deprecated: true`, no quickhack); the spike moved to Ping Common. TweakXL read the file with no errors |
+| 2 (2026-11-07, dev PC, Ping Common, effects linked from the Console) | **Shock: pass.** A hit every 0.5 s for 8 s; at 0.1 s they kept up with no bunching. Each hit showed 1, not 3 (the game lowers it; Overheat's attack has a second, larger damage part). The numbers were **yellow**: the game shows an electric damage over time in yellow, and Short Circuit's direct electric hit in white, so no electric hit is blue; the colour comes from the game's damage number display, not TweakDB. A running total above the head and each hit beside it is the game's own display. **Slow: applied** (the Console's status check said so); the slower walk was not seen, the enemy being out of combat. **Icons:** none over the enemy, not even the game's own Blind; status icons may show only on V's bar (unverified). **Jam and Blind with `ApplyStatusEffectByChanceEffector`: fail.** Neither applied, on the enemy or on V. The game's script rolls that effector only in `RepeatedAction`, when its prereq fires again, so with an always-true prereq it never rolls (the game's EMP jam uses it the same way). **Fixed from the Console:** the plain `ApplyStatusEffectEffector` behind the game's `SetChancePrereq` (`setChance`), inside the carrier: Blind applied on 4 of 5 enemies at 50% and 0 of 4 at 0%. Run straight from the quickhack (`effectorToTrigger`), the same parts applied nothing, so a chance needs a carrier status. **Sparks:** the game's `status_electrocuted` on the shock status showed for a couple of seconds at the start only. Closing the Console undid its TweakDB changes (REDnode undoes a stopped package's changes), which turned Ping back to the game's own once |
 
 ## H3.4b Machines
 
