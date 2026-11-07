@@ -55,7 +55,7 @@ Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, a
 | 4 | Run `await tweakdb.set("EDGEhack.Spike.ShockTick.delayTime", 0.1)`, then upload Ping Epic on another enemy | `true`, then blue numbers five times as often. Say whether they keep up or bunch together |
 | 5 | Run `await tweakdb.set("EDGEhack.Spike.JamChance.value", 0.5)` and `await tweakdb.set("EDGEhack.Spike.BlindChance.value", 0.5)`, then upload Ping Epic on four more enemies | `true` twice. Count how many got a jammed weapon and how many were blinded: about half of each, if the roll works |
 
-Then quit the game, remove `edgehack_h35_spike.yaml` from `r6\tweaks`, and say what differed. If an effect did not show at all, the lines with errors from TweakXL's log (`red4ext\plugins\TweakXL\TweakXL.log`) help.
+Then quit the game, remove `edgehack_h35_spike.yaml` from `r6\tweaks`, and say what differed. If an effect did not show at all, the lines with errors from TweakXL's log help.
 
 | Run | Result |
 |---|---|
