@@ -291,7 +291,7 @@ export function addedNotes(fam: Family, added: ResolvedAdded[]): string[] {
   // No note for AIData's NPC types: they choose only who acts an effect out, and the effect itself ran on a drone in H3.4's test.
   // That machines do not act out a poison is self-evident to players (the owner, 2026-11-07).
   if (added.some((r) => !r.problem && [...r.byTier.values()].some(keptOffMachines))) {
-    out.push("Poison and bleed: EDGEhack keeps their damage off machines (androids, drones and mechs), which the game would let them hit through this quickhack. Their icon may still show on a machine.");
+    out.push("Poison and bleed: EDGEhack keeps their damage off machines (androids, drones and mechs), which the game would let them hit through this quickhack.");
   }
   // Contagion Epic and better in V's cyberdeck (EquipmentGLP.ContagionLvl3Passive): a hit on a burning target removes every
   // Contagion poison (by its tag), and the game's own Epic and better poisons explode (by their record names). Seen in H3.4's test.
