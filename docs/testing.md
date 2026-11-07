@@ -19,7 +19,7 @@ Last updated 2026-11-06.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | | Waiting |
+| [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | 2026-11-07 | Pass (EDGEhack 0.0.9): a drone took only the burn, humans the burn, poison and bleed |
 | [H3.4b Machines spike](#h34b-machines-spike) | By hand, in the game, with REDnode's Console | H3 | 2026-11-07 | An immunity did nothing; a check on the damage effector stopped the damage on a drone, not on a human |
 | [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | 2026-11-07 | Pass, Parts A and B (EDGEhack 0.0.6). The poison beside a burn is ended by Contagion Epic's passive, a game rule, now a note; a drone took the poison and the bleed |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-07 | Pass, every check (EDGEhack 0.0.9) |
@@ -29,7 +29,7 @@ Last updated 2026-11-06.
 
 ## Waiting for a hand test
 
-- [H3.4b Machines](#h34b-machines), EDGEhack 0.0.9.
+- None.
 
 ## H3.4b Machines
 
@@ -63,6 +63,7 @@ Then quit the game and say what differed. If something failed, the lines with er
 
 | Run | Result |
 |---|---|
+| 2026-11-07, EDGEhack 0.0.9, the laptop, game 2.5 | **Pass**, Parts A and B, every step as written. Step 1: the drone showed no poison or bleed numbers (whether their icons showed was not reported). Step 5: with Contagion Epic in the cyberdeck, one green number, then the poison ended with no explosion, as the note says. So the game takes a `$base` copy of an inline effector and package, which H3.3 had left open |
 
 ## H3.4b Machines spike
 
