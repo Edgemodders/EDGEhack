@@ -358,6 +358,65 @@ test("the page shows an added effect's card, with its tiers and which record it 
   assert.match(page, /data-key="Items\.ZapProgram"/);
 });
 
+test("a poison or bleed is always a copy, whose damage effector carries the check that keeps it off machines", async () => {
+  const r = reader();
+  const fam = await zap(r);
+  let doc = withAddedEffect(newHackDoc("mod", "Zap", "Static"), { status: "BaseStatusEffect.ZapPoison" });
+  let added = await resolved(doc, fam, r);
+  let { yaml, warnings } = writeTweaks(fam, doc, added);
+  // One check, our own record.
+  assert.equal(yaml!.split("\nEDGEhack.mod_static.NotMachine:\n").length - 1, 1);
+  assert.match(yaml!, /EDGEhack\.mod_static\.NotMachine:\n {2}\$type: StatPrereq\n {2}prereqClassName: StatPrereq\n {2}statType: IsMechanical\n {2}comparisonType: LessOrEqual\n {2}objectToCheck: Owner\n {2}valueToCheck: 0\n/);
+  for (const tier of ["ZapProgram", "ZapLvl1Program"]) {
+    const label = `a1_${tier}`;
+    const effector = yaml!.split(`EDGEhack.mod_static.${label}_Effector:\n`)[1].split("\n\n")[0];
+    assert.match(effector, /\$base: BaseStatusEffect\.ZapPoison_dot/);
+    assert.match(effector, /prereqRecord: EDGEhack\.mod_static\.NotMachine/);
+    assert.ok(!/attackRecord/.test(effector), "the game's attack while its damage is unchanged");
+    assert.match(yaml!, new RegExp(`EDGEhack\\.mod_static\\.${label}_Package:\\n {2}\\$base: BaseStatusEffect\\.ZapPoison_pkg\\n {2}effectors:\\n {4}- EDGEhack\\.mod_static\\.${label}_Effector`));
+    const status = yaml!.split(`BaseStatusEffect.EDGEhack_mod_static_${label}:\n`)[1].split("\n\n")[0];
+    assert.match(status, /\$base: BaseStatusEffect\.ZapPoison\n {2}packages:\n {4}- EDGEhack\.mod_static\.a1_\w+_Package/);
+    const action = yaml!.split(`QuickHack.EDGEhack_mod_static_${tier}:\n`)[1].split("\n\n")[0];
+    assert.match(action, new RegExp(`- QuickHack\\.EDGEhack_mod_static_${label}_Effect$`), tier);
+  }
+  assert.ok(!/^(BaseStatusEffect\.Zap|Attacks\.Zap)[^\n]*\.\w+:/m.test(yaml!), "no game record is changed");
+  assert.deepEqual(warnings.filter((w) => /machines/.test(w)), []);
+  assert.ok(addedNotes(fam, added).some((n) => /keeps their damage off machines/.test(n)));
+  assert.match(renderAddedEffects(fam, added, new Map()), /A copy of its own on each tier, which keeps its damage off machines\./);
+
+  // A changed damage: the same effector copy points at the changed attack too.
+  doc = withAddedValue(doc, "a1", "Items.ZapLvl1Program", "damage", 10, 4);
+  ({ yaml } = writeTweaks(fam, doc, await resolved(doc, fam, r)));
+  const effector = yaml!.split("EDGEhack.mod_static.a1_ZapLvl1Program_Effector:\n")[1].split("\n\n")[0];
+  assert.match(effector, /attackRecord: Attacks\.EDGEhack_mod_static_a1_ZapLvl1Program\n {2}prereqRecord: EDGEhack\.mod_static\.NotMachine/);
+
+  // Beside the hack's own burn: the poison is a copy, so the note says it ends without the explosion.
+  added = await resolved(doc, fam, r);
+  const notes = addedNotes(fam, added);
+  assert.ok(notes.some((n) => /EDGEhack's copy, so it ends without the explosion/.test(n)), notes.join());
+  assert.ok(!notes.some((n) => /explode as they go/.test(n)));
+
+  // A burn is not kept off machines: no check, no note.
+  doc = withAddedEffect(newHackDoc("mod", "Zap", "Static"), { status });
+  added = await resolved(doc, fam, r);
+  assert.ok(!/NotMachine/.test(writeTweaks(fam, doc, added).yaml!));
+  assert.ok(!addedNotes(fam, added).some((n) => /machines/.test(n)));
+});
+
+test("a poison EDGEhack cannot keep off machines says so", async () => {
+  const fam = await zap();
+  const doc = newHackDoc("mod", "Zap", "Static");
+  const hurts = [{ type: "Chemical", perHit: 1, every: 0.25, scaledBy: [], record: "Attacks.P" }];
+  const poison = { record: "QuickHack.X", on: "target", when: "upload", tags: [], damage: hurts, stats: [], shared: false, cooldown: false, spread: false, status: "BaseStatusEffect.P", type: "Poisoned", effector: "Apply Status Effect", duration: { base: 5, scaledBy: [] } } as never;
+  const added: ResolvedAdded[] = [{ entry: { id: "a1", status: "BaseStatusEffect.P" }, name: "Poison", byTier: new Map(fam.tiers.map((t) => [tierKey(t), poison])) }];
+  assert.ok(addedWarnings(fam, doc, added).some((w) => /could not keep its damage off machines/.test(w)));
+  assert.ok(!addedNotes(fam, added).some((n) => /keeps their damage off machines/.test(n)));
+  // One with no damage has nothing to keep off: no warning.
+  const harmless = { ...(poison as object), damage: [] } as never;
+  const quiet: ResolvedAdded[] = [{ ...added[0], byTier: new Map(fam.tiers.map((t) => [tierKey(t), harmless])) }];
+  assert.ok(!addedWarnings(fam, doc, quiet).some((w) => /machines/.test(w)));
+});
+
 test("the page says there are none yet", async () => {
   assert.match(renderAddedEffects(await zap(), [], new Map()), /None yet/);
 });

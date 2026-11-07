@@ -250,29 +250,69 @@ export function applyAddedToAll(doc: QuickhackDoc, added: ResolvedAdded[], id: s
   return next;
 }
 
-/** The rules of "Adding effects", each a warning, not a block. */
-/** The effects a tier ends up with: its own worth adding, and the added ones it is not left off. */
-function tierEffects(t: Tier, added: ResolvedAdded[]): { name: string; e: Effect }[] {
-  const key = tierKey(t);
-  return [...worthAdding(t).map((e) => ({ name: e.name, e })), ...added.filter((r) => !r.entry.off?.includes(key)).flatMap((r) => (r.byTier.get(key) ? [{ name: r.name, e: r.byTier.get(key)! }] : []))];
+/**
+ * The effect types EDGEhack keeps off machines (H3.4b, the owner's decision of 2026-11-07). The game keeps
+ * machines safe only per quickhack: Contagion cannot be uploaded to one, but its poison reached a drone
+ * through Overheat in H3.4's test.
+ */
+const OFF_MACHINES = new Set(["Poisoned", "Bleeding"]);
+
+/** A poison or bleed on the target: what EDGEhack means to keep off machines. */
+export function hitsMachines(e: Effect | undefined): boolean {
+  return !!e && e.on === "target" && !!e.type && OFF_MACHINES.has(e.type);
 }
 
 /**
- * What the game does with a combination, as it should: worth knowing, not a fault. Shown apart from the warnings.
+ * True when EDGEhack writes this added effect with a check that keeps its damage off machines: a poison or
+ * bleed applied by its status effect, whose damage runs from an effector in one of its packages. The check
+ * goes on a copy of that effector (H3.4b's spike: the effect's `immunityStats` is not checked when a
+ * quickhack applies it, but the effector's `prereqRecord` is).
+ */
+export function keptOffMachines(e: Effect | undefined): boolean {
+  const d = e?.damage[0];
+  return hitsMachines(e) && !!e!.status && !e!.effector && !!d?.effector && !!d.package;
+}
+
+/** The effects a tier ends up with: its own worth adding, and the added ones it is not left off. */
+function tierEffects(t: Tier, added: ResolvedAdded[]): { name: string; e: Effect; added: boolean }[] {
+  const key = tierKey(t);
+  return [
+    ...worthAdding(t).map((e) => ({ name: e.name, e, added: false })),
+    ...added.filter((r) => !r.entry.off?.includes(key)).flatMap((r) => (r.byTier.get(key) ? [{ name: r.name, e: r.byTier.get(key)!, added: true }] : [])),
+  ];
+}
+
+/**
+ * What the game does with a combination, as it should, and what EDGEhack changes on purpose: worth knowing,
+ * not a fault. Shown apart from the warnings (the owner's distinction, 2026-11-07).
  */
 export function addedNotes(fam: Family, added: ResolvedAdded[]): string[] {
   const out: string[] = [];
   // No note for AIData's NPC types: they choose only who acts an effect out, and the effect itself ran on a drone in H3.4's test.
   // That machines do not act out a poison is self-evident to players (the owner, 2026-11-07).
+  if (added.some((r) => !r.problem && [...r.byTier.values()].some(keptOffMachines))) {
+    out.push("Poison and bleed: EDGEhack keeps their damage off machines (androids, drones and mechs), which the game would let them hit through this quickhack. Their icon may still show on a machine.");
+  }
   // Contagion Epic and better in V's cyberdeck (EquipmentGLP.ContagionLvl3Passive): a hit on a burning target removes every
   // Contagion poison (by its tag), and the game's own Epic and better poisons explode (by their record names). Seen in H3.4's test.
-  const combo = fam.tiers.some((t) => {
+  // An added poison kept off machines is EDGEhack's copy, under its own name, so it ends without the explosion.
+  let game = false;
+  let copies = false;
+  for (const t of fam.tiers) {
     const onTarget = tierEffects(t, added).filter(({ e }) => e.on === "target");
-    return onTarget.some(({ e }) => e.type === "Burning") && onTarget.some(({ e }) => e.tags.includes("ContagionPoison"));
-  });
-  if (combo) out.push("A burn and Contagion's poison together: when V has Contagion Epic or better in the cyberdeck, the burn ends the poison at its first hit, as that Contagion's own text says, and the game's own Epic and better poisons explode as they go. Without it, both run for their whole time.");
+    if (!onTarget.some(({ e }) => e.type === "Burning")) continue;
+    for (const x of onTarget.filter(({ e }) => e.tags.includes("ContagionPoison"))) {
+      if (x.added && keptOffMachines(x.e)) copies = true;
+      else game = true;
+    }
+  }
+  const start = "A burn and Contagion's poison together: when V has Contagion Epic or better in the cyberdeck, the burn ends the poison at its first hit, as that Contagion's own text says";
+  if (game) out.push(`${start}, and the game's own Epic and better poisons explode as they go. Without that Contagion, both run for their whole time.`);
+  else if (copies) out.push(`${start}. This quickhack's poison is EDGEhack's copy, so it ends without the explosion the game's own Epic and better poisons set off. Without that Contagion, both run for their whole time.`);
   return out;
 }
+
+/** The rules of "Adding effects", each a warning, not a block. */
 
 export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[]): string[] {
   const out: string[] = [];
@@ -290,6 +330,8 @@ export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdd
       if (kind === "boss") out.push(`${r.name} belongs to a boss fight, so it may do nothing on other enemies.`);
       if (kind === "v") out.push(`${r.name} looks like one of V's own, so it may do nothing on an enemy.`);
     }
+    // One with no damage has nothing to keep off (two in the game: a distraction and an NPC's melee bleed).
+    if (hitsMachines(top) && top.damage.length && !keptOffMachines(top)) out.push(`${r.name}: EDGEhack could not keep its damage off machines, so it still hits them as the game allows.`);
     if (top.status && (!top.duration || !isFinite(top.duration.base))) out.push(`${r.name} has no duration of its own, so it may stay until something removes it (unverified).`);
   }
   // Tier by tier: what the tier ends up with, its own effects and the added ones.

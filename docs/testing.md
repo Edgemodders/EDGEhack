@@ -12,23 +12,57 @@ Last updated 2026-11-06.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-06 | Pass, 70 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-07 | Pass, 72 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | | Waiting |
 | [H3.4b Machines spike](#h34b-machines-spike) | By hand, in the game, with REDnode's Console | H3 | 2026-11-07 | An immunity did nothing; a check on the damage effector stopped the damage on a drone, not on a human |
 | [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | 2026-11-07 | Pass, Parts A and B (EDGEhack 0.0.6). The poison beside a burn is ended by Contagion Epic's passive, a game rule, now a note; a drone took the poison and the bleed |
-| [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-06 | Pass, every check |
+| [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-07 | Pass, every check (EDGEhack 0.0.9) |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
 | [H2d Spike](#h2d-spike) | By hand, in the game | H2 | 2026-11-04 | The line works and fits, but the game's own lines show `{float_0}` and repeat the bullets: on hacks marked by EDGEhack only |
 | [H2d Spike, second version](#h2d-spike-second-version) | By hand, in the game | H2 | 2026-11-04 | No line on any hack. The owner dropped the player's line; not looked into |
 
 ## Waiting for a hand test
 
-- None.
+- [H3.4b Machines](#h34b-machines), EDGEhack 0.0.9.
+
+## H3.4b Machines
+
+EDGEhack 0.0.9: an added poison or bleed keeps its damage off machines. Uses the Triple Heat quickhack from H3.4's test.
+
+**Before you start:** `code --install-extension edgehack-0.0.9.vsix`, then **Developer: Reload Window**. Open the project with Triple Heat in REDcode.
+
+**Part A, in VS Code**
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Quickhacks view's Project group, open **Triple Heat** | Under the title, grey notes with an info mark: one that EDGEhack keeps poison and bleed damage off machines, one that Contagion Epic in the cyberdeck ends this quickhack's poison at a burn's first hit, without the explosion |
+| 2 | Scroll down to **Added effects** | The **Poison** card says "A copy of its own on each tier, which keeps its damage off machines. Numbers changed on Rare." The **Bleeding** card says the same without the last sentence |
+| 3 | Press **Ctrl+S**, then open the YAML file under `source/resources/r6/tweaks/` | A record ending `.NotMachine` with `$type: StatPrereq`, and records ending `_Effector` with `prereqRecord:` naming it |
+
+**Part B, in the game**
+
+First: quit the game if it is running. Click **Pack and Play** on Triple Heat's page, start the game, and load a save. Keep every Contagion of Epic or better out of V's cyberdeck until step 5. Triple Heat's Rare, Epic and Legendary from H3.4's test are still in the backpack (if not, give them with the page's **Give yourself one** lines in REDnode's Console).
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below. Switch on **Console** in the launcher for step 5.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Put Triple Heat's Epic in the cyberdeck and upload it on a drone | Burn only: no green or white numbers. Say whether a poison or bleed icon shows |
+| 2 | Upload it on a human | Burn, green poison numbers for about 8 s, and white bleed numbers |
+| 3 | Swap it for its Rare, and upload it on another human | The poison lasts about 20 s, well after the burn ends |
+| 4 | If an android or a mech is around, upload the Epic on it. Skip this if not, and still press Mark | Burn only |
+| 5 | Run `await game.player.addItem("Items.ContagionLvl3Program")` in the Console, put that Contagion in the cyberdeck beside Triple Heat's Epic, and upload Triple Heat on another human | One green number, then the poison ends, with no large red explosion. Take the Contagion out after |
+
+Then quit the game and say what differed. If something failed, the lines with errors from TweakXL's log help.
+
+| Run | Result |
+|---|---|
 
 ## H3.4b Machines spike
 

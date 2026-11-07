@@ -87,6 +87,19 @@ add("BaseStatusEffect.ZapOwnMod", "CombinedStatModifier", { opSymbol: "*", refOb
 add("BaseStatusEffect.ZapStacks", "StatModifierGroup", { statModifiers: ["BaseStatusEffect.ZapStacks_inline0"] });
 add("BaseStatusEffect.ZapStacks_inline0", "ConstantStatModifier", { value: 2, modifierType: "Additive", statType: "BaseStats.MaxStacks" });
 add("BaseStatusEffect.ZapUI", "StatusEffectUIData", { displayName: "LocKey#60", iconPath: "zap_icon" });
+// A poison, with Contagion's tag, for the effects EDGEhack keeps off machines (H3.4b).
+add("BaseStatusEffect.ZapPoison", "StatusEffect", {
+  statusEffectType: "BaseStatusEffectTypes.Poisoned",
+  gameplayTags: ["Debuff", "DoT", "ContagionPoison"],
+  duration: "BaseStatusEffect.ZapDuration",
+  maxStacks: "BaseStatusEffect.ZapStacks",
+  uiData: "BaseStatusEffect.ZapUI",
+  packages: ["BaseStatusEffect.ZapPoison_pkg"],
+});
+add("BaseStatusEffect.ZapPoison_pkg", "GameplayLogicPackage", { effectors: ["BaseStatusEffect.ZapPoison_dot"], stats: [] });
+add("BaseStatusEffect.ZapPoison_dot", "ContinuousAttackEffector", { effectorClassName: "TriggerContinuousAttackEffector", attackRecord: "Attacks.ZapPoison", delayTime: 0.25 });
+add("Attacks.ZapPoison", "Attack_GameEffect", { damageType: "DamageTypes.Chemical", statModifiers: ["Attacks.ZapPoison_inline0"] });
+add("Attacks.ZapPoison_inline0", "ConstantStatModifier", { value: 4, modifierType: "Additive", statType: "BaseStats.ChemicalDamage" });
 add("BaseStatusEffect.ZapArmor", "ConstantStatModifier", { value: -10, modifierType: "Additive", statType: "BaseStats.Armor" });
 add("UIIcon.quickhack_zap", "UIIcon", { atlasResourcePath: "base\\gui\\zap.inkatlas", atlasPartName: "quickhack_zap" });
 add("UIIcon.Zap", "UIIcon", { atlasResourcePath: "base\\gui\\wheel.inkatlas", atlasPartName: "Zap" });

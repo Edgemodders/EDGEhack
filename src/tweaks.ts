@@ -5,7 +5,7 @@
 import type { QuickhackDoc, TierEdit } from "./document";
 import { mainEffect, Tier, Family, Variant, Effect, tierKey } from "./read";
 import { NEW_HACK_SCRIPT } from "./newHackScript";
-import { addedGameValue, addedWarnings, ResolvedAdded } from "./effects";
+import { addedGameValue, addedWarnings, keptOffMachines, ResolvedAdded } from "./effects";
 
 export interface TextEntry {
   key: string;
@@ -53,6 +53,21 @@ class Out {
 
   set(flat: string, value: string): void {
     this.changes.push(`${flat}: ${value}\n`);
+  }
+
+  private notMachinePath?: string;
+
+  /**
+   * The check that keeps an effector off machines, written once: the target's `IsMechanical` stat is 0, as
+   * Overheat's own `OverheatLevel2_inline9`. Our own record, since an inline record's name can change in a
+   * game update. H3.4b's spike: it stopped a poison and a bleed on a drone, not on a human.
+   */
+  notMachine(): string {
+    if (!this.notMachinePath) {
+      this.notMachinePath = `${this.prefix}.NotMachine`;
+      this.records.push(`${this.notMachinePath}:\n  $type: StatPrereq\n  prereqClassName: StatPrereq\n  statType: IsMechanical\n  comparisonType: LessOrEqual\n  objectToCheck: Owner\n  valueToCheck: 0\n`);
+    }
+    return this.notMachinePath;
   }
 
   /** True the first time a record takes this difference; a different one on it is a warning. */
@@ -227,9 +242,10 @@ interface StatusDiffs {
 
 /**
  * A copy of a status effect with its numbers changed, or undefined when it could not be made. Damage sits
- * at the end of a chain, each link naming the next, so each is copied. `label` names the records.
+ * at the end of a chain, each link naming the next, so each is copied. `label` names the records. With
+ * `offMachines`, its damage effector gets the check that keeps it off machines (H3.4b), numbers changed or not.
  */
-function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs: StatusDiffs): string | undefined {
+function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs: StatusDiffs, offMachines = false): string | undefined {
   const fields: Record<string, Field> = {};
   if (round(diffs.duration) !== 0 && e.durationGroup) {
     const group = `${out.prefix}.${label}_Duration`;
@@ -241,17 +257,21 @@ function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs
     out.records.push(`${group}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n${[...(e.stacksMods ?? []), out.modifier(`${label}_StacksMod`, "BaseStats.MaxStacks", diffs.stacks)].map((m) => `    - ${m}\n`).join("")}`);
     fields.maxStacks = group;
   }
-  if (round(diffs.damage) !== 0) {
+  const damageChanged = round(diffs.damage) !== 0;
+  if (damageChanged || offMachines) {
     const damage = e.damage[0];
-    if (damage?.stat && damage.effector && damage.package) {
-      const attack = `Attacks.EDGEhack_${doc.id}_${label}`;
+    if (damage?.effector && damage.package && (damage.stat || !damageChanged)) {
+      let attack: string | undefined;
+      if (damageChanged) {
+        attack = `Attacks.EDGEhack_${doc.id}_${label}`;
+        out.records.push(copy(attack, damage.record, { statModifiers: [...(damage.attackMods ?? []), out.modifier(`${label}_Damage`, damage.stat!, diffs.damage)] }));
+      }
       const effector = `${out.prefix}.${label}_Effector`;
       const pkg = `${out.prefix}.${label}_Package`;
-      out.records.push(copy(attack, damage.record, { statModifiers: [...(damage.attackMods ?? []), out.modifier(`${label}_Damage`, damage.stat, diffs.damage)] }));
-      out.records.push(copy(effector, damage.effector, { attackRecord: attack }));
+      out.records.push(copy(effector, damage.effector, { attackRecord: attack, prereqRecord: offMachines ? out.notMachine() : undefined }));
       out.records.push(copy(pkg, damage.package, { effectors: (damage.packageEffectors ?? []).map((x) => (x === damage.effector ? effector : x)) }));
       fields.packages = (e.packages ?? []).map((p) => (p === damage.package ? pkg : p));
-    } else {
+    } else if (damageChanged) {
       out.warnings.push(`${label}: its damage is not in a status effect's package, so it was left as it is.`);
     }
   }
@@ -285,7 +305,10 @@ function addedOnTier(out: Out, doc: QuickhackDoc, added: ResolvedAdded[], t: Tie
     };
     const diffs: StatusDiffs = { duration: diff("duration"), stacks: diff("stacks"), damage: diff("damage") };
     const own = `QuickHack.EDGEhack_${doc.id}_${r.entry.id}`;
-    const status = round(diffs.duration) !== 0 || round(diffs.stacks) !== 0 || round(diffs.damage) !== 0 ? copyStatus(out, doc, `${r.entry.id}_${label}`, e, diffs) : undefined;
+    // A poison or bleed is always a copy, to carry the check that keeps it off machines (H3.4b).
+    const offMachines = keptOffMachines(e);
+    const changed = round(diffs.duration) !== 0 || round(diffs.stacks) !== 0 || round(diffs.damage) !== 0;
+    const status = changed || offMachines ? copyStatus(out, doc, `${r.entry.id}_${label}`, e, diffs, offMachines) : undefined;
     let path: string;
     if (status) {
       path = `${own}_${label}_Effect`;

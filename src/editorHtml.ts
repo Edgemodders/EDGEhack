@@ -6,7 +6,7 @@ import { ADDED_FIELDS, type AddedField } from "./document";
 import { mainEffect, tierKey, type Family, type IconRef, type Tier } from "./read";
 import { esc, img, rec, tierPanel } from "./pageHtml";
 import { newItemPath } from "./tweaks";
-import { addedGameValue, effectSummary, worthAdding, type ResolvedAdded } from "./effects";
+import { addedGameValue, effectSummary, keptOffMachines, worthAdding, type ResolvedAdded } from "./effects";
 
 /** What the game has for one of a tier's numbers, or undefined when the tier has none to change. */
 export function gameValue(t: Tier, field: TierField): number | undefined {
@@ -65,15 +65,18 @@ const ADDED_ROWS: Record<AddedField, { label: string; unit: string; hint?: strin
   damage: { label: "Damage a hit", unit: "", hint: "For damage over time, a tick" },
 };
 
-/** Which record each tier uses: the game's, or a copy with changed numbers. */
+/** Which record each tier uses: the game's, or a copy with changed numbers, or always a copy for a poison or bleed (H3.4b). */
 function usesWhat(fam: Family, r: ResolvedAdded): string {
   const copied = fam.tiers.filter((t) => {
     if (r.entry.off?.includes(tierKey(t))) return false;
     const values = r.entry.values?.[tierKey(t)];
     return !!values && ADDED_FIELDS.some((f) => values[f] !== undefined && values[f] !== addedGameValue(r.byTier.get(tierKey(t)), f));
   });
-  if (!copied.length) return "Uses the game's record.";
   const names = copied.map((t) => t.quality ?? t.rank).join(", ");
+  if ([...r.byTier.values()].some(keptOffMachines)) {
+    return `A copy of its own on each tier, which keeps its damage off machines.${copied.length ? ` Numbers changed on ${names}.` : ""}`;
+  }
+  if (!copied.length) return "Uses the game's record.";
   return copied.length === fam.tiers.length ? "A copy of its own on every tier." : `A copy of its own on ${names}; the game's record elsewhere.`;
 }
 
@@ -201,7 +204,7 @@ ${rows}
   </div>
 </div>
 <div data-effects>${renderAddedEffects(fam, added, icons.all)}</div>
-<p class="foot">An added effect uses the game's record until you change a number on a tier: that tier then gets a copy of its own, which changes nothing else in the game. The cooldown, the RAM cost and the "was quickhacked" mark always stay.${doc.newHack ? "" : ` It also goes on ${esc(fam.name)}'s versions for bosses.`}</p>
+<p class="foot">An added effect uses the game's record until you change a number on a tier: that tier then gets a copy of its own, which changes nothing else in the game. A poison or bleed is always a copy, to keep its damage off machines. The cooldown, the RAM cost and the "was quickhacked" mark always stay.${doc.newHack ? "" : ` It also goes on ${esc(fam.name)}'s versions for bosses.`}</p>
 </section>
 ${getIt}
 <h2 class="game">What the game has for this tier</h2>
