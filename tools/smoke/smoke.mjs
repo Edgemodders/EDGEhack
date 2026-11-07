@@ -243,7 +243,7 @@ check(!/OverheatLvl2Hack\.costs/.test(yaml), "and its modifier is gone from the 
 await shot("editor.png");
 log("document:", fs.readFileSync(docFile, "utf8").replace(/\s+/g, " ").slice(0, 300));
 
-// ---- Make a New One From This: the page's button, the name asked in VS Code's own box
+// ---- Clone and Modify: the page's button, the name asked in VS Code's own box
 const main = (expression) => cdp("Runtime.evaluate", { expression, returnByValue: true }).then((r) => r.result.value);
 const typeName = async (text) => {
   for (let i = 0; i < 20 && !(await main(`!!document.querySelector(".quick-input-widget input:focus")`)); i++) await sleep(300);
@@ -255,7 +255,7 @@ const press = async (key, vk) => {
   await cdp("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: vk });
 };
 await step({ command: "edgehack.openQuickhack", args: ["Overheat"] });
-const read2 = await pageWith("!!document.querySelector('[data-new]')", "the page's Make a New One button");
+const read2 = await pageWith("!!document.querySelector('[data-new]')", "the page's Clone and Modify button");
 await run(read2, `document.querySelector("[data-new]").click();`);
 await typeName("Smoke Static");
 await press("Enter", 13);

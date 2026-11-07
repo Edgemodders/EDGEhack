@@ -116,7 +116,7 @@
       },
       {
         "command": "edgehack.newQuickhack",
-        "title": "Make a New One From This...",
+        "title": "Clone and Modify...",
         "category": "EDGEhack"
       }
     ],

@@ -42,7 +42,7 @@ EDGEhack 0.0.6: adding effects to a new quickhack. The smoke test has already dr
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | In the Quickhacks view, click **Overheat**, click **Make a New One From This...** on its page, type `Triple Heat`, and press Enter | A new tab with its editor |
+| 1 | In the Quickhacks view, click **Overheat**, click **Clone and Modify...** on its page, type `Triple Heat`, and press Enter | A new tab with its editor |
 | 2 | On that page, scroll down to **Added effects**, below the Numbers table. Click **Add Effect...** | A panel opens with two tabs. **From another quickhack** shows 17 quickhacks with their icons: every family but Overheat |
 | 3 | Click **Contagion** in the panel | Below the icons, one row: **Poison**, on the target, Poisoned, with how long it lasts and its damage |
 | 4 | Click that row | The panel closes. A card for **Poison**: "From Contagion, following its tiers", "Uses the game's record", a row of ticked boxes **On this tier**, then Duration, Stacks and Damage a hit per tier. At the top of the page, a yellow warning that only Human NPCs react to it |
@@ -90,12 +90,12 @@ EDGEhack 0.0.5: making a new quickhack, and the first run of the writer's own ou
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | In the Quickhacks view, click **Overheat** | The read-only page, with **Edit...** and **Make a New One From This...** |
-| 2 | Click **Make a New One From This...** and type `!!!` | VS Code's box asks for a name, and says it needs a letter or a digit |
+| 1 | In the Quickhacks view, click **Overheat** | The read-only page, with **Edit...** and **Clone and Modify...** |
+| 2 | Click **Clone and Modify...** and type `!!!` | VS Code's box asks for a name, and says it needs a letter or a digit |
 | 3 | Replace it with `Overheat` | It refuses: that name would take the file for changes to the game's Overheat |
 | 4 | Replace it with `Spike Static`, and press Enter | A new tab, `<your mod>_spike_static.quickhack.json`. The line under the title says it is a new quickhack started from Overheat. No "Against bosses" rows. A **Give yourself one** section with a Console line |
 | 5 | Look at the top of the Quickhacks view | **Project: <your project>**, with **Spike Static**, "new, from Overheat" |
-| 6 | Right-click **Contagion** in the view, choose **Make a New One From This...**, then press Esc | The box asks for a name. Esc makes nothing |
+| 6 | Right-click **Contagion** in the view, choose **Clone and Modify...**, then press Esc | The box asks for a name. Esc makes nothing |
 | 7 | On Spike Static's page, click **Rare** in the Numbers table | The Console line now names `..._OverheatLvl2Program` |
 | 8 | Rare's RAM: `8`. Rare's Duration: `11`. Rare's Damage a hit: `65`. Legendary's RAM: `6`. Cooldown for every tier: `15`. Name: `Spike Prime`. Then **Ctrl+S** | Changed fields turn yellow. The line under the title says what it saved. The view's Project group now says **Spike Prime** |
 | 9 | In the project, look under `source/resources/r6` | `tweaks/<your mod>/<your mod>_spike_static.yaml`, and `scripts/EDGEhack/NewQuickhacks.reds` |

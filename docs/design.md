@@ -87,7 +87,7 @@ Names given to new records are fixed once written (saves and other mods refer to
 
 ## The editor
 
-A custom editor for `.quickhack.json`, opened from the Quickhacks view, the Desk, the Library, REDcode, or another tool. For a game quickhack with no document yet, it opens a read-only view of the game's records, with **Edit** (makes the document on the Desk) and **Make a New One From This**.
+A custom editor for `.quickhack.json`, opened from the Quickhacks view, the Desk, the Library, REDcode, or another tool. For a game quickhack with no document yet, it opens a read-only view of the game's records, with **Edit** (makes the document on the Desk) and **Clone and Modify**.
 
 Words are the modder's, not TweakDB's. The page:
 
@@ -135,7 +135,7 @@ The activity bar container **EDGEhack** (icon: a quickhack shard in the HUD brac
 |---|---|---|
 | **Desk** | Quickhacks being worked on that are not in a project yet, newest first; then a **Project** group with the open REDcode project's quickhacks | Open, Add to Project, Add to Library, Duplicate, Remove |
 | **Library** | The shared EDGE Library's `quickhack` items | Open, Add to Project, Copy to the Desk |
-| **Quickhacks** | The game's quickhacks: People (by category, then family, then tier), Devices, Vehicles. A filter as REDcode's. Each family shows its icon and name | Open (read-only view), Edit, Make a New One From This, Open in REDcode (the record page) |
+| **Quickhacks** | The game's quickhacks: People (by category, then family, then tier), Devices, Vehicles. A filter as REDcode's. Each family shows its icon and name | Open (read-only view), Edit, Clone and Modify, Open in REDcode (the record page) |
 
 "Quickhacks" rather than "Game Assets": the view lists TweakDB records, not archive files, and "Game Assets" in REDcode and EDGEwave means archive files. Enemy netrunners' hacks (`AIQuickHack.*`) are left out at first.
 
@@ -434,7 +434,7 @@ This changes the decision "Behaviour beyond records: out of scope": a new quickh
 |---|---|---|
 | **H3.1 Spike** | A hand-written new quickhack, as H2a was: a copy of Overheat with TweakXL's `$base`, a new `actionName`, two added effects, its own cooldown. It tries the routes above and answers the questions below | In the game, by the owner, in one session with H3c.1 |
 | **H3.2 Writer** | `src/tweaks.ts` learns new records: each tier's item, action and status effect under the mod's ids, with their own `actionName` and `shardType`, the wheel's records and the shared script | Automated, against what the spike proved |
-| **H3.3 New** | **Make a New One From This** on the page and in the Quickhacks view. The document gains `base` and new-hack fields, and the Quickhacks view shows a Project group | By hand |
+| **H3.3 New** | **Clone and Modify** on the page and in the Quickhacks view. The document gains `base` and new-hack fields, and the Quickhacks view shows a Project group | By hand |
 | **H3.4 Add Effect** | The picker's first two sources: another quickhack's effects and the sorted status effects, referenced until changed and then copied, with the warnings in [Adding effects](#adding-effects) | By hand, then in the game |
 | **H3.5 Attack features** | Extra damage, a stat change while hacked, a chance to apply something else, each written as a new status effect from the game's own effector classes | By hand, then in the game |
 | **H3.6 Get it** | A crafting spec and a vendor's stock. REDnode's Console stays the way to get one while testing | In the game |
@@ -444,7 +444,7 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 
 **H3.2 built (2026-11-05):** `writeNewHack` in `src/tweaks.ts`, with `newHack` in the document and the shared script in `src/newHackScript.ts`, which every EDGEhack mod ships at the same path so only one copy loads. Each tier gets its own item and action, the hack one wheel entry and cooldown, and a tier whose damage or duration changes gets copies of its status effect and of the attack's chain (attack, effector, package). Everything goes in the record's own body, so nothing relies on the order TweakXL applies flats in. Spread and the Boss and Chimera actions are left out, since they point at the family's records; numbers against bosses give a warning. Run against the real REDbridge on all 18 families: all 749 game records they name exist, and a Rare Overheat's action matches the spike's, apart from the spike's two added effects. **Not yet run in the game:** this writer's own output, several tiers, and copied damage or duration. H3.3 tries it.
 
-**H3.3 built (2026-11-06), EDGEhack 0.0.5:** **Make a New One From This** on the page and on a family or tier in the Quickhacks view, asking the name in VS Code's own box (the name must make a free id, and not the one a change to a game family takes). `src/projectDocs.ts` finds a project's documents, makes a new one and writes a document's mod files, with no VS Code. The mod files are written at once, since a save of an unchanged file writes nothing and Pack and Play would find none; Pack and Play now also waits for the files of a save. The Quickhacks view's **Project** group lists the project's documents, following them on disk. The new hack's editor drops the numbers against bosses and gives a Console line per tier until Get it (H3.6). The plan's `base` field was not needed: `family` with `newHack` says the same.
+**H3.3 built (2026-11-06), EDGEhack 0.0.5:** **Clone and Modify** on the page and on a family or tier in the Quickhacks view, asking the name in VS Code's own box (the name must make a free id, and not the one a change to a game family takes). `src/projectDocs.ts` finds a project's documents, makes a new one and writes a document's mod files, with no VS Code. The mod files are written at once, since a save of an unchanged file writes nothing and Pack and Play would find none; Pack and Play now also waits for the files of a save. The Quickhacks view's **Project** group lists the project's documents, following them on disk. The new hack's editor drops the numbers against bosses and gives a Console line per tier until Get it (H3.6). The plan's `base` field was not needed: `family` with `newHack` says the same.
 
 **H3.3 passed in the game (2026-11-06), on the owner's laptop:** the first run of the writer's own output. A new hack made in the editor, with several tiers and copied damage and duration, sits beside the family it came from in the deck and on the wheel, with its own RAM, numbers and a 15 s cooldown of its own, while the game's Overheat keeps its own. That settles the separate cooldown the spike could not show, since Overheat's is 0.0001 s.
 

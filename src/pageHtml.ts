@@ -85,7 +85,7 @@ ${tiers.some((t) => t.boss) ? row("Against bosses", (t) => (t.boss ? `${value(t.
 <header class="hack">
   ${img(icons, top.icons.item ?? top.icons.wheel, "icon big", fam.name)}
   <div><h1>${esc(fam.name)}</h1><p class="sub">${esc(kind)}${fam.category && fam.category.toLowerCase() !== kind.toLowerCase() ? ` &middot; ${esc(fam.category)}` : ""} &middot; ${tiers.length} tier${tiers.length === 1 ? "" : "s"}</p></div>
-  <p class="ro">The game's own quickhack.${fam.kind === "people" ? ` <button data-edit>Edit...</button> <button data-new>Make a New One From This...</button>` :" Device and vehicle hacks are read-only for now."}</p>
+  <p class="ro">The game's own quickhack.${fam.kind === "people" ? ` <button data-edit>Edit...</button> <button data-new>Clone and Modify...</button>` :" Device and vehicle hacks are read-only for now."}</p>
 </header>
 ${tabs}
 ${numbers}

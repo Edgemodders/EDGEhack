@@ -72,7 +72,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     const name =
       given ??
       (await vscode.window.showInputBox({
-        title: `Make a New One From ${familyName}`,
+        title: `Clone and Modify ${familyName}`,
         prompt: "The new quickhack's name, as players see it. You can change it later, but its record names come from this first name and stay.",
         placeHolder: "Spike Static",
         validateInput: (text) => (text ? newHackProblem(project, keys, key, text) : undefined),

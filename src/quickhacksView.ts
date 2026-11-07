@@ -209,7 +209,7 @@ export class QuickhacksView implements vscode.TreeDataProvider<Node> {
     }
   }
 
-  /** The family a node belongs to, for Make a New One From This. */
+  /** The family a node belongs to, for Clone and Modify. */
   static familyOf(node: Node | undefined): string | undefined {
     return node?.kind === "family" || node?.kind === "tier" ? node.family.key : undefined;
   }

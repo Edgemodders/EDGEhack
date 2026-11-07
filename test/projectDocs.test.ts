@@ -71,7 +71,7 @@ test("a new quickhack cannot take the file of a change to a game family", () => 
 
 test("the game's page offers a new one for people's hacks", async () => {
   const fam = await family();
-  assert.match(render(fam, 0, new Map()), /<button data-new>Make a New One From This/);
+  assert.match(render(fam, 0, new Map()), /<button data-new>Clone and Modify/);
 });
 
 test("a new quickhack's editor says what it is, drops bosses and gives a Console line per tier", async () => {
