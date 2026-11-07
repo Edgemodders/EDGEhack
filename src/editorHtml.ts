@@ -167,6 +167,7 @@ ${tiers.map((t, i) => (t.item ? `<div class="tier" data-tier="${i}"><code data-g
   <p class="ro">${about} <b data-status>Each save writes the mod's files into the project.</b></p>
   <p class="actions"><button data-pack>Pack and Play</button></p>
   <ul class="warnings" data-warnings></ul>
+  <ul class="notes" data-notes></ul>
 </header>
 <section class="cols"><div>
 <h2>Texts</h2>

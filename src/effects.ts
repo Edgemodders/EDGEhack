@@ -251,6 +251,27 @@ export function applyAddedToAll(doc: QuickhackDoc, added: ResolvedAdded[], id: s
 }
 
 /** The rules of "Adding effects", each a warning, not a block. */
+/** The effects a tier ends up with: its own worth adding, and the added ones it is not left off. */
+function tierEffects(t: Tier, added: ResolvedAdded[]): { name: string; e: Effect }[] {
+  const key = tierKey(t);
+  return [...worthAdding(t).map((e) => ({ name: e.name, e })), ...added.filter((r) => !r.entry.off?.includes(key)).flatMap((r) => (r.byTier.get(key) ? [{ name: r.name, e: r.byTier.get(key)! }] : []))];
+}
+
+/**
+ * What the game does with a combination, as it should: worth knowing, not a fault. Shown apart from the warnings.
+ */
+export function addedNotes(fam: Family, added: ResolvedAdded[]): string[] {
+  const out: string[] = [];
+  // Contagion Epic and better in V's cyberdeck (EquipmentGLP.ContagionLvl3Passive): a hit on a burning target removes every
+  // Contagion poison (by its tag), and the game's own Epic and better poisons explode (by their record names). Seen in H3.4's test.
+  const combo = fam.tiers.some((t) => {
+    const onTarget = tierEffects(t, added).filter(({ e }) => e.on === "target");
+    return onTarget.some(({ e }) => e.type === "Burning") && onTarget.some(({ e }) => e.tags.includes("ContagionPoison"));
+  });
+  if (combo) out.push("A burn and Contagion's poison together: when V has Contagion Epic or better in the cyberdeck, the burn ends the poison at its first hit, as that Contagion's own text says, and the game's own Epic and better poisons explode as they go. Without it, both run for their whole time.");
+  return out;
+}
+
 export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[]): string[] {
   const out: string[] = [];
   for (const r of added) {
@@ -274,8 +295,7 @@ export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdd
   const repeated = new Set<string>();
   const types = new Set<string>();
   for (const t of fam.tiers) {
-    const key = tierKey(t);
-    const here = [...worthAdding(t).map((e) => ({ name: e.name, e })), ...added.filter((r) => !r.entry.off?.includes(key)).flatMap((r) => (r.byTier.get(key) ? [{ name: r.name, e: r.byTier.get(key)! }] : []))];
+    const here = tierEffects(t, added);
     const seenStatus = new Map<string, string>();
     const seenType = new Map<string, Set<string>>();
     for (const { name, e } of here) {

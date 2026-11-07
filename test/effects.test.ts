@@ -4,7 +4,7 @@ import { Records } from "../src/records";
 import { Family, readFamily, readStatus, tierKey } from "../src/read";
 import { writeTweaks } from "../src/tweaks";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withoutAddedEffect } from "../src/document";
-import { addedGameValue, addedWarnings, applyAddedToAll, effectKey, effectOnTier, kindOf, offeredEffects, plainName, poolOf, ResolvedAdded, resolveAdded, tierForRank, usedByQuickhacks, worthAdding } from "../src/effects";
+import { addedGameValue, addedNotes, addedWarnings, applyAddedToAll, effectKey, effectOnTier, kindOf, offeredEffects, plainName, poolOf, ResolvedAdded, resolveAdded, tierForRank, usedByQuickhacks, worthAdding } from "../src/effects";
 import { renderAddedEffects, renderEditor } from "../src/editorHtml";
 import { fetchRecord, fetchText, records as fixtureRecords } from "./fixture";
 
@@ -300,6 +300,14 @@ test("the warnings: a repeat, V's own or a boss's on a target, kinds of NPC, no 
   assert.ok(w.some((x) => /Two Blind effects/.test(x)), w.join());
   const burns = [mk({ status: "BaseStatusEffect.A" }, effect({ status: "BaseStatusEffect.A", type: "Burning" })), { ...mk({ status: "BaseStatusEffect.B" }, effect({ status: "BaseStatusEffect.B", type: "Burning" })), entry: { id: "a2", status: "BaseStatusEffect.B" } }];
   assert.ok(!addedWarnings(fam, doc, burns).some((x) => /Two Burning/.test(x)));
+  // A burn beside Contagion's poison: the game's Contagion Epic passive detonates and removes it.
+  const combo = [burns[0], { ...mk({ status: "BaseStatusEffect.P" }, effect({ status: "BaseStatusEffect.P", type: "Poisoned", tags: ["Poison", "ContagionPoison"] })), entry: { id: "a2", status: "BaseStatusEffect.P" } }];
+  assert.ok(addedNotes(fam, combo).some((x) => /ends the poison at its first hit/.test(x)));
+  assert.ok(!addedWarnings(fam, doc, combo).some((x) => /ends the poison/.test(x)), "a note, not a warning");
+  const plainPoison = [burns[0], { ...combo[1], byTier: new Map(fam.tiers.map((t) => [tierKey(t), effect({ status: "BaseStatusEffect.P", type: "Poisoned", tags: ["Poison"] })])) }];
+  assert.ok(!addedNotes(fam, plainPoison).length, "only Contagion's poison");
+  const onV = [burns[0], { ...combo[1], byTier: new Map(fam.tiers.map((t) => [tierKey(t), effect({ status: "BaseStatusEffect.P", type: "Poisoned", tags: ["ContagionPoison"], on: "V" })])) }];
+  assert.ok(!addedNotes(fam, onV).length, "not when the poison goes on V");
 });
 
 test("an effect run by a game effector keeps its numbers, and says so if a document sets one", async () => {

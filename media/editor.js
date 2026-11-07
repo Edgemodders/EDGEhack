@@ -238,12 +238,13 @@
       s.textContent = m.status;
       s.classList.toggle("bad", !!m.bad);
     }
-    if (m.warnings) {
-      q("[data-warnings]").innerHTML = "";
-      for (const w of m.warnings) {
+    for (const [field, list] of [["warnings", "[data-warnings]"], ["notes", "[data-notes]"]]) {
+      if (!m[field]) continue;
+      q(list).innerHTML = "";
+      for (const w of m[field]) {
         const li = document.createElement("li");
         li.textContent = w;
-        q("[data-warnings]").appendChild(li);
+        q(list).appendChild(li);
       }
     }
     if (m.picker) {

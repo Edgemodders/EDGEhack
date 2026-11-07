@@ -9,7 +9,7 @@ import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
 import { addedIcons, gameValue, renderAddedEffects, renderEditor } from "./editorHtml";
-import { applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
+import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
 import { bridge, redcode } from "./redcode";
 import * as fs from "node:fs";
@@ -131,7 +131,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       if (mine !== turn) return;
       doc = now;
       added = read;
-      await w.postMessage({ doc, familyName: fam.name, warnings: writeTweaks(fam, doc, added).warnings, effectsHtml: renderAddedEffects(fam, added, iconSet) });
+      await w.postMessage({ doc, familyName: fam.name, warnings: writeTweaks(fam, doc, added).warnings, notes: addedNotes(fam, added), effectsHtml: renderAddedEffects(fam, added, iconSet) });
     };
     const changed = vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.uri.toString() !== document.uri.toString() || !e.contentChanges.length) return;
@@ -141,7 +141,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       changed.dispose();
       shown.delete(panel);
     });
-    void w.postMessage({ warnings: writeTweaks(fam, doc, added).warnings });
+    void w.postMessage({ warnings: writeTweaks(fam, doc, added).warnings, notes: addedNotes(fam, added) });
 
     // One message at a time, each from the document as it is now: two quick changes would otherwise
     // both start from the same text, and the second would undo the first.

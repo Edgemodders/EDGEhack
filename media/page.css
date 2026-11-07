@@ -72,6 +72,10 @@ button:hover { background: var(--vscode-button-secondaryHoverBackground, transpa
 .actions button { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border: 0; }
 .warnings { grid-column: 1 / -1; margin: 4px 0 0; padding-left: 18px; color: var(--vscode-editorWarning-foreground, var(--yellow)); }
 .warnings:empty { display: none; }
+/* What the game does as it should, worth knowing: the theme's quiet text, an info mark instead of a bullet. */
+.notes { grid-column: 1 / -1; margin: 4px 0 0; padding-left: 18px; color: var(--vscode-descriptionForeground); list-style: none; }
+.notes li::before { content: "\24D8"; margin: 0 6px 0 -18px; color: var(--vscode-textLink-foreground, var(--cyan)); }
+.notes:empty { display: none; }
 [data-status].bad { color: var(--vscode-errorForeground); }
 [data-status] { font-weight: normal; }
 main.edit table.numbers input { width: 76px; }
