@@ -2,11 +2,11 @@
 // them, and below them the read-only panels of what the game has. Each input names what it sets; the
 // page's script (media/editor.js) sends the changes to the host, which edits the document.
 import type { QuickhackDoc, TierField } from "./document";
-import { ADDED_FIELDS, type AddedField } from "./document";
+import { ADDED_FIELDS, DAMAGE_TYPES, type AddedField } from "./document";
 import { mainEffect, tierKey, type Family, type IconRef, type Tier } from "./read";
 import { esc, img, rec, tierPanel } from "./pageHtml";
 import { newItemPath } from "./tweaks";
-import { addedGameValue, effectSummary, keptOffMachines, worthAdding, type ResolvedAdded } from "./effects";
+import { addedGameValue, builtDefault, builtFields, builtOffMachines, builtSummary, effectSummary, keptOffMachines, STAT_CHOICES, worthAdding, type ResolvedAdded } from "./effects";
 
 /** What the game has for one of a tier's numbers, or undefined when the tier has none to change. */
 export function gameValue(t: Tier, field: TierField): number | undefined {
@@ -62,8 +62,57 @@ function iconChoice(which: "item" | "wheel", label: string, src: string | undefi
 const ADDED_ROWS: Record<AddedField, { label: string; unit: string; hint?: string }> = {
   duration: { label: "Duration", unit: "s" },
   stacks: { label: "Stacks", unit: "", hint: "How many times it can stack on the target" },
-  damage: { label: "Damage a hit", unit: "", hint: "For damage over time, a tick" },
+  damage: { label: "Damage a hit", unit: "", hint: "For damage over time, a tick. The same scale as the Numbers above: the game lowers it by the target's level and armor, as it does for its own quickhacks" },
+  every: { label: "Seconds between hits", unit: "s", hint: "0.5 is two hits a second. H3.5's spike ran 0.1 with no hits bunching" },
+  value: { label: "Value", unit: "", hint: "" },
+  chance: { label: "Chance", unit: "%", hint: "Rolled once on each upload, on each target" },
 };
+
+/** A built effect's card (H3.5): its kind's choices, then its numbers by tier, each starting from EDGEhack's default. */
+function builtCard(fam: Family, r: ResolvedAdded): string {
+  const id = esc(r.entry.id);
+  const b = r.entry.build!;
+  const head = fam.tiers.map((t, i) => `<th data-tier="${i}">${esc(t.quality ?? `Tier ${i + 1}`)}</th>`).join("");
+  const onRow = `<tr><th scope="row" title="Clear a box to leave this effect off that tier">On this tier</th>${fam.tiers
+    .map((t, i) => `<td data-tier="${i}"><input type="checkbox" data-added-on="${id}" data-added-tier="${esc(tierKey(t))}"${r.entry.off?.includes(tierKey(t)) ? "" : " checked"}></td>`)
+    .join("")}</tr>`;
+  const stat = b.kind === "stat" ? STAT_CHOICES[b.stat ?? ""] : undefined;
+  const rows = builtFields(b)
+    .map((f) => {
+      const row = f === "value" && stat ? { label: stat.label, unit: stat.unit === "times" ? "times normal" : "added", hint: stat.hint } : ADDED_ROWS[f];
+      const base = builtDefault(b, f);
+      const cells = fam.tiers
+        .map((t, i) => {
+          const key = tierKey(t);
+          const value = r.entry.values?.[key]?.[f];
+          // A stat change may lower a stat, so its value may be negative.
+          return `<td data-tier="${i}"><input type="number"${f === "value" ? "" : ' min="0"'}${f === "chance" ? ' max="100"' : ""} step="any" data-added="${id}" data-added-tier="${esc(key)}" data-added-field="${f}" data-game="${esc(base ?? "")}" placeholder="${esc(base ?? "")}" value="${value === undefined ? "" : esc(value)}"></td>`;
+        })
+        .join("");
+      return `<tr><th scope="row"${row.hint ? ` title="${esc(row.hint)}"` : ""}>${esc(row.label)}${row.unit ? ` <span class="none">(${esc(row.unit)})</span>` : ""}<button class="all" data-added-all="${id}" data-added-field="${f}" title="Give every tier the selected tier's value">All tiers</button></th>${cells}</tr>`;
+    })
+    .join("");
+  let choices = "";
+  if (b.kind === "damage") {
+    choices = `<label class="who">Damage type <select data-added-build="${id}" data-build-field="damageType">${DAMAGE_TYPES.map((d) => `<option value="${d}"${d === b.damageType ? " selected" : ""}>${d}</option>`).join("")}</select></label>`;
+    if (b.damageType === "Electric") choices += ` <label class="who"><input type="checkbox" data-added-build="${id}" data-build-field="sparks"${b.sparks ? " checked" : ""}> Sparks as it starts</label>`;
+  } else if (b.kind === "stat") {
+    choices = `<label class="who">Stat <select data-added-build="${id}" data-build-field="stat">${Object.entries(STAT_CHOICES)
+      .map(([k, c]) => `<option value="${k}"${k === b.stat ? " selected" : ""}>${esc(c.label)}</option>`)
+      .join("")}</select></label>`;
+  }
+  const kept = builtOffMachines(r) ? " Its damage stays off machines (androids, drones and mechs)." : "";
+  const what = b.kind === "chance" ? "Built by EDGEhack: a short carrier of its own on each tier, which rolls the chance and applies the status effect." : "Built by EDGEhack: a status effect of its own on each tier.";
+  return `<div class="added" data-added-card="${id}">
+<div class="effect"><span class="icon small blank"></span><div>
+<b>${esc(r.name)}</b>${b.kind === "chance" && b.applies ? ` ${rec(b.applies, "record")}` : ""} <button class="remove" data-added-remove="${id}">Remove</button>
+<p class="facts">${esc(builtSummary(r))}</p>
+<p class="facts" data-added-uses>${esc(what + kept)}</p>
+${choices}
+</div></div>
+<table class="numbers"><thead><tr><th></th>${head}</tr></thead><tbody>${onRow}${rows}</tbody></table>
+</div>`;
+}
 
 /** Which record each tier uses: the game's, or a copy with changed numbers, or always a copy for a poison or bleed (H3.4b). */
 function usesWhat(fam: Family, r: ResolvedAdded): string {
@@ -83,6 +132,7 @@ function usesWhat(fam: Family, r: ResolvedAdded): string {
 function addedCard(fam: Family, r: ResolvedAdded, icons: Map<string, string>): string {
   const id = esc(r.entry.id);
   const top = [...r.byTier.values()].pop();
+  if (top && r.entry.build) return builtCard(fam, r);
   if (!top) {
     return `<div class="added" data-added-card="${id}"><p class="none">${esc(r.problem ?? r.name)}</p><button data-added-remove="${id}">Remove</button></div>`;
   }
@@ -195,16 +245,25 @@ ${rows}
 <section><h2>Added effects</h2>
 <p class="family"><button data-add-effect>Add Effect...</button></p>
 <div class="effect-picker" data-effect-picker hidden>
-  <nav class="tiers"><button data-effect-tab="hack">From another quickhack</button><button data-effect-tab="status">Status effects</button><button data-effect-close>Close</button></nav>
+  <nav class="tiers"><button data-effect-tab="hack">From another quickhack</button><button data-effect-tab="status">Status effects</button><button data-effect-tab="build">Build one</button><button data-effect-close>Close</button></nav>
   <div data-effect-pane="hack" hidden><div class="grid families" data-effect-families></div><p class="foot" data-effect-family-title></p><div data-effect-family></div></div>
+  <div data-effect-pane="build" hidden>
+    <p class="foot">EDGEhack builds these from the game's own parts, as status effects of its own. Each starts with a value on every tier that you can change.</p>
+    <div class="effect-list">
+      <button class="effect-row" data-add-built="damage"><b>Damage over time</b><small>A damage type, damage a hit, seconds between hits and how long. Electric can show the game's sparks as it starts</small></button>
+      <button class="effect-row" data-add-built="stat"><b>Stat change while hacked</b><small>One stat of the target, such as movement speed, accuracy, armor or a resistance, for a time</small></button>
+      <button class="effect-row" data-chance-mode><b>Chance to apply</b><small>A status effect, applied on a roll. Pick it from the Status effects list</small></button>
+    </div>
+  </div>
   <div data-effect-pane="status" hidden>
+    <p class="chance-mode" data-chance-banner hidden>Pick the status effect the roll applies. <button data-chance-cancel>Add it whole instead</button></p>
     <p class="filters"><input type="search" data-effect-search placeholder="Search by name, tag or type"> <select data-effect-type><option value="">Every type</option></select> <label><input type="checkbox" data-effect-all> Show all</label></p>
     <p class="foot">Shows what works on enemies, with those the game's own quickhacks and grenades use first. <b>Show all</b> adds V's own, boss fights and the rest.</p>
     <div class="effect-list" data-effect-list></div>
   </div>
 </div>
 <div data-effects>${renderAddedEffects(fam, added, icons.all)}</div>
-<p class="foot">An added effect uses the game's record until you change a number on a tier: that tier then gets a copy of its own, which changes nothing else in the game. A poison or bleed is always a copy, to keep its damage off machines. The cooldown, the RAM cost and the "was quickhacked" mark always stay.${doc.newHack ? "" : ` It also goes on ${esc(fam.name)}'s versions for bosses.`}</p>
+<p class="foot">An added effect uses the game's record until you change a number on a tier: that tier then gets a copy of its own, which changes nothing else in the game. A poison or bleed is always a copy, to keep its damage off machines, and so are chemical and physical damage that EDGEhack builds. The cooldown, the RAM cost and the "was quickhacked" mark always stay.${doc.newHack ? "" : ` It also goes on ${esc(fam.name)}'s versions for bosses.`}</p>
 </section>
 ${getIt}
 <h2 class="game">What the game has for this tier</h2>

@@ -1,7 +1,7 @@
 // Adding effects to a quickhack (docs/design.md, "Adding effects"): the pool of status effects, sorted by
 // who they work on; another quickhack's effects, followed tier by tier; what a document's added effects
 // are on each tier; and the warnings. No VS Code, so the MCP server (H4) can use it too.
-import { AddedEffect, AddedField, QuickhackDoc, withAddedValue } from "./document";
+import { AddedEffect, AddedField, BuiltEffect, DamageTypeName, QuickhackDoc, withAddedValue } from "./document";
 import { Effect, Family, isShared, readStatus, Tier, tierKey } from "./read";
 import { isLocKey, Records, words } from "./records";
 import type { BridgeClient, TweakRecord, TweakValue } from "./redcode";
@@ -165,6 +165,91 @@ export function effectOnTier(source: Family, key: string, rank: number): Effect 
   return undefined;
 }
 
+/**
+ * The stats a built stat change offers (H3.5), each as the game's own enemy statuses use it: the values
+ * are theirs (Flash grenades for accuracy, the EMP for the time between shots, Comms Noise for detection).
+ * A "can" stat is a switch: it is set to 0, so it has no number.
+ */
+export interface StatChoice {
+  label: string;
+  stats: string[];
+  how: "Multiplier" | "Additive";
+  /** The value a new card starts with, and the unit its row shows. */
+  value?: number;
+  unit?: string;
+  hint?: string;
+}
+
+export const STAT_CHOICES: Record<string, StatChoice> = {
+  speed: { label: "Movement speed", stats: ["BaseStats.MaxSpeed"], how: "Multiplier", value: 0.5, unit: "times", hint: "0.5 is half speed. The game's grenades use 0.2 to 0.9" },
+  accuracy: { label: "Accuracy", stats: ["BaseStats.Accuracy"], how: "Multiplier", value: 0.4, unit: "times", hint: "0.4 is what a Flash grenade does" },
+  armor: { label: "Armor", stats: ["BaseStats.Armor"], how: "Additive", value: -30, unit: "added", hint: "Negative lowers it. The game's electric statuses use -10 to -50" },
+  chemicalResistance: { label: "Chemical resistance", stats: ["BaseStats.ChemicalResistance"], how: "Additive", value: -30, unit: "added", hint: "Negative lowers it, -100 to 100" },
+  thermalResistance: { label: "Thermal resistance", stats: ["BaseStats.ThermalResistance"], how: "Additive", value: -30, unit: "added", hint: "Negative lowers it, -100 to 100" },
+  electricResistance: { label: "Electric resistance", stats: ["BaseStats.ElectricResistance"], how: "Additive", value: -30, unit: "added", hint: "Negative lowers it, -100 to 100" },
+  evasion: { label: "Evasion", stats: ["BaseStats.Evasion"], how: "Multiplier", value: 0, unit: "times", hint: "0 takes it away; a Flash grenade does that" },
+  detection: { label: "Detection", stats: ["BaseStats.Detection"], how: "Multiplier", value: 0.5, unit: "times", hint: "How fast the target spots V. 0.5 is half as fast, as Comms Noise does" },
+  fireRate: { label: "Time between shots", stats: ["BaseStats.CycleTime", "BaseStats.CycleTime_Burst"], how: "Multiplier", value: 1.5, unit: "times", hint: "Above 1 shoots slower. 1.5 is what an EMP does" },
+  canSprint: { label: "Cannot sprint", stats: ["BaseStats.CanSprint"], how: "Multiplier" },
+  canJump: { label: "Cannot jump", stats: ["BaseStats.CanJump"], how: "Multiplier" },
+  canUseCovers: { label: "Cannot take cover", stats: ["BaseStats.CanUseCovers"], how: "Multiplier" },
+  canCallReinforcements: { label: "Cannot call reinforcements", stats: ["BaseStats.CanCallReinforcements"], how: "Multiplier" },
+};
+
+/** The icons a built effect shows (the game's own), when the game shows one: no icon showed over an enemy in H3.5's spike. */
+export const DAMAGE_ICONS: Record<DamageTypeName, string> = { Electric: "electricuted", Thermal: "burning_icon", Chemical: "poisoned", Physical: "wounded_disabled_icon" };
+export const STAT_ICON = "decreased_stats_icon";
+
+/** Damage types EDGEhack keeps off machines, as an added poison or bleed (H3.4b). */
+export const DAMAGE_OFF_MACHINES = new Set<DamageTypeName>(["Chemical", "Physical"]);
+
+/** A built effect's number on a tier when the modder has not set one. */
+export function builtDefault(b: BuiltEffect, field: AddedField): number | undefined {
+  switch (b.kind) {
+    case "damage":
+      return field === "damage" ? 10 : field === "every" ? 0.5 : field === "duration" ? 8 : undefined;
+    case "stat":
+      return field === "duration" ? 10 : field === "value" ? STAT_CHOICES[b.stat ?? ""]?.value : undefined;
+    case "chance":
+      return field === "chance" ? 25 : undefined;
+  }
+}
+
+/** The fields a built effect's card shows, in order. */
+export function builtFields(b: BuiltEffect): AddedField[] {
+  if (b.kind === "damage") return ["damage", "every", "duration"];
+  if (b.kind === "stat") return STAT_CHOICES[b.stat ?? ""]?.value === undefined ? ["duration"] : ["value", "duration"];
+  return ["chance"];
+}
+
+/** A built effect's number on a tier: the modder's, or the default. */
+export function builtValue(entry: AddedEffect, tier: string, field: AddedField): number | undefined {
+  return entry.values?.[tier]?.[field] ?? (entry.build ? builtDefault(entry.build, field) : undefined);
+}
+
+/** A built effect's name in words. */
+export function builtName(b: BuiltEffect, applied?: Effect): string {
+  if (b.kind === "damage") return `${b.damageType} damage over time`;
+  if (b.kind === "stat") return STAT_CHOICES[b.stat ?? ""]?.label ?? words(b.stat ?? "A stat");
+  return `Chance to apply ${plainName(applied?.name ?? words(b.applies ?? ""))}`;
+}
+
+/** A built effect on one tier, as the rest of the editor reads effects: for the summary, the warnings and the notes. */
+function builtOnTier(entry: AddedEffect, tier: string, applied?: Effect): Effect {
+  const b = entry.build!;
+  const v = (f: AddedField): number => builtValue(entry, tier, f) ?? 0;
+  const base: Effect = { record: "", on: "target", when: "upload", name: builtName(b, applied), tags: [], damage: [], stats: [], shared: false, cooldown: false, spread: false };
+  if (b.kind === "damage") {
+    return { ...base, type: "Misc", duration: { base: v("duration"), scaledBy: [] }, damage: [{ type: b.damageType!, perHit: v("damage"), every: v("every"), scaledBy: [], record: "" }] };
+  }
+  if (b.kind === "stat") {
+    const c = STAT_CHOICES[b.stat ?? ""];
+    return { ...base, type: "Misc", duration: { base: v("duration"), scaledBy: [] }, stats: c ? [{ stat: c.label, value: c.value === undefined ? 0 : v("value"), how: c.how }] : [] };
+  }
+  // A chance: what it may apply, so the tier-by-tier warnings see it.
+  return { ...(applied ?? base), record: "", on: "target", when: "upload", name: builtName(b, applied), shared: false, cooldown: false, spread: false };
+}
+
 /** One added effect of a document, read: what it is on each tier. */
 export interface ResolvedAdded {
   entry: AddedEffect;
@@ -175,6 +260,8 @@ export interface ResolvedAdded {
   byTier: Map<string, Effect>;
   /** Why it could not be read, in words: a game patch may rename what a document names. */
   problem?: string;
+  /** A built chance: the status effect its roll applies, read. */
+  applied?: Effect;
 }
 
 export interface ResolveContext {
@@ -187,6 +274,21 @@ export async function resolveAdded(doc: QuickhackDoc, fam: Family, ctx: ResolveC
   const out: ResolvedAdded[] = [];
   for (const entry of doc.effects ?? []) {
     const byTier = new Map<string, Effect>();
+    if (entry.build) {
+      const b = entry.build;
+      const applied = b.kind === "chance" && b.applies ? await readStatus(ctx.records, b.applies, "target") : undefined;
+      if (b.kind === "chance" && !applied) {
+        out.push({ entry, name: builtName(b), byTier, problem: `${b.applies} is not in this game, so its chance was left out.` });
+        continue;
+      }
+      if (b.kind === "stat" && !STAT_CHOICES[b.stat ?? ""]) {
+        out.push({ entry, name: builtName(b), byTier, problem: `${b.stat} is not a stat EDGEhack offers, so it was left out.` });
+        continue;
+      }
+      for (const t of fam.tiers) byTier.set(tierKey(t), builtOnTier(entry, tierKey(t), applied));
+      out.push({ entry, name: builtName(b, applied), byTier, applied });
+      continue;
+    }
     if (entry.from && entry.effect) {
       let source: Family | undefined;
       try {
@@ -226,6 +328,23 @@ export function addedGameValue(e: Effect | undefined, field: AddedField): number
   }
 }
 
+/** What a number of an added effect starts from: the game's value, or a built effect's default. */
+export function addedBase(r: ResolvedAdded, tier: string, field: AddedField): number | undefined {
+  return r.entry.build ? builtDefault(r.entry.build, field) : addedGameValue(r.byTier.get(tier), field);
+}
+
+/** A built effect's one line on its card. */
+export function builtSummary(r: ResolvedAdded): string {
+  const b = r.entry.build!;
+  if (b.kind === "chance") {
+    const a = r.applied;
+    return a ? `A roll on each upload applies it to the target. ${effectSummary(a)}` : "A roll on each upload applies a status effect to the target.";
+  }
+  if (b.kind === "damage") return `On the target, ${b.damageType!.toLowerCase()} damage a hit, every so often, for a time.${b.damageType === "Electric" && b.sparks ? " Sparks as it starts." : ""}`;
+  const c = STAT_CHOICES[b.stat ?? ""];
+  return c?.value === undefined ? "On the target, for a time." : `On the target: its ${c.label.toLowerCase()} ${c.how === "Multiplier" ? "times the value" : "plus the value"}, for a time.`;
+}
+
 /** An added effect's one line on a card and in the picker, in the modder's words. */
 export function effectSummary(e: Effect): string {
   const parts = [e.on === "V" ? "On V" : "On the target"];
@@ -239,10 +358,16 @@ export function effectSummary(e: Effect): string {
 /** Gives every other tier the selected tier's change in a number of an added effect: the same difference from its own value. */
 export function applyAddedToAll(doc: QuickhackDoc, added: ResolvedAdded[], id: string, tier: string, field: AddedField): QuickhackDoc {
   const r = added.find((a) => a.entry.id === id);
-  const base = addedGameValue(r?.byTier.get(tier), field);
-  const want = r?.entry.values?.[tier]?.[field];
-  if (!r || base === undefined || want === undefined) return doc;
+  if (!r) return doc;
+  const base = addedBase(r, tier, field);
+  const want = r.entry.values?.[tier]?.[field];
+  if (base === undefined || want === undefined) return doc;
   let next = doc;
+  // A built effect has one default on every tier, so every tier takes the same value; a stat change may be negative.
+  if (r.entry.build) {
+    for (const key of r.byTier.keys()) next = withAddedValue(next, id, key, field, want, base);
+    return next;
+  }
   for (const [key, e] of r.byTier) {
     const game = addedGameValue(e, field);
     if (game !== undefined) next = withAddedValue(next, id, key, field, Math.round(Math.max(0, game + want - base) * 10000) / 10000, game);
@@ -256,6 +381,14 @@ export function applyAddedToAll(doc: QuickhackDoc, added: ResolvedAdded[], id: s
  * through Overheat in H3.4's test.
  */
 const OFF_MACHINES = new Set(["Poisoned", "Bleeding"]);
+
+/** True when a built effect's damage is kept off machines: a chemical or physical damage over time, or a chance whose poison or bleed EDGEhack copies. */
+export function builtOffMachines(r: ResolvedAdded): boolean {
+  const b = r.entry.build;
+  if (!b || r.problem) return false;
+  if (b.kind === "damage") return DAMAGE_OFF_MACHINES.has(b.damageType!);
+  return b.kind === "chance" && keptOffMachines(r.applied);
+}
 
 /** A poison or bleed on the target: what EDGEhack means to keep off machines. */
 export function hitsMachines(e: Effect | undefined): boolean {
@@ -290,8 +423,10 @@ export function addedNotes(fam: Family, added: ResolvedAdded[]): string[] {
   const out: string[] = [];
   // No note for AIData's NPC types: they choose only who acts an effect out, and the effect itself ran on a drone in H3.4's test.
   // That machines do not act out a poison is self-evident to players (the owner, 2026-11-07).
-  if (added.some((r) => !r.problem && [...r.byTier.values()].some(keptOffMachines))) {
-    out.push("Poison and bleed: EDGEhack keeps their damage off machines (androids, drones and mechs), which the game would let them hit through this quickhack.");
+  const builtDamage = added.some((r) => !r.problem && r.entry.build?.kind === "damage" && builtOffMachines(r));
+  if (builtDamage || added.some((r) => !r.problem && (r.entry.build ? builtOffMachines(r) : [...r.byTier.values()].some(keptOffMachines)))) {
+    const which = builtDamage ? "Poison, bleed, and chemical and physical damage over time" : "Poison and bleed";
+    out.push(`${which}: EDGEhack keeps their damage off machines (androids, drones and mechs), which the game would let them hit through this quickhack.`);
   }
   // Contagion Epic and better in V's cyberdeck (EquipmentGLP.ContagionLvl3Passive): a hit on a burning target removes every
   // Contagion poison (by its tag), and the game's own Epic and better poisons explode (by their record names). Seen in H3.4's test.
@@ -323,6 +458,18 @@ export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdd
     }
     const top = [...r.byTier.values()].pop();
     if (!top) continue;
+    if (r.entry.build) {
+      // A chance warns as its status effect would; the rest are EDGEhack's own, with nothing to warn about.
+      const a = r.applied;
+      if (r.entry.build.kind === "chance" && a) {
+        const kind = kindOf(r.entry.build.applies!, a.tags, a.type);
+        if (kind === "boss") out.push(`${r.name}: it belongs to a boss fight, so it may do nothing on other enemies.`);
+        if (kind === "v") out.push(`${r.name}: it looks like one of V's own, so it may do nothing on an enemy.`);
+        if (!a.duration || !isFinite(a.duration.base)) out.push(`${r.name}: it has no duration of its own, so it may stay until something removes it (unverified).`);
+        if (hitsMachines(a) && a.damage.length && !keptOffMachines(a)) out.push(`${r.name}: EDGEhack could not keep its damage off machines, so it still hits them as the game allows.`);
+      }
+      continue;
+    }
     const onTarget = top.on === "target";
     // Another quickhack's effect already works on a target; the game shows that.
     if (top.status && onTarget && !r.entry.from) {
@@ -358,6 +505,7 @@ export function addedWarnings(fam: Family, doc: QuickhackDoc, added: ResolvedAdd
   for (const name of repeated) out.push(`${name} is on a tier twice. One upload may count as two stacks, or as one (unverified).`);
   for (const type of types) out.push(`Two ${type} effects on one tier: they may replace each other. Two burns ran side by side in the game; ${type} is unverified.`);
   for (const r of added) {
+    if (r.entry.build) continue;
     for (const [tier, values] of Object.entries(r.entry.values ?? {})) {
       const e = r.byTier.get(tier);
       for (const field of ["duration", "stacks", "damage"] as const) {

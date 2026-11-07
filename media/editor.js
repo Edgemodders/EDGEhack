@@ -22,8 +22,15 @@
 
   // The picker's status effects: kept here and filtered as the modder types.
   let pool = [];
+  // Set by Build one's Chance to apply: the next status effect picked becomes a chance's.
+  let chanceMode = false;
   const KINDS = { enemy: "Works on enemies", v: "V's own", boss: "Boss fights", other: "The rest" };
   const SHOWN = 300;
+
+  function setChanceMode(on) {
+    chanceMode = on;
+    q("[data-chance-banner]").hidden = !on;
+  }
 
   function showTab(tab) {
     for (const b of all("[data-effect-tab]")) b.classList.toggle("on", b.dataset.effectTab === tab);
@@ -98,6 +105,8 @@
       vscode.postMessage({ addedOn: { id: el.dataset.addedOn, tier: el.dataset.addedTier, on: el.checked } });
     } else if (el.dataset.addedWho) {
       vscode.postMessage({ addedWho: { id: el.dataset.addedWho, on: el.value } });
+    } else if (el.dataset.addedBuild) {
+      vscode.postMessage({ addedBuild: { id: el.dataset.addedBuild, field: el.dataset.buildField, value: el.type === "checkbox" ? el.checked : el.value } });
     } else if (el.dataset.added) {
       vscode.postMessage({ addedValue: { id: el.dataset.added, tier: el.dataset.addedTier, field: el.dataset.addedField, value: el.value === "" ? undefined : Number(el.value), game: Number(el.dataset.game) } });
     }
@@ -113,7 +122,20 @@
     if (ev.target.closest("[data-add-effect]")) vscode.postMessage({ addEffect: true });
     if (ev.target.closest("[data-effect-close]")) q("[data-effect-picker]").hidden = true;
     const tab = ev.target.closest("[data-effect-tab]");
-    if (tab) showTab(tab.dataset.effectTab);
+    if (tab) {
+      setChanceMode(false);
+      showTab(tab.dataset.effectTab);
+    }
+    const built = ev.target.closest("[data-add-built]");
+    if (built) {
+      vscode.postMessage({ addBuilt: { kind: built.dataset.addBuilt } });
+      q("[data-effect-picker]").hidden = true;
+    }
+    if (ev.target.closest("[data-chance-mode]")) {
+      showTab("status");
+      setChanceMode(true);
+    }
+    if (ev.target.closest("[data-chance-cancel]")) setChanceMode(false);
     const fam = ev.target.closest("[data-effect-pick-family]");
     if (fam) {
       for (const b of all("[data-effect-pick-family]")) b.classList.toggle("on", b === fam);
@@ -126,7 +148,8 @@
     }
     const st = ev.target.closest("[data-add-status]");
     if (st) {
-      vscode.postMessage({ addStatus: { status: st.dataset.addStatus, on: st.dataset.on } });
+      vscode.postMessage(chanceMode ? { addBuilt: { kind: "chance", applies: st.dataset.addStatus } } : { addStatus: { status: st.dataset.addStatus, on: st.dataset.on } });
+      setChanceMode(false);
       q("[data-effect-picker]").hidden = true;
     }
     const gone = ev.target.closest("[data-added-remove]");
@@ -174,7 +197,7 @@
     if (typeof m.effectsHtml === "string") {
       // The card's input keeps the keyboard's place across the redraw.
       const focused = document.activeElement?.closest?.("[data-effects]") ? document.activeElement : undefined;
-      const place = focused && ["added", "addedOn", "addedAll", "addedRemove", "addedWho"].map((k) => focused.dataset[k] && `[data-${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}="${focused.dataset[k]}"]`).find(Boolean);
+      const place = focused && ["added", "addedOn", "addedAll", "addedRemove", "addedWho", "addedBuild"].map((k) => focused.dataset[k] && `[data-${k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}="${focused.dataset[k]}"]`).find(Boolean);
       const more = focused?.dataset.addedTier ? `[data-added-tier="${focused.dataset.addedTier}"]` : "";
       const field = focused?.dataset.addedField ? `[data-added-field="${focused.dataset.addedField}"]` : "";
       q("[data-effects]").innerHTML = m.effectsHtml;
@@ -213,6 +236,7 @@
       q("[data-effect-family]").innerHTML = "";
       q("[data-effect-family-title]").textContent = "Pick a quickhack to see its effects. An effect you add follows that quickhack's tiers.";
       q("[data-effect-picker]").hidden = false;
+      setChanceMode(false);
       showTab("hack");
       drawPool();
     }

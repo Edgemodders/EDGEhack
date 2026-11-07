@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://edgemodders.github.io/EDGEhack/"><img src="docs/assets/brand/badges/docs.svg" alt="docs: read the docs"></a>
-  <img src="docs/assets/brand/badges/status.svg" alt="status: H3 next">
+  <img src="docs/assets/brand/badges/status.svg" alt="status: H3 in progress">
   <img src="docs/assets/brand/badges/game.svg" alt="game: Cyberpunk 2077">
   <img src="docs/assets/brand/badges/vscode.svg" alt="runs in: VS Code">
   <a href="LICENSE"><img src="docs/assets/brand/badges/license.svg" alt="license: MIT"></a>
@@ -20,7 +20,7 @@ A quickhack editor for Cyberpunk 2077, as a VS Code extension in the EDGE family
 **[Docs](https://edgemodders.github.io/EDGEhack/)** &middot; [Design](docs/design.md) &middot; [Changelog](CHANGELOG.md) &middot; [Tests](docs/testing.md)
 
 > [!NOTE]
-> **Status: H2 Edit done, 2026-11-05 (EDGEhack 0.0.4), passed in the game; H3 New and Effects is next.** Edit a game quickhack's texts, icons and numbers, and it writes a TweakXL and ArchiveXL mod into your REDcode project. The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
+> **Status: H3 New and Effects in progress, 2026-11-07 (EDGEhack 0.0.11).** Clone and Modify makes a new quickhack beside the game's, and Add Effect adds another quickhack's effect or any status effect (both passed in the game), or builds a damage over time, a stat change or a chance to apply (built, awaiting its test). Edit a game quickhack's texts, icons and numbers, and it writes a TweakXL and ArchiveXL mod into your REDcode project. The Quickhacks view lists the game's quickhacks with their icons; the read-only quickhack page shows every tier's texts, icons, costs and effects in plain words; Open in EDGEhack works from REDcode's TweakDB view. The design, with the phases H1 to H6, is agreed: [docs/design.md](docs/design.md). Nothing is released yet.
 
 ## Repo layout
 

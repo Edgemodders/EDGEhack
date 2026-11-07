@@ -5,7 +5,7 @@
 import type { QuickhackDoc, TierEdit } from "./document";
 import { mainEffect, Tier, Family, Variant, Effect, tierKey } from "./read";
 import { NEW_HACK_SCRIPT } from "./newHackScript";
-import { addedGameValue, addedWarnings, keptOffMachines, ResolvedAdded } from "./effects";
+import { addedGameValue, addedWarnings, builtValue, DAMAGE_ICONS, DAMAGE_OFF_MACHINES, keptOffMachines, ResolvedAdded, STAT_CHOICES, STAT_ICON } from "./effects";
 
 export interface TextEntry {
   key: string;
@@ -68,6 +68,24 @@ class Out {
       this.records.push(`${this.notMachinePath}:\n  $type: StatPrereq\n  prereqClassName: StatPrereq\n  statType: IsMechanical\n  comparisonType: LessOrEqual\n  objectToCheck: Owner\n  valueToCheck: 0\n`);
     }
     return this.notMachinePath;
+  }
+
+  private oneStackPath?: string;
+
+  /** A stacks group of 1, written once: a built status effect's. Our own, rather than the game's inline `RTDB.StatusEffect_inline0`. */
+  oneStack(): string {
+    if (!this.oneStackPath) {
+      this.oneStackPath = `${this.prefix}.OneStack`;
+      this.records.push(`${this.oneStackPath}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n    - ${this.modifier("OneStackMod", "BaseStats.MaxStacks", 1)}\n`);
+    }
+    return this.oneStackPath;
+  }
+
+  /** A duration group of one constant modifier. */
+  durationGroup(name: string, seconds: number): string {
+    const group = `${this.prefix}.${name}`;
+    this.records.push(`${group}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n    - ${this.modifier(`${name}Mod`, "BaseStats.MaxDuration", seconds)}\n`);
+    return group;
   }
 
   /** True the first time a record takes this difference; a different one on it is a warning. */
@@ -281,6 +299,86 @@ function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs
   return status;
 }
 
+/** Text for YAML, quoted. */
+const quoted = (text: string): string => JSON.stringify(text);
+
+/**
+ * A built effect on one tier (H3.5), as its own records, and the effect record for the action's list. Each
+ * is a status effect EDGEhack writes from nothing, of the neutral type Misc, as H3.5's spike proved:
+ *
+ * - damage: a ContinuousAttackEffector running an attack copied from Overheat's (its `damage_over_time`
+ *   game effect) with the type and damage changed. Chemical and physical stay off machines (H3.4b's check).
+ * - stat: the stats in the status effect's package.
+ * - chance: a carrier status effect of 1 s whose package applies the status effect behind the game's
+ *   `SetChancePrereq`, which rolls once when it is applied. The game's ApplyStatusEffectByChanceEffector
+ *   rolls only when its prereq fires again, so with an always-true one it never does (spike, Console check
+ *   at 0, 50 and 100%). A poison or bleed it applies is EDGEhack's copy, kept off machines.
+ */
+function builtOnTier(out: Out, doc: QuickhackDoc, r: ResolvedAdded, t: Tier, label: string): string | undefined {
+  const b = r.entry.build!;
+  const key = tierKey(t);
+  const L = `${r.entry.id}_${label}`;
+  const v = (f: "damage" | "every" | "duration" | "value" | "chance"): number => builtValue(r.entry, key, f) ?? 0;
+  const status = `BaseStatusEffect.EDGEhack_${doc.id}_${L}`;
+  const effect = `QuickHack.EDGEhack_${doc.id}_${L}_Effect`;
+  const ui = (name: string, icon: string): string => {
+    const path = `${out.prefix}.${L}_UI`;
+    out.records.push(`${path}:\n  $type: StatusEffectUIData\n  displayName: ${quoted(name)}\n  description: ""\n  fluffText: ""\n  iconPath: ${icon}\n  priority: -3\n`);
+    return path;
+  };
+  const statusRecord = (fields: { tags: string[]; duration: string; pkg: string; ui?: string; vfx?: string; removeAll?: boolean }): void => {
+    out.records.push(
+      `${status}:\n  $type: StatusEffect\n  statusEffectType: BaseStatusEffectTypes.Misc\n  gameplayTags: [ ${fields.tags.join(", ")} ]\n  duration: ${fields.duration}\n  maxStacks: ${out.oneStack()}\n  packages:\n    - ${fields.pkg}\n${fields.ui ? `  uiData: ${fields.ui}\n` : ""}${fields.vfx ? `  VFX:\n    - ${fields.vfx}\n` : ""}  isAffectedByTimeDilationNPC: true\n  isAffectedByTimeDilationPlayer: true\n${fields.removeAll ? "  removeAllStacksWhenDurationEnds: true\n" : ""}  savable: true\n  stopActiveSfxOnDeactivate: true\n`,
+    );
+  };
+  const pkgPath = `${out.prefix}.${L}_Package`;
+
+  if (b.kind === "damage") {
+    const type = b.damageType!;
+    const attack = `Attacks.EDGEhack_${doc.id}_${L}`;
+    out.records.push(copy(attack, "Attacks.OverheatQuickHackAttackLevel3", { attackTag: "EDGEhack", damageType: `DamageTypes.${type}`, hitFlags: ["QuickHack", "DamageOverTime"], statModifiers: [out.modifier(`${L}_Damage`, `BaseStats.${type}Damage`, v("damage"))] }));
+    const tick = `${out.prefix}.${L}_Tick`;
+    const prereq = DAMAGE_OFF_MACHINES.has(type) ? out.notMachine() : "Prereqs.AlwaysTruePrereq";
+    out.records.push(`${tick}:\n  $type: ContinuousAttackEffector\n  effectorClassName: TriggerContinuousAttackEffector\n  attackRecord: ${attack}\n  delayTime: ${round(Math.max(0.05, v("every")))}\n  timeDilationDriver: Effectors.TDD_World\n  prereqRecord: ${prereq}\n`);
+    out.records.push(`${pkgPath}:\n  $type: GameplayLogicPackage\n  effectors:\n    - ${tick}\n`);
+    let vfx: string | undefined;
+    if (type === "Electric" && b.sparks) {
+      // The game's electrocuted sparks, by name: they show for a couple of seconds as it starts (H3.5's spike).
+      vfx = `${out.prefix}.Sparks`;
+      const text = `${vfx}:\n  $type: StatusEffectFX\n  name: status_electrocuted\n  shouldReapply: false\n`;
+      if (!out.records.includes(text)) out.records.push(text);
+    }
+    statusRecord({ tags: ["Debuff", "DoT", "Quickhack", "DamageOverTime"], duration: out.durationGroup(`${L}_Duration`, v("duration")), pkg: pkgPath, ui: ui(r.name, DAMAGE_ICONS[type]), vfx, removeAll: true });
+  } else if (b.kind === "stat") {
+    const c = STAT_CHOICES[b.stat ?? ""];
+    if (!c) return undefined;
+    const value = c.value === undefined ? 0 : v("value");
+    const mods = c.stats.map((stat, i) => {
+      const path = `${out.prefix}.${L}_Stat${c.stats.length > 1 ? i + 1 : ""}`;
+      out.records.push(`${path}:\n  $type: ConstantStatModifier\n  value: ${round(value)}\n  modifierType: ${c.how}\n  statType: ${stat}\n`);
+      return path;
+    });
+    out.records.push(`${pkgPath}:\n  $type: GameplayLogicPackage\n  stats:\n${mods.map((m) => `    - ${m}\n`).join("")}`);
+    statusRecord({ tags: ["Debuff", "Quickhack"], duration: out.durationGroup(`${L}_Duration`, v("duration")), pkg: pkgPath, ui: ui(r.name, STAT_ICON) });
+  } else {
+    const applied = r.applied;
+    if (!applied?.status) return undefined;
+    // A poison or bleed: EDGEhack's copy, which keeps its damage off machines.
+    const target = keptOffMachines(applied) ? (copyStatus(out, doc, `${L}_Applied`, applied, { damage: 0, duration: 0, stacks: 0 }, true) ?? applied.status) : applied.status;
+    const chance = `${out.prefix}.${L}_Chance`;
+    out.records.push(copy(chance, "Prereqs.SetChancePrereq", { setChance: String(round(Math.min(100, Math.max(0, v("chance"))) / 100)) }));
+    const apply = `${out.prefix}.${L}_Apply`;
+    out.records.push(`${apply}:\n  $type: ApplyStatusEffectEffector\n  effectorClassName: ApplyStatusEffectEffector\n  applicationTarget: None\n  count: 1\n  instigator: ""\n  inverted: false\n  removeWithEffector: false\n  useCountWhenRemoving: false\n  statusEffect: ${target}\n  prereqRecord: ${chance}\n`);
+    out.records.push(`${pkgPath}:\n  $type: GameplayLogicPackage\n  effectors:\n    - ${apply}\n`);
+    // The carrier needs no icon: it lasts 1 s, and what it applies has its own.
+    const carrier = `${out.prefix}.CarrierDuration`;
+    if (!out.records.some((x) => x.startsWith(`${carrier}:`))) out.durationGroup("CarrierDuration", 1);
+    statusRecord({ tags: ["Debuff"], duration: carrier, pkg: pkgPath });
+  }
+  out.records.push(ownEffect(effect, "target", status));
+  return effect;
+}
+
 /** An effect record of our own, for a status effect picked by itself. */
 function ownEffect(path: string, on: Effect["on"], status: string): string {
   return `${path}:\n  $type: ObjectActionEffect\n  recipient: ObjectActionReference.${on === "V" ? "Instigator" : "Target"}\n  statusEffect: ${status}\n`;
@@ -297,6 +395,11 @@ function addedOnTier(out: Out, doc: QuickhackDoc, added: ResolvedAdded[], t: Tie
     if (r.entry.off?.includes(key)) continue;
     const e = r.byTier.get(key);
     if (!e) continue;
+    if (r.entry.build) {
+      const path = builtOnTier(out, doc, r, t, label);
+      if (path) result.completion.push(path);
+      continue;
+    }
     const want = r.entry.values?.[key] ?? {};
     const diff = (field: "duration" | "stacks" | "damage"): number => {
       const game = addedGameValue(e, field);

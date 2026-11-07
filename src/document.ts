@@ -24,10 +24,36 @@ export interface AddedValues {
   stacks?: number;
   /** Damage a hit (a tick, for damage over time). */
   damage?: number;
+  /** A built damage over time: seconds between hits. */
+  every?: number;
+  /** A built stat change: the stat's new value, as its row says (times normal, or added). */
+  value?: number;
+  /** A built chance to apply: in percent. */
+  chance?: number;
 }
 
 export type AddedField = keyof AddedValues;
-export const ADDED_FIELDS: AddedField[] = ["duration", "stacks", "damage"];
+export const ADDED_FIELDS: AddedField[] = ["duration", "stacks", "damage", "every", "value", "chance"];
+
+/** The damage types a built damage over time can have. */
+export const DAMAGE_TYPES = ["Electric", "Thermal", "Chemical", "Physical"] as const;
+export type DamageTypeName = (typeof DAMAGE_TYPES)[number];
+
+/**
+ * An effect EDGEhack builds from the game's effector classes (H3.5), rather than one picked from the game:
+ * a damage over time, a stat change while hacked, or a chance to apply a status effect.
+ */
+export interface BuiltEffect {
+  kind: "damage" | "stat" | "chance";
+  /** damage: its type. */
+  damageType?: DamageTypeName;
+  /** damage, Electric: the game's sparks on the target as it starts. */
+  sparks?: boolean;
+  /** stat: a key of STAT_CHOICES (effects.ts). */
+  stat?: string;
+  /** chance: the status effect a roll applies. */
+  applies?: string;
+}
 
 /**
  * An effect added to the quickhack: a status effect, or another quickhack's effect, which follows that
@@ -47,6 +73,8 @@ export interface AddedEffect {
   off?: string[];
   /** Numbers by tier item. */
   values?: Record<string, AddedValues>;
+  /** Or one EDGEhack builds. */
+  build?: BuiltEffect;
 }
 
 export interface QuickhackDoc {
@@ -102,6 +130,29 @@ function text(v: unknown, what: string): string | undefined {
   return v;
 }
 
+function builtEffect(v: unknown, id: string): BuiltEffect | undefined {
+  if (v === undefined || v === null) return undefined;
+  const raw = v as Record<string, unknown>;
+  if (raw.kind !== "damage" && raw.kind !== "stat" && raw.kind !== "chance") throw new Error(`Effect ${id} builds a damage over time, a stat change or a chance to apply.`);
+  const b: BuiltEffect = { kind: raw.kind };
+  if (raw.kind === "damage") {
+    if (!DAMAGE_TYPES.includes(raw.damageType as DamageTypeName)) throw new Error(`Effect ${id}'s damage type is one of ${DAMAGE_TYPES.join(", ")}.`);
+    b.damageType = raw.damageType as DamageTypeName;
+    if (raw.sparks === true) b.sparks = true;
+  }
+  if (raw.kind === "stat") {
+    const stat = text(raw.stat, `Effect ${id}'s stat`);
+    if (!stat) throw new Error(`Effect ${id} needs the stat it changes.`);
+    b.stat = stat;
+  }
+  if (raw.kind === "chance") {
+    const applies = text(raw.applies, `Effect ${id}'s status effect`);
+    if (!applies) throw new Error(`Effect ${id} needs the status effect its roll applies.`);
+    b.applies = applies;
+  }
+  return b;
+}
+
 function addedEffects(v: unknown): AddedEffect[] | undefined {
   if (v === undefined || v === null) return undefined;
   if (!Array.isArray(v)) throw new Error("The effects must be a list.");
@@ -113,7 +164,8 @@ function addedEffects(v: unknown): AddedEffect[] | undefined {
     const status = text(raw.status, `Effect ${raw.id}'s status effect`);
     const from = text(raw.from, `Effect ${raw.id}'s quickhack`);
     const effect = text(raw.effect, `Effect ${raw.id}'s effect`);
-    if (!status && !(from && effect)) throw new Error(`Effect ${raw.id} needs a status effect, or a quickhack and one of its effects.`);
+    const build = builtEffect(raw.build, raw.id);
+    if (!status && !(from && effect) && !build) throw new Error(`Effect ${raw.id} needs a status effect, a quickhack and one of its effects, or what EDGEhack builds.`);
     if (raw.on !== undefined && raw.on !== "target" && raw.on !== "V") throw new Error(`Effect ${raw.id} goes on the target or on V.`);
     const off = raw.off === undefined ? undefined : Array.isArray(raw.off) ? raw.off.filter((x): x is string => typeof x === "string") : undefined;
     const values: Record<string, AddedValues> = {};
@@ -132,6 +184,7 @@ function addedEffects(v: unknown): AddedEffect[] | undefined {
     if (raw.on) e.on = raw.on as "target" | "V";
     if (off?.length) e.off = off;
     if (Object.keys(values).length) e.values = values;
+    if (build) e.build = build;
     return e;
   });
   return out.length ? out : undefined;
@@ -224,6 +277,36 @@ export function withAddedTier(doc: QuickhackDoc, id: string, tier: string, on: b
     if (!on) off.push(tier);
     const { off: _old, ...rest } = e;
     return off.length ? { ...rest, off } : rest;
+  });
+}
+
+/** A new built effect's starting choices: electric damage, movement speed, or the status effect picked. */
+export function newBuiltEffect(kind: BuiltEffect["kind"], applies?: string): BuiltEffect {
+  if (kind === "damage") return { kind, damageType: "Electric" };
+  if (kind === "stat") return { kind, stat: "speed" };
+  if (!applies) throw new Error("Pick the status effect the roll applies.");
+  return { kind, applies };
+}
+
+/** Changes what a built effect is: its damage type, sparks or stat. A new stat clears the old one's values. */
+export function withAddedBuild(doc: QuickhackDoc, id: string, change: Partial<Pick<BuiltEffect, "damageType" | "sparks" | "stat">>): QuickhackDoc {
+  return mapAdded(doc, id, (e) => {
+    if (!e.build) return e;
+    const build: BuiltEffect = { ...e.build, ...change };
+    if (!build.sparks) delete build.sparks;
+    let values = e.values;
+    if (change.stat !== undefined && change.stat !== e.build.stat && values) {
+      values = Object.fromEntries(
+        Object.entries(values)
+          .map(([tier, v]) => {
+            const { value: _gone, ...rest } = v;
+            return [tier, rest] as const;
+          })
+          .filter(([, v]) => Object.keys(v).length),
+      );
+    }
+    const { values: _old, ...rest } = e;
+    return values && Object.keys(values).length ? { ...rest, build, values } : { ...rest, build };
   });
 }
 

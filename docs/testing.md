@@ -19,6 +19,7 @@ Last updated 2026-11-07.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | | Waiting |
 | [H3.5 Attack features spike](#h35-attack-features-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-07 | Done: findings for the build |
 | [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | 2026-11-07 | Pass (EDGEhack 0.0.9): a drone and an android took only the burn, with no poison or bleed icon; humans the burn, poison and bleed |
 | [H3.4b Machines spike](#h34b-machines-spike) | By hand, in the game, with REDnode's Console | H3 | 2026-11-07 | An immunity did nothing; a check on the damage effector stopped the damage on a drone, not on a human |
@@ -30,7 +31,58 @@ Last updated 2026-11-07.
 
 ## Waiting for a hand test
 
-- None.
+- [H3.5 Build one](#h35-build-one).
+
+## H3.5 Build one
+
+EDGEhack 0.0.11: the third tab of **Add Effect**, which builds a damage over time, a stat change while hacked or a chance to apply a status effect, from what the spike below proved. The writer ran against the real game records (design, "H3.5 built"); this checks it by hand and in the game.
+
+**Before you start:**
+
+- Install: `code --install-extension edgehack-0.0.11.vsix`, then **Developer: Reload Window**.
+- Open a WolvenKit project in REDcode. The H3.4 test's project is fine.
+
+**Part A, in VS Code**
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Quickhacks view, click **Ping**, click **Clone and Modify...** on its page, type `Shock Ping`, and press Enter | A new tab with its editor, four tiers: Common, Rare, Legendary, Legendary++ |
+| 2 | Scroll down to **Added effects**, click **Add Effect...** | The panel has three tabs: **From another quickhack**, **Status effects** and **Build one** |
+| 3 | Click **Build one** | Three rows: **Damage over time**, **Stat change while hacked**, **Chance to apply** |
+| 4 | Click **Damage over time** | The panel closes. A card **Electric damage over time**, "Built by EDGEhack: a status effect of its own on each tier", **Damage type** Electric, a **Sparks as it starts** box, and rows **Damage a hit** (10), **Seconds between hits** (0.5) and **Duration** (8) in grey on every tier |
+| 5 | Tick **Sparks as it starts**. In **Damage a hit**, type `40` under **Common** and press Tab | The box stays ticked. The field turns yellow |
+| 6 | Click **Common** in the Numbers table's header, then **All tiers** on the card's **Damage a hit** row | Every tier shows 40 |
+| 7 | Click **Add Effect...**, **Build one**, **Stat change while hacked** | A card **Movement speed** with a **Stat** list, a row **Movement speed (times normal)** at 0.5 and **Duration** at 10 |
+| 8 | Change **Stat** to **Cannot sprint** | The card is now **Cannot sprint**, with only the **Duration** row |
+| 9 | Change **Stat** back to **Movement speed** | The value row comes back, at 0.5 |
+| 10 | Click **Add Effect...**, **Build one**, **Chance to apply** | The **Status effects** tab, with a line "Pick the status effect the roll applies" above the search |
+| 11 | Search `blind`, and click the row named **Blind** | A card **Chance to apply Blind** with its record, and a row **Chance (%)** at 25 |
+| 12 | Type `100` under **Common** in **Chance**, press Tab, click **Common** in the header, then **All tiers** on that row | Every tier shows 100 |
+| 13 | Click **Add Effect...**, **Build one**, **Damage over time**, then change its **Damage type** to **Chemical** | The card is **Chemical damage over time**, with no **Sparks** box, and says "Its damage stays off machines". At the top of the page, a grey note says EDGEhack keeps poison, bleed, and chemical and physical damage over time off machines |
+| 14 | Press **Ctrl+S** | The line under the title says what it saved. In the project, `source/resources/r6/tweaks/<your mod>/<your mod>_shock_ping.yaml` has records ending `_a1_PingProgram_Tick` and `_a3_PingProgram_Chance` |
+
+**Part B, in the game**
+
+First: quit the game if it is running. Click **Pack and Play** at the top of the page, then start the game and load a save with enemies nearby.
+
+Timer: in REDnode's launcher (F10), switch on **Test timer**, press **Start**, and **Mark** after each step below, so the Marks' numbers match the steps'.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the launcher, switch on **Console**. On the page in VS Code, click **Common** in the Numbers table's header, copy the line from **Give yourself one** and run it in the Console. Put Shock Ping (Common) in the cyberdeck, and take the game's own Ping out | Shock Ping on the wheel when you scan an enemy |
+| 2 | Upload it on an enemy | Sparks on the enemy as it starts. Yellow electric numbers and green chemical numbers about every half second for about 8 s |
+| 3 | Paste the line below into the Console without pressing Enter, upload Shock Ping on a fresh enemy, and press Enter as soon as the upload finishes, crosshair on the enemy | `blind: true` |
+| 4 | Watch an enemy you uploaded it on while it walks or runs | It moves at about half its speed for about 10 s |
+| 5 | If a drone or robot is around, upload it there. Skip this if not, and still press Mark | Yellow numbers only: no green chemical ones |
+
+```
+const ses = await api.GameInstance.GetStatusEffectSystem(game.instance); const t = await (await api.GameInstance.GetTargetingSystem(game.instance)).GetLookAtObject(await api.GetPlayer(game.instance), false, false); const id = await t.GetEntityID(); ({ blind: await ses.HasStatusEffect(id, "BaseStatusEffect.Blind") })
+```
+
+Then quit the game, and say what differed. If something failed, the lines with errors from TweakXL's log and `r6/logs/redscript_rCURRENT.log` help.
+
+| Run | Result |
+|---|---|
 
 ## H3.5 Attack features spike
 

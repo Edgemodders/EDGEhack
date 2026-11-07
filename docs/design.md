@@ -114,7 +114,7 @@ Numbers show the game's values next to the changed ones, and each tier's value, 
 |---|---|
 | **From another quickhack** | Pick a quickhack, then one of its effects (Short Circuit's EMP shock, Contagion's poison, Reboot Optics' blind). The effect comes with its status effect, damage and icon |
 | **Status effects** | Any status effect sorted as **Works on enemies**, searched by name, tag and type (Burning, Stunned, Blind, Poisoned, ...) |
-| **Attack features** | Built from parts, not picked whole: extra damage (an attack every N seconds, a damage type), a stat change while hacked (armor, accuracy, speed), spread, a chance to apply something else. These are new status effects EDGEhack writes, from the game's own effector classes |
+| **Build one** | Built from parts, not picked whole: a damage over time (a damage type, damage a hit, seconds between hits, how long), a stat change while hacked (one stat from a list), a chance to apply a status effect. These are new status effects EDGEhack writes, from the game's own effector classes (H3.5). Spread is left out until it can be tested |
 
 An added effect is **referenced** when it is unchanged (the YAML adds the game's record to the action's effect list) and **copied** as soon as the modder changes its duration, stacks or damage. The effects list shows which is which.
 
@@ -468,6 +468,23 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 | An effect a game effector runs keeps its numbers | There is no plain status effect record to point at a copy; the card shows no field, and a document that sets one gets a warning |
 | A change to a game quickhack gets its added effects on its Boss and Chimera actions too | The rule "a change applies to all three"; a new quickhack has none |
 
+**H3.5 built (2026-11-07), EDGEhack 0.0.11:** the picker's third tab, **Build one**, from what H3.5's spike found in the game (docs/testing.md, "H3.5 Attack features spike"). An added effect may carry `build` instead of `status` or `from`: `{ kind: "damage", damageType, sparks? }`, `{ kind: "stat", stat }` or `{ kind: "chance", applies }`, with its numbers per tier in `values` (`damage`, `every`, `duration`, `value`, `chance`), each starting from a default (`builtDefault` in `src/effects.ts`). Each tier gets status effects of EDGEhack's own, of type Misc, with a stacks group of 1 and an icon of the game's, written in `builtOnTier` in `src/tweaks.ts`:
+
+| Card | Records on each tier | From the spike |
+|---|---|---|
+| Damage over time | An attack copied from `Attacks.OverheatQuickHackAttackLevel3` (its `damage_over_time` game effect) with the type, the hit flags and one damage modifier changed; a `ContinuousAttackEffector` with the seconds between hits; its package, duration and status effect | A hit every 0.5 s for 8 s, and every 0.1 s with no bunching. Chemical and physical carry the machines check (H3.4b). Electric may show the game's sparks (`status_electrocuted`) as it starts, for a couple of seconds |
+| Stat change | The stats in the status effect's package (`STAT_CHOICES`: values as the game's own enemy statuses use them; a "can" stat set to 0, with no number); its duration and status effect | Movement speed applied, by the Console's check |
+| Chance to apply | A carrier status effect of 1 s whose package holds a plain `ApplyStatusEffectEffector` behind a copy of `Prereqs.SetChancePrereq` with the chance; a poison or bleed it applies is EDGEhack's copy, kept off machines | The game's `ApplyStatusEffectByChanceEffector` rolls only in `RepeatedAction`, when its prereq fires again, so it never rolled; run from the quickhack (`effectorToTrigger`) the plain one applied nothing. In a carrier: 4 of 5 at 50%, 0 of 4 at 0% |
+
+| Decided with the owner (2026-11-07) | Why |
+|---|---|
+| No icon list per card | No status effect showed an icon over an enemy, not even the game's Blind. Each card still writes an icon of the game's (unverified whether it shows anywhere) |
+| Damage a hit on the Numbers table's scale | Overheat's own is 3 + 20 = 23 a tick at Epic; the game lowers every quickhack's damage by the target's level and armor, so 3 showed as 1 |
+| The damage numbers' colour stays the game's | An electric damage over time shows yellow, Short Circuit's electric hit white. Blue would need a script mod over the game's damage numbers, planned on its own if wanted |
+| Lasting sparks left open | Sparks replayed by each hit (a status with `shouldReapply`) showed red shooting sparks, not the blue arcs. Leads: Short Circuit's `PlayVFXEffector`, a replay timer at the animation's length |
+
+Checked against the real REDbridge on game 2.5 (the session's scratchpad `h35/smoke.ts`): a new hack on Ping with all 17 kinds of card, and a change to Overheat; 57 game records named, all there; 604 records' fields compared with a game record of their type, none unknown; no game record changed but the actions' lists. 8 unit tests in `test/built.test.ts`.
+
 Checked against the real REDbridge on game 2.5: every family as a source, 26 effects, each with every number changed, and all 355 game records the YAML names exist. **Not yet run in the game:** `$type: ObjectActionEffect`, a stacks copy, a status effect on V, and whether an added effect from another quickhack works beside the hack's own.
 
 **What the spike answers:**
@@ -617,3 +634,5 @@ Agreed with the owner on 2026-11-04: the recommendation is the answer in each ro
 - Whether TweakDB changes reach an equipped quickhack without unequipping it, and how to refresh V's cached quickhack list (H4 spike).
 - Whether new `onscreens` texts can load without a game restart (H4).
 - How a quickhack REDagent makes in the game gets from the Desk into a project to pack (H4).
+- Whether TweakXL takes `setChance` on a `$base` copy of `Prereqs.SetChancePrereq` as the Console's set did, and whether a plain-text `displayName` shows anywhere (H3.5).
+- Whether a status effect's icon shows over an enemy at all (H3.5's spike saw none, not even the game's Blind).

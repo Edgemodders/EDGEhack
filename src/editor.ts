@@ -3,7 +3,7 @@
 // REDcode's project (docs/design.md, "H2: plan").
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
-import { AddedField, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc } from "./document";
+import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc } from "./document";
 import { Family, iconOf, IconRef } from "./read";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
@@ -158,6 +158,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         pickFamily?: string;
         addFrom?: { from: string; effect: string };
         addStatus?: { status: string; on?: "target" | "V" };
+        addBuilt?: { kind: BuiltEffect["kind"]; applies?: string };
+        addedBuild?: { id: string; field: "damageType" | "sparks" | "stat"; value: string | boolean };
         removeAdded?: string;
         addedOn?: { id: string; tier: string; on: boolean };
         addedWho?: { id: string; on: "target" | "V" };
@@ -182,6 +184,12 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.pickFamily) await this.offerFamily(w, m.pickFamily);
           if (m.addFrom) await apply(document, withAddedEffect(current(), { from: m.addFrom.from, effect: m.addFrom.effect }));
           if (m.addStatus) await apply(document, withAddedEffect(current(), { status: m.addStatus.status, ...(m.addStatus.on === "V" ? { on: "V" as const } : {}) }));
+          if (m.addBuilt) await apply(document, withAddedEffect(current(), { build: newBuiltEffect(m.addBuilt.kind, m.addBuilt.applies) }));
+          if (m.addedBuild) {
+            const f = m.addedBuild.field;
+            const change = f === "sparks" ? { sparks: m.addedBuild.value === true } : f === "damageType" ? { damageType: m.addedBuild.value as DamageTypeName } : { stat: String(m.addedBuild.value) };
+            await apply(document, withAddedBuild(current(), m.addedBuild.id, change));
+          }
           if (m.removeAdded) await apply(document, withoutAddedEffect(current(), m.removeAdded));
           if (m.addedOn) await apply(document, withAddedTier(current(), m.addedOn.id, m.addedOn.tier, m.addedOn.on));
           if (m.addedWho) await apply(document, withAddedRecipient(current(), m.addedWho.id, m.addedWho.on));
