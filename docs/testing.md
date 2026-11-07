@@ -19,6 +19,7 @@ Last updated 2026-11-06.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.4b Machines spike](#h34b-machines-spike) | By hand, in the game, with REDnode's Console | H3 | 2026-11-07 | An immunity did nothing; a check on the damage effector stopped the damage on a drone, not on a human |
 | [H3.4 Add Effect](#h34-add-effect) | By hand, then in the game | H3 | 2026-11-07 | Pass, Parts A and B (EDGEhack 0.0.6). The poison beside a burn is ended by Contagion Epic's passive, a game rule, now a note; a drone took the poison and the bleed |
 | [Smoke test](#smoke-test) | Automated: real VS Code, REDbridge and game; a stand-in REDcode | H2, H3 | 2026-11-06 | Pass, every check |
 | [H2a Spike](#h2a-spike) | By hand, in the game | H2 | 2026-11-04 | Pass: name, icons, RAM up and down, upload, damage and duration all worked |
@@ -28,6 +29,26 @@ Last updated 2026-11-06.
 ## Waiting for a hand test
 
 - None.
+
+## H3.4b Machines spike
+
+Can a poison or a bleed be kept off machines? Run with REDnode's Console in a session with Triple Heat installed (H3.4's test) and no Contagion of Epic or better in V's cyberdeck. Each change lasts until the Console stops or the game quits.
+
+Timer: switch on **Test timer**, press **Start**, and **Mark** after each step.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Run `await tweakdb.set("BaseStatusEffect.ContagionPoisonLvl3.immunityStats", ["BaseStats.PoisonImmunity", "BaseStats.IsMechanical"])` | `true` |
+| 2 | Run `await tweakdb.set("BaseStatusEffect.Bleeding.immunityStats", ["BaseStats.BleedingImmunity", "BaseStats.IsMechanical"])` | `true` |
+| 3 | Upload Triple Heat's Epic on a drone | Say which numbers show |
+| 4 | Run `await tweakdb.set("BaseStatusEffect.ContagionPoisonLvl3_inline3.prereqRecord", "BaseStatusEffect.OverheatLevel2_inline8")` (Overheat's check: a Human NPC) | `true` |
+| 5 | Run `await tweakdb.set("BaseStatusEffect.Bleeding_inline8.prereqRecord", "BaseStatusEffect.OverheatLevel2_inline9")` (Overheat's check: `IsMechanical` is 0) | `true` |
+| 6 | Upload Triple Heat's Epic on a fresh drone | Say which numbers show |
+| 7 | Upload it on a human | Say which numbers show |
+
+| Run | Result |
+|---|---|
+| 2026-11-07, EDGEhack 0.0.6's Triple Heat, the laptop, game 2.5 | Steps 1 and 2 answered `true`, but step 3's drone still took the poison and the bleed: `immunityStats` is not checked when a quickhack applies an effect. Steps 4 and 5 answered `true`; step 6's drone took only the burn, so both checks stop the damage, and drones carry the `IsMechanical` stat. Step 7's human took the burn, the poison and the bleed. H3.4b uses the stat check (machines exactly) on its own copies of the damage effectors |
 
 ## H3.4 Add Effect
 
