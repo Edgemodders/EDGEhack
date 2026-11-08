@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",

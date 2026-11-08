@@ -252,5 +252,8 @@ test("the project gets the shared script for a new quickhack, and not for a chan
   const made = await writeProject(project, bridge, newOne(), writeTweaks(await family(), newOne()));
   assert.equal(made.script, script);
   assert.match(fs.readFileSync(script, "utf8"), /^\/\/ Made by EDGEhack/);
+  // The first write says which files it added to the project; writing again adds none.
+  assert.deepEqual(made.created, [made.yaml, script]);
+  assert.deepEqual((await writeProject(project, bridge, newOne(), writeTweaks(await family(), newOne()))).created, []);
   fs.rmSync(dir, { recursive: true, force: true });
 });

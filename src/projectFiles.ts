@@ -17,6 +17,8 @@ export interface ProjectResult {
   texts?: string;
   /** The script a new quickhack needs, when the document wrote it. */
   script?: string;
+  /** The files this write added to the project: they did not exist before. */
+  created: string[];
 }
 
 /** True when a file is inside a folder. */
@@ -41,12 +43,13 @@ export function mergeEntries(json: string, id: string, texts: TextEntry[]): stri
 }
 
 export async function writeProject(project: ProjectRef, bridge: BridgeClient, doc: QuickhackDoc, written: WrittenTweaks): Promise<ProjectResult> {
-  const result: ProjectResult = {};
+  const result: ProjectResult = { created: [] };
   const yaml = path.join(project.resources, "r6", "tweaks", project.modName, `${doc.id}.yaml`);
   if (fs.existsSync(yaml) && !fs.readFileSync(yaml, "utf8").startsWith(MADE_BY)) {
     throw new Error(`${yaml} exists and was not made by EDGEhack, so it was left alone. Move or rename it.`);
   }
   if (written.yaml) {
+    if (!fs.existsSync(yaml)) result.created.push(yaml);
     fs.mkdirSync(path.dirname(yaml), { recursive: true });
     fs.writeFileSync(yaml, written.yaml);
     result.yaml = yaml;
@@ -57,6 +60,7 @@ export async function writeProject(project: ProjectRef, bridge: BridgeClient, do
   // Never removed: another document in the project may need it, and it does nothing with no new hack.
   if (written.script) {
     const file = path.join(project.resources, ...NEW_HACK_SCRIPT_PATH);
+    if (!fs.existsSync(file)) result.created.push(file);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, written.script);
     result.script = file;
@@ -67,6 +71,7 @@ export async function writeProject(project: ProjectRef, bridge: BridgeClient, do
   if (existing || written.texts.length) {
     const file = existing ?? (await bridge.locNewFile(project.dir, project.modName, "en-us")).file;
     const full = path.join(project.dir, file);
+    if (!existing) result.created.push(full);
     const before = (await bridge.fileToJson(full)).json;
     if (typeof before !== "string") throw new Error(`REDbridge could not read ${file}.`);
     const after = mergeEntries(before, doc.id, written.texts);

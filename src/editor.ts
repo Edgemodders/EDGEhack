@@ -83,6 +83,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     try {
       const result = await writeDocFiles(project, await bridge(), await this.hub.family(key), doc);
       this.hub.log.appendLine(`Wrote ${doc.id}: ${result.yaml ?? "no YAML"}`);
+      announceCreated(project.dir, result.created);
     } catch (e) {
       void vscode.window.showErrorMessage(`EDGEhack made the document, but not its mod files: ${message(e)} Change something and save to try again.`);
     }
@@ -224,6 +225,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const fam = await this.hub.family(doc.family);
       const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam));
       this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}`);
+      announceCreated(project.dir, result.created);
       say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
     } catch (e) {
       this.hub.log.appendLine(`Saving ${document.fileName} failed: ${message(e)}`);
@@ -301,6 +303,17 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
 <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="${css}"></head>
 <body>${body}${body.includes("<main") ? `<script src="${js}"></script>` : ""}</body></html>`;
   }
+}
+
+/** A toast for files a write added to the project, with Open to see them as text in new tabs. */
+function announceCreated(projectDir: string, created: string[]): void {
+  if (!created.length) return;
+  const names = created.map((f) => path.relative(projectDir, f).split(path.sep).join("/"));
+  const text = names.length === 1 ? `EDGEhack added a file to the project: ${names[0]}` : `EDGEhack added ${names.length} files to the project: ${names.join(", ")}`;
+  void vscode.window.showInformationMessage(text, "Open").then(async (choice) => {
+    if (choice !== "Open") return;
+    for (const f of created) await vscode.window.showTextDocument(vscode.Uri.file(f), { preview: false });
+  });
 }
 
 function message(e: unknown): string {

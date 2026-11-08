@@ -35,7 +35,7 @@ Last updated 2026-11-07.
 
 ## H3.5 Build one
 
-EDGEhack 0.0.11: the third tab of **Add Effect**, which builds a damage over time, a stat change while hacked or a chance to apply a status effect, from what the spike below proved. The writer ran against the real game records (design, "H3.5 built"); this checks it by hand and in the game.
+EDGEhack 0.0.11, and 0.0.12 for the message about added files: the third tab of **Add Effect**, which builds a damage over time, a stat change while hacked or a chance to apply a status effect, from what the spike below proved. The writer ran against the real game records (design, "H3.5 built"); this checks it by hand and in the game.
 
 **Before you start:**
 
@@ -61,6 +61,15 @@ EDGEhack 0.0.11: the third tab of **Add Effect**, which builds a damage over tim
 | 13 | Click **Add Effect...**, **Build one**, **Damage over time**, then change its **Damage type** to **Chemical** | The card is **Chemical damage over time**, with no **Sparks** box, and says "Its damage stays off machines". At the top of the page, a grey note says EDGEhack keeps poison, bleed, and chemical and physical damage over time off machines |
 | 14 | Press **Ctrl+S** | The line under the title says what it saved. In the project, `source/resources/r6/tweaks/<your mod>/<your mod>_shock_ping.yaml` has records ending `_a1_PingProgram_Tick` and `_a3_PingProgram_Chance` |
 
+**The message about added files (EDGEhack 0.0.12).** Install `edgehack-0.0.12.vsix` the same way first.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Quickhacks view, click **Short Circuit**, then **Clone and Modify...**, type `Toast Test`, and press Enter | The editor opens, and a message in VS Code's corner: "EDGEhack added a file to the project: source/resources/r6/tweaks/<your mod>/<your mod>_toast_test.yaml", with **Open** |
+| 2 | Click **Open** in the message | The YAML opens as text in a new tab, beside the editor |
+| 3 | Back on Toast Test's editor, type `20` under any tier's **RAM** and press **Ctrl+S** | No message this time: the file was there already |
+| 4 | Delete the Toast Test document and its YAML from the project if you like | |
+
 **Part B, in the game**
 
 First: quit the game if it is running. Click **Pack and Play** at the top of the page, then start the game and load a save with enemies nearby.
@@ -83,6 +92,7 @@ Then quit the game, and say what differed. If something failed, the lines with e
 
 | Run | Result |
 |---|---|
+| 2026-11-08, EDGEhack 0.0.11, dev PC, Part A | **Pass**, every step as written. The owner asked for a message naming each file a save adds to the project, with **Open** (built in 0.0.12) |
 
 ## H3.5 Attack features spike
 
