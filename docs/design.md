@@ -112,9 +112,9 @@ Numbers show the game's values next to the changed ones, and each tier's value, 
 
 | Source | What a pick adds |
 |---|---|
-| **From another quickhack** | Pick a quickhack, then one of its effects (Short Circuit's EMP shock, Contagion's poison, Reboot Optics' blind). The effect comes with its status effect, damage and icon |
-| **Status effects** | Any status effect sorted as **Works on enemies**, searched by name, tag and type (Burning, Stunned, Blind, Poisoned, ...) |
-| **Build one** | Built from parts, not picked whole: a damage over time (a damage type, damage a hit, seconds between hits, how long), a stat change while hacked (one stat from a list), a chance to apply a status effect. These are new status effects EDGEhack writes, from the game's own effector classes (H3.5). Spread is left out until it can be tested |
+| **Copy Existing** | Pick a quickhack, then one of its effects (Short Circuit's EMP shock, Contagion's poison, Reboot Optics' blind). The effect comes with its status effect, damage and icon |
+| **Status Effects** | Any status effect sorted as **Works on enemies**, searched by name, tag and type (Burning, Stunned, Blind, Poisoned, ...) |
+| **Make New** | Built from parts, not picked whole: a damage over time (a damage type, damage a hit, seconds between hits, how long), a stat change while hacked (one stat from a list), a chance to apply a status effect. These are new status effects EDGEhack writes, from the game's own effector classes (H3.5). Spread is left out until it can be tested |
 
 An added effect is **referenced** when it is unchanged (the YAML adds the game's record to the action's effect list) and **copied** as soon as the modder changes its duration, stacks or damage. The effects list shows which is which.
 
@@ -468,7 +468,7 @@ The phase's test stays as written: a new quickhack crafted or bought, with two a
 | An effect a game effector runs keeps its numbers | There is no plain status effect record to point at a copy; the card shows no field, and a document that sets one gets a warning |
 | A change to a game quickhack gets its added effects on its Boss and Chimera actions too | The rule "a change applies to all three"; a new quickhack has none |
 
-**H3.5 built (2026-11-07), EDGEhack 0.0.11:** the picker's third tab, **Build one**, from what H3.5's spike found in the game (docs/testing.md, "H3.5 Attack features spike"). An added effect may carry `build` instead of `status` or `from`: `{ kind: "damage", damageType, sparks? }`, `{ kind: "stat", stat }` or `{ kind: "chance", applies }`, with its numbers per tier in `values` (`damage`, `every`, `duration`, `value`, `chance`), each starting from a default (`builtDefault` in `src/effects.ts`). Each tier gets status effects of EDGEhack's own, of type Misc, with a stacks group of 1 and an icon of the game's, written in `builtOnTier` in `src/tweaks.ts`:
+**H3.5 built (2026-11-07), EDGEhack 0.0.11:** the picker's third tab, **Make New** (named Build one until 0.0.14, when the owner also renamed the others Copy Existing and Status Effects), from what H3.5's spike found in the game (docs/testing.md, "H3.5 Attack features spike"). An added effect may carry `build` instead of `status` or `from`: `{ kind: "damage", damageType, sparks? }`, `{ kind: "stat", stat }` or `{ kind: "chance", applies }`, with its numbers per tier in `values` (`damage`, `every`, `duration`, `value`, `chance`), each starting from a default (`builtDefault` in `src/effects.ts`). Each tier gets status effects of EDGEhack's own, of type Misc, with a stacks group of 1 and an icon of the game's, written in `builtOnTier` in `src/tweaks.ts`:
 
 | Card | Records on each tier | From the spike |
 |---|---|---|

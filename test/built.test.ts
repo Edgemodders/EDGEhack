@@ -165,13 +165,13 @@ test("a chance on a status effect that is gone says so, and the rest is written"
   assert.deepEqual(addedWarnings(fam, doc, added).filter((w) => !/Gone/.test(w)), []);
 });
 
-test("the page has the Build one tab, and a built card shows its choices and numbers", async () => {
+test("the page has the Make New tab, and a built card shows its choices and numbers", async () => {
   const r = reader();
   const fam = await zap(r);
   const doc = withAddedEffect(newDoc("mod", "Zap"), { build: { kind: "damage", damageType: "Electric" } });
   const added = await resolved(doc, fam, r);
   const page = renderEditor(fam, doc, { all: new Map() }, 0, added);
-  assert.match(page, /data-effect-tab="build">Build one</);
+  assert.match(page, /data-effect-tab="hack">Copy Existing<\/button><button data-effect-tab="status">Status Effects<\/button><button data-effect-tab="build">Make New</);
   assert.match(page, /data-add-built="damage"/);
   assert.match(page, /data-add-built="stat"/);
   assert.match(page, /data-chance-mode/);

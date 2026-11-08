@@ -47,18 +47,18 @@ EDGEhack 0.0.11, 0.0.12 for the message about added files, and 0.0.13 for Part C
 | Step | Do | Expect |
 |---|---|---|
 | 1 | In the Quickhacks view, click **Ping**, click **Clone and Modify...** on its page, type `Shock Ping`, and press Enter | A new tab with its editor, four tiers: Common, Rare, Legendary, Legendary++ |
-| 2 | Scroll down to **Added effects**, click **Add Effect...** | The panel has three tabs: **From another quickhack**, **Status effects** and **Build one** |
-| 3 | Click **Build one** | Three rows: **Damage over time**, **Stat change while hacked**, **Chance to apply** |
+| 2 | Scroll down to **Added effects**, click **Add Effect...** | The panel has three tabs: **Copy Existing**, **Status Effects** and **Make New** |
+| 3 | Click **Make New** | Three rows: **Damage over time**, **Stat change while hacked**, **Chance to apply** |
 | 4 | Click **Damage over time** | The panel closes. A card **Electric damage over time**, "Built by EDGEhack: a status effect of its own on each tier", **Damage type** Electric, a **Sparks as it starts** box, and rows **Damage a hit** (10), **Seconds between hits** (0.5) and **Duration** (8) in grey on every tier |
 | 5 | Tick **Sparks as it starts**. In **Damage a hit**, type `40` under **Common** and press Tab | The box stays ticked. The field turns yellow |
 | 6 | Click **Common** in the Numbers table's header, then **All tiers** on the card's **Damage a hit** row | Every tier shows 40 |
-| 7 | Click **Add Effect...**, **Build one**, **Stat change while hacked** | A card **Movement speed** with a **Stat** list, a row **Movement speed (times normal)** at 0.5 and **Duration** at 10 |
+| 7 | Click **Add Effect...**, **Make New**, **Stat change while hacked** | A card **Movement speed** with a **Stat** list, a row **Movement speed (times normal)** at 0.5 and **Duration** at 10 |
 | 8 | Change **Stat** to **Cannot sprint** | The card is now **Cannot sprint**, with only the **Duration** row |
 | 9 | Change **Stat** back to **Movement speed** | The value row comes back, at 0.5 |
-| 10 | Click **Add Effect...**, **Build one**, **Chance to apply** | The **Status effects** tab, with a line "Pick the status effect the roll applies" above the search |
+| 10 | Click **Add Effect...**, **Make New**, **Chance to apply** | The **Status Effects** tab, with a line "Pick the status effect the roll applies" above the search |
 | 11 | Search `blind`, and click the row named **Blind** | A card **Chance to apply Blind** with its record, and a row **Chance (%)** at 25 |
 | 12 | Type `100` under **Common** in **Chance**, press Tab, click **Common** in the header, then **All tiers** on that row | Every tier shows 100 |
-| 13 | Click **Add Effect...**, **Build one**, **Damage over time**, then change its **Damage type** to **Chemical** | The card is **Chemical damage over time**, with no **Sparks** box, and says "Its damage stays off machines". At the top of the page, a grey note says EDGEhack keeps poison, bleed, and chemical and physical damage over time off machines |
+| 13 | Click **Add Effect...**, **Make New**, **Damage over time**, then change its **Damage type** to **Chemical** | The card is **Chemical damage over time**, with no **Sparks** box, and says "Its damage stays off machines". At the top of the page, a grey note says EDGEhack keeps poison, bleed, and chemical and physical damage over time off machines |
 | 14 | Press **Ctrl+S** | The line under the title says what it saved. In the project, `source/resources/r6/tweaks/<your mod>/<your mod>_shock_ping.yaml` has records ending `_a1_PingProgram_Tick` and `_a3_PingProgram_Chance` |
 
 **The message about added files (EDGEhack 0.0.12).** Install `edgehack-0.0.12.vsix` the same way first.
@@ -95,7 +95,7 @@ Then quit the game, and say what differed. If something failed, the lines with e
 | Step | Do | Expect |
 |---|---|---|
 | 1 | Install `edgehack-0.0.13.vsix` and reload VS Code. Open Shock Ping's editor | The Movement speed card says `speed is not a stat EDGEhack offers`, and a warning says so at the top. The damage cards read **Chemical damage over time** and **Electric damage over time** |
-| 2 | Click **Remove** on the Movement speed card. Add two more: **Add Effect...**, **Build one**, **Damage over time**, then set the new card's **Damage type** to **Thermal**; once more for **Physical** | Four damage cards, each with its own type in its title |
+| 2 | Click **Remove** on the Movement speed card. Add two more: **Add Effect...**, **Make New**, **Damage over time**, then set the new card's **Damage type** to **Thermal**; once more for **Physical** | Four damage cards, each with its own type in its title |
 | 3 | On each damage card's **On this tier** row, leave one box ticked: Chemical on **Common**, Electric on **Rare**, Thermal on **Legendary**, Physical on **Legendary++** | |
 | 4 | Press **Ctrl+S**. Quit the game, click **Pack and Play**, then start the game and load a save with enemies | |
 | 5 | Switch on **Console**. For each tier, click it in the Numbers header in VS Code and run its **Give yourself one** line in the Console | Four Shock Pings in the backpack |
@@ -216,15 +216,15 @@ EDGEhack 0.0.6: adding effects to a new quickhack. The smoke test has already dr
 | Step | Do | Expect |
 |---|---|---|
 | 1 | In the Quickhacks view, click **Overheat**, click **Clone and Modify...** on its page, type `Triple Heat`, and press Enter | A new tab with its editor |
-| 2 | On that page, scroll down to **Added effects**, below the Numbers table. Click **Add Effect...** | A panel opens with two tabs. **From another quickhack** shows 17 quickhacks with their icons: every family but Overheat |
+| 2 | On that page, scroll down to **Added effects**, below the Numbers table. Click **Add Effect...** | A panel opens with two tabs. **Copy Existing** shows 17 quickhacks with their icons: every family but Overheat |
 | 3 | Click **Contagion** in the panel | Below the icons, one row: **Poison**, on the target, Poisoned, with how long it lasts and its damage |
 | 4 | Click that row | The panel closes. A card for **Poison**: "From Contagion, following its tiers", "Uses the game's record", a row of ticked boxes **On this tier**, then Duration, Stacks and Damage a hit per tier. |
-| 5 | Click **Add Effect...**, then the **Status effects** tab | A long list under **Works on enemies**. At its end, a line saying how many more there are |
+| 5 | Click **Add Effect...**, then the **Status Effects** tab | A long list under **Works on enemies**. At its end, a line saying how many more there are |
 | 6 | In the search box above the list, type `smasher` | "Nothing matches" |
 | 7 | Tick **Show all** beside the search box | Rows under **Boss fights** |
 | 8 | Untick **Show all**, and change the search to `bleeding` | A shorter list. Each row has a name, what the game calls it where that differs, and its record |
 | 9 | Click the row named **Bleeding** | A second card, with **Goes on** set to **the target** |
-| 10 | Click **Add Effect...**, then **Status effects**. Tick **Show all**, search `optical camo player buff common`, and click the row named **Optical Camo Player Buff Common** | A third card, with **Goes on** set to **V**, and no warning about it |
+| 10 | Click **Add Effect...**, then **Status Effects**. Tick **Show all**, search `optical camo player buff common`, and click the row named **Optical Camo Player Buff Common** | A third card, with **Goes on** set to **V**, and no warning about it |
 | 11 | On that third card's **On this tier** row, clear every box except **Epic** | The boxes stay as you left them |
 | 12 | On the **Poison** card, in the **Duration** row, type `20` under **Rare**, and press Tab | The field turns yellow. The card says "A copy of its own on Rare; the game's record elsewhere" |
 | 13 | On the **Bleeding** card, clear the box under **Legendary**. Click an empty spot on the page, then press **Ctrl+Z** | The box comes back ticked. Press **Ctrl+Y**: it clears again |

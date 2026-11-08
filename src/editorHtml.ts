@@ -245,14 +245,14 @@ ${rows}
 <section><h2>Added effects</h2>
 <p class="family"><button data-add-effect>Add Effect...</button></p>
 <div class="effect-picker" data-effect-picker hidden>
-  <nav class="tiers"><button data-effect-tab="hack">From another quickhack</button><button data-effect-tab="status">Status effects</button><button data-effect-tab="build">Build one</button><button data-effect-close>Close</button></nav>
+  <nav class="tiers"><button data-effect-tab="hack">Copy Existing</button><button data-effect-tab="status">Status Effects</button><button data-effect-tab="build">Make New</button><button data-effect-close>Close</button></nav>
   <div data-effect-pane="hack" hidden><div class="grid families" data-effect-families></div><p class="foot" data-effect-family-title></p><div data-effect-family></div></div>
   <div data-effect-pane="build" hidden>
     <p class="foot">EDGEhack builds these from the game's own parts, as status effects of its own. Each starts with a value on every tier that you can change.</p>
     <div class="effect-list">
       <button class="effect-row" data-add-built="damage"><b>Damage over time</b><small>A damage type, damage a hit, seconds between hits and how long. Electric can show the game's sparks as it starts</small></button>
       <button class="effect-row" data-add-built="stat"><b>Stat change while hacked</b><small>One stat of the target, such as movement speed, accuracy, armor or a resistance, for a time</small></button>
-      <button class="effect-row" data-chance-mode><b>Chance to apply</b><small>A status effect, applied on a roll. Pick it from the Status effects list</small></button>
+      <button class="effect-row" data-chance-mode><b>Chance to apply</b><small>A status effect, applied on a roll. Pick it from the Status Effects list</small></button>
     </div>
   </div>
   <div data-effect-pane="status" hidden>

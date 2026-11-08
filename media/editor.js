@@ -22,7 +22,7 @@
 
   // The picker's status effects: kept here and filtered as the modder types.
   let pool = [];
-  // Set by Build one's Chance to apply: the next status effect picked becomes a chance's.
+  // Set by Make New's Chance to apply: the next status effect picked becomes a chance's.
   let chanceMode = false;
   const KINDS = { enemy: "Works on enemies", v: "V's own", boss: "Boss fights", other: "The rest" };
   const SHOWN = 300;
