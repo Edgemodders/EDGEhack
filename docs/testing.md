@@ -93,6 +93,7 @@ Then quit the game, and say what differed. If something failed, the lines with e
 | Run | Result |
 |---|---|
 | 2026-11-08, EDGEhack 0.0.11, dev PC, Part A | **Pass**, every step as written. The owner asked for a message naming each file a save adds to the project, with **Open** (built in 0.0.12) |
+| 2026-11-08, EDGEhack 0.0.11, dev PC, Part B | Steps 1 and 3 **pass**: Shock Ping on the wheel, `blind: true` (the chance route from the file, as from the Console). Step 2: only yellow numbers. The saved document shows why: step 13's type change landed on the **first** damage card (a1: Chemical, 40 a hit, sparks set), and the fourth (a4) stayed Electric at 10, so the yellow numbers were a4's. Whether the editor sent the change to the wrong card is open: both cards were titled Electric damage over time. Still, a1's chemical damage showed no numbers on a human, with its records as designed (a chemical attack, the tick behind EDGEhack's machines check): to settle in the next run. Step 4: not seen, since the blinded enemy stood still. Step 5: no drone near. Both go in the next run |
 
 ## H3.5 Attack features spike
 
