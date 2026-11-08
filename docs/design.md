@@ -250,7 +250,7 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
 | **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server, running without VS Code, and Connect an Assistant, with tools for scripts and packing; EDGEchat's plugin and REDnode's attached servers as its two routes (see [MCP tools](#mcp-tools)) | Hand test and in-game test, with REDagent making a quickhack in the game |
 | **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
-| **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page | The release gate: every hand test passed |
+| **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page. The owner chose on 2026-11-08 to release only after every phase above, as planned | The release gate: every hand test passed |
 
 Device and vehicle quickhacks are read in H1 and edited after H3, once the people's ones work.
 
@@ -502,13 +502,13 @@ Checked against the real REDbridge on game 2.5: every family as a source, 26 eff
 
 ### H3.6 Get it: plan
 
-Drafted on 2026-11-08, to agree with the owner. Read from game 2.5's TweakDB and scripts; nothing here has run in the game yet.
+Drafted on 2026-11-08 and **agreed with the owner the same day**, every recommendation below, with the spike first. Read from game 2.5's TweakDB and scripts; the spike's file is `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H36_spike` (docs/testing.md, "H3.6a Get it spike").
 
 **How the game hands out a quickhack.** Each tier is either sold as it is or as a schematic, and a schematic is crafted:
 
 | Record | What it is | Ping, as an example |
 |---|---|---|
-| `VendorItem` | One line in a vendor's stock: `item`, `quantity` (`Vendors.Always_Present`), `generationPrereqs` (mostly a Street Cred `StatPrereq`) | Common is sold as the quickhack (`Vendors.NetrunnerTrainer_inline76`); Rare and Legendary as schematics; all three by the same 13 netrunners. Legendary++'s schematic is sold by one Kabuki tech store only |
+| `VendorItem` | One line in a vendor's stock: `item`, `quantity` (`Vendors.Always_Present`), `generationPrereqs` (a gate on V: Ping's Rare schematic, `Vendors.RareQuickhackSchematicsAvailability`, needs V at level 12 or more, or a cyberdeck of quality 4 or more) | Common is sold as the quickhack (`Vendors.NetrunnerTrainer_inline76`); Rare and Legendary as schematics; all three by the same 13 netrunners. Legendary++'s schematic is sold by one Kabuki tech store only |
 | `Vendor` | A vendor; its `itemStock` lists its `VendorItem`s | `Vendors.wat_lch_netrunner_01` and 12 others |
 | `ItemRecipe` | The schematic, an item tagged `Recipe`: buying it teaches the recipe (`ItemActionsHelper.LearnItem`). `craftingResult` names the quickhack it makes; its price group is `Price.RareQuickhackSchematics` and the like | `Items.Recipe_PingLvl2Program` |
 | `CraftingPackage` on the quickhack's `CraftingData` | What crafting costs | Rare: 30 Rare quickhack components (`Items.QuickHackRareMaterial1`) |
@@ -518,7 +518,7 @@ Drafted on 2026-11-08, to agree with the owner. Read from game 2.5's TweakDB and
 
 | Part | What EDGEhack writes, per tier | Editor |
 |---|---|---|
-| Sold as it is | A `VendorItem` of its own for the new item, a copy of the family's tier's entry (its Street Cred gate), appended to the `itemStock` of every vendor that sells the family's tier | **Get it** per tier: where the game sells the family's tier, in words ("13 netrunners, Street Cred 40"), a **Sell it** box (on), and the Street Cred |
+| Sold as it is | A `VendorItem` of its own for the new item, a copy of the family's tier's entry (its gate), appended to the `itemStock` of every vendor that sells the family's tier | **Get it** per tier: where the game sells the family's tier, in words ("13 netrunners, Street Cred 40"), a **Sell it** box (on), and the Street Cred |
 | Sold as a schematic | A schematic of its own (`Items.Recipe_EDGEhack_<id>_<tier>`, a copy of the family's tier's with `craftingResult` naming the new item and its name), and its `VendorItem` for the same vendors | The same row |
 | Crafting | The new item keeps the family's crafting package unless the components change: then a package of its own | **Components** per tier, the game's amount beside it |
 | Known from the start | Not in H3.6: an existing save keeps its own craft book, so it needs a script that teaches the recipe at load (H3c, with the scripts) | |
@@ -536,7 +536,7 @@ REDnode's Console stays the way to get one while testing, and the editor's **Giv
 
 | Question | Recommendation |
 |---|---|
-| Copy the family's way of getting each tier by default? | Yes: a new quickhack shows up where players look for its family, at the same Street Cred |
+| Copy the family's way of getting each tier by default? | Yes: a new quickhack shows up where players look for its family, behind the same gate |
 | Let the components change? | Yes, the amount only, per tier; the component kind stays the game's for that quality |
 | The price? | The game's price groups, as the copies give; a price box later if wanted |
 | Known from the start? | Later, with H3c's scripts, as above |

@@ -19,6 +19,7 @@ Last updated 2026-11-07.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | | Waiting |
 | [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-08 | Pass (a drone check left) |
 | [H3.5 Attack features spike](#h35-attack-features-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-07 | Done: findings for the build |
 | [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | 2026-11-07 | Pass (EDGEhack 0.0.9): a drone and an android took only the burn, with no poison or bleed icon; humans the burn, poison and bleed |
@@ -31,7 +32,39 @@ Last updated 2026-11-07.
 
 ## Waiting for a hand test
 
+- [H3.6a Get it spike](#h36a-get-it-spike).
 - [H3.5 Build one](#h35-build-one), Part C's step 10 only: a built chemical or physical damage on a drone shows no numbers.
+
+## H3.6a Get it spike
+
+Answers three questions for H3.6 Get it (design, "H3.6 Get it: plan"): does a vendor show a new stock line on an existing save, does buying a schematic of EDGEhack's teach the recipe, and does the crafting menu craft the new quickhack. The file is hand-written: `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H36_spike\r6\tweaks\EDGEhack_H36_spike.yaml`, copied into the game's `r6\tweaks`. It needs the project EDGEhack_Test1 installed, with its Shock Ping.
+
+What the file does:
+
+| Part | What |
+|---|---|
+| Schematic | `Items.Recipe_EDGEhack_H36_ShockPing_Rare`, a copy of Ping's Rare schematic that crafts Shock Ping's Rare tier, named Shock Ping |
+| Stock line | A copy of Ping's (V at level 12 or more, or a cyberdeck of quality 4 or more), appended to the 13 vendors that sell Ping's Rare schematic, Edge Net in Kabuki among them |
+| Crafting | Shock Ping Rare costs 1 Rare quickhack component instead of 30, set as a flat on the record EDGEhack_Test1's file makes |
+
+| Step | Do | Expect |
+|---|---|---|
+| 0 | With the game closed, the spike's file goes into the game's `r6\tweaks` (Claude copies it, with your OK) | |
+| 1 | Start the game and load a save where V is level 12 or more. Switch on **Console** in the launcher and run `await tweakdb.type("Items.Recipe_EDGEhack_H36_ShockPing_Rare")` | `gamedataItemRecipe_Record`: the file loaded. `null` means it did not: stop and say so |
+| 2 | Run `await tweakdb.get("Items.EDGEhack_edgehack_test1_shock_ping_PingLvl2Program.CraftingData")` | The crafting package's id: note what it says |
+| 3 | Go to Edge Net in Kabuki (or any netrunner you know sells quickhack schematics) and open their shop | A **Shock Ping** schematic beside Ping's, Rare. Note its name, price and picture |
+| 4 | If it is not there: leave, skip time by 24 hours (sit or sleep, Wait), and open the shop again | Say whether it showed then |
+| 5 | Buy it | It leaves the shop |
+| 6 | In the Console run `const book = await (await (await api.GameInstance.GetScriptableSystemsContainer(game.instance)).Get("CraftingSystem")).GetPlayerCraftBook(); await book.KnowsRecipe("Items.EDGEhack_edgehack_test1_shock_ping_PingLvl2Program")` | `true`: V knows the recipe |
+| 7 | Open **Crafting**, the quickhacks tab | Shock Ping, Rare, with its cost. Note how many components it asks for: 1 if step 2's change took, 30 if not |
+| 8 | If you lack them, run `game.player.addItem("Items.QuickHackRareMaterial1", 30)`, then craft one | A Shock Ping Rare in the backpack |
+| 9 | Equip it in the cyberdeck and upload it on an enemy | The Rare tier's effects: blind at its chance and the electric numbers, as in H3.5 |
+| 10 | If step 3 and step 4 found no schematic: run `game.player.addItem("Items.Recipe_EDGEhack_H36_ShockPing_Rare", 1)`, then step 6 again | Whether a schematic given by the Console teaches the recipe too |
+
+Then quit the game and say what differed. Claude moves the spike's file to the Recycle Bin after.
+
+| Run | Result |
+|---|---|
 
 ## H3.5 Build one
 
