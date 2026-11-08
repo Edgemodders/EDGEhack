@@ -500,6 +500,48 @@ Checked against the real REDbridge on game 2.5: every family as a source, 26 eff
 
 **Still open for H3:** whether `$base` copies inline records (the spike listed its effects by hand); how a boss's actions are picked; and perks tied to a family.
 
+### H3.6 Get it: plan
+
+Drafted on 2026-11-08, to agree with the owner. Read from game 2.5's TweakDB and scripts; nothing here has run in the game yet.
+
+**How the game hands out a quickhack.** Each tier is either sold as it is or as a schematic, and a schematic is crafted:
+
+| Record | What it is | Ping, as an example |
+|---|---|---|
+| `VendorItem` | One line in a vendor's stock: `item`, `quantity` (`Vendors.Always_Present`), `generationPrereqs` (mostly a Street Cred `StatPrereq`) | Common is sold as the quickhack (`Vendors.NetrunnerTrainer_inline76`); Rare and Legendary as schematics; all three by the same 13 netrunners. Legendary++'s schematic is sold by one Kabuki tech store only |
+| `Vendor` | A vendor; its `itemStock` lists its `VendorItem`s | `Vendors.wat_lch_netrunner_01` and 12 others |
+| `ItemRecipe` | The schematic, an item tagged `Recipe`: buying it teaches the recipe (`ItemActionsHelper.LearnItem`). `craftingResult` names the quickhack it makes; its price group is `Price.RareQuickhackSchematics` and the like | `Items.Recipe_PingLvl2Program` |
+| `CraftingPackage` on the quickhack's `CraftingData` | What crafting costs | Rare: 30 Rare quickhack components (`Items.QuickHackRareMaterial1`) |
+| The craft book | The recipes V knows. A new game starts it from a `Craftable` record; a save keeps its own, so a recipe added to the start list never reaches an existing save | |
+
+**The plan: a new quickhack's tier is got the way its family's tier is, by default.**
+
+| Part | What EDGEhack writes, per tier | Editor |
+|---|---|---|
+| Sold as it is | A `VendorItem` of its own for the new item, a copy of the family's tier's entry (its Street Cred gate), appended to the `itemStock` of every vendor that sells the family's tier | **Get it** per tier: where the game sells the family's tier, in words ("13 netrunners, Street Cred 40"), a **Sell it** box (on), and the Street Cred |
+| Sold as a schematic | A schematic of its own (`Items.Recipe_EDGEhack_<id>_<tier>`, a copy of the family's tier's with `craftingResult` naming the new item and its name), and its `VendorItem` for the same vendors | The same row |
+| Crafting | The new item keeps the family's crafting package unless the components change: then a package of its own | **Components** per tier, the game's amount beside it |
+| Known from the start | Not in H3.6: an existing save keeps its own craft book, so it needs a script that teaches the recipe at load (H3c, with the scripts) | |
+
+REDnode's Console stays the way to get one while testing, and the editor's **Give yourself one** lines stay.
+
+**Steps.**
+
+| Step | What | Test |
+|---|---|---|
+| **H3.6a Spike** | A hand-written file for Shock Ping's Rare: a schematic of its own, its stock entry at one netrunner near the owner, a crafting package with 1 component. Answers: does the vendor show it on an existing save (vendors keep their stock and restock on a timer: unverified when a new line appears), does buying teach the recipe, does the crafting menu craft the new quickhack | In the game, with the Console |
+| **H3.6b Build** | The writer (`getIt` in `src/tweaks.ts`), the reader of where each family's tier is sold (`src/getit.ts`, no VS Code), the editor's **Get it** section, unit tests and the smoke check against the real records | By hand, then in the game: buy a schematic, craft the quickhack, and buy a Common one outright |
+
+**Open questions, with recommendations:**
+
+| Question | Recommendation |
+|---|---|
+| Copy the family's way of getting each tier by default? | Yes: a new quickhack shows up where players look for its family, at the same Street Cred |
+| Let the components change? | Yes, the amount only, per tier; the component kind stays the game's for that quality |
+| The price? | The game's price groups, as the copies give; a price box later if wanted |
+| Known from the start? | Later, with H3c's scripts, as above |
+| Also offer the schematic of a tier the game sells as it is (Common)? | No: copy the game's way. A box per tier can add it later |
+
 ### Own icons (H3b)
 
 Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.
