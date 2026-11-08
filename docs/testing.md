@@ -35,7 +35,7 @@ Last updated 2026-11-07.
 
 ## H3.5 Build one
 
-EDGEhack 0.0.11, and 0.0.12 for the message about added files: the third tab of **Add Effect**, which builds a damage over time, a stat change while hacked or a chance to apply a status effect, from what the spike below proved. The writer ran against the real game records (design, "H3.5 built"); this checks it by hand and in the game.
+EDGEhack 0.0.11, 0.0.12 for the message about added files, and 0.0.13 for Part C: the third tab of **Add Effect**, which builds a damage over time, a stat change while hacked or a chance to apply a status effect, from what the spike below proved. The writer ran against the real game records (design, "H3.5 built"); this checks it by hand and in the game.
 
 **Before you start:**
 
@@ -90,10 +90,32 @@ const ses = await api.GameInstance.GetStatusEffectSystem(game.instance); const t
 
 Then quit the game, and say what differed. If something failed, the lines with errors from TweakXL's log and `r6/logs/redscript_rCURRENT.log` help.
 
+**Part C, damage types (EDGEhack 0.0.13).** Each damage card now copies the game's own attack of its type. One card per tier, so each enemy shows one colour.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `edgehack-0.0.13.vsix` and reload VS Code. Open Shock Ping's editor | The Movement speed card says `speed is not a stat EDGEhack offers`, and a warning says so at the top. The damage cards read **Chemical damage over time** and **Electric damage over time** |
+| 2 | Click **Remove** on the Movement speed card. Add two more: **Add Effect...**, **Build one**, **Damage over time**, then set the new card's **Damage type** to **Thermal**; once more for **Physical** | Four damage cards, each with its own type in its title |
+| 3 | On each damage card's **On this tier** row, leave one box ticked: Chemical on **Common**, Electric on **Rare**, Thermal on **Legendary**, Physical on **Legendary++** | |
+| 4 | Press **Ctrl+S**. Quit the game, click **Pack and Play**, then start the game and load a save with enemies | |
+| 5 | Switch on **Console**. For each tier, click it in the Numbers header in VS Code and run its **Give yourself one** line in the Console | Four Shock Pings in the backpack |
+| 6 | Upload the Common one on a human | Green numbers |
+| 7 | Upload the Rare one on another | Light blue numbers |
+| 8 | Upload the Legendary one on another | Yellow-orange numbers |
+| 9 | Upload the Legendary++ one on another | White numbers |
+| 10 | If a drone or robot is around, upload the Common one on it | No numbers |
+
+If a step shows no numbers: aim at that enemy, run the line below, and upload within a second or two. For 15 s it writes the enemy's status effects to REDnode's mod log every half second, so Claude can read them after.
+
+```
+const ses = await api.GameInstance.GetStatusEffectSystem(game.instance); const t = await (await api.GameInstance.GetTargetingSystem(game.instance)).GetLookAtObject(await api.GetPlayer(game.instance), false, false); const id = await t.GetEntityID(); for (let i = 0; i < 30; i++) { const r = await ses.GetAppliedEffects(id, api.$out); const ids = await Promise.all(r.out.appliedEffects.map(async (e) => String(await (await e.GetRecord()).GetID()))); console.log(`watch ${i}: ${ids.join(" ")}`); await new Promise((ok) => setTimeout(ok, 500)); }
+```
+
 | Run | Result |
 |---|---|
 | 2026-11-08, EDGEhack 0.0.11, dev PC, Part A | **Pass**, every step as written. The owner asked for a message naming each file a save adds to the project, with **Open** (built in 0.0.12) |
 | 2026-11-08, EDGEhack 0.0.11, dev PC, Part B | Steps 1 and 3 **pass**: Shock Ping on the wheel, `blind: true` (the chance route from the file, as from the Console). Step 2: only yellow numbers. The saved document shows why: step 13's type change landed on the **first** damage card (a1: Chemical, 40 a hit, sparks set), and the fourth (a4) stayed Electric at 10, so the yellow numbers were a4's. Whether the editor sent the change to the wrong card is open: both cards were titled Electric damage over time. Still, a1's chemical damage showed no numbers on a human, with its records as designed (a chemical attack, the tick behind EDGEhack's machines check): to settle in the next run. Step 4: not seen, since the blinded enemy stood still. Step 5: no drone near. Both go in the next run |
+| 2026-11-08, EDGEhack 0.0.12, dev PC, Console checks on the same build | Both damage statuses were on the enemy (`chemical: true, electric: true`), yet only yellow numbers came, with the damage numbers set to Individual too. The game's colours (`damage_types.inkstyle`, `main_colors.inkstyle`): Electric light blue, **Thermal yellow-orange**, Chemical green, Physical white. So both built cards dealt thermal damage: they copied Overheat's attack, and the copy deals thermal whatever type it is given. With the electric card's tick pointed at the game's own `Attacks.ElectricDamageOverTime`, its numbers showed **blue** at once. Changes from the Console to the chemical card's tick (prereq, timing, tag, attack) showed no difference, unexplained. Triple Heat (H3.4's quickhack, rebuilt) still showed burn, poison and bleed numbers. Step 3 of the next run: an alerted enemy with the stat change moved at normal speed, running for cover: `MaxSpeed` does not slow an enemy. Pack and Play while the game runs swaps the archive only: a new quickhack's records need a restart |
 
 ## H3.5 Attack features spike
 

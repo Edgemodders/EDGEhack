@@ -280,10 +280,10 @@ export function withAddedTier(doc: QuickhackDoc, id: string, tier: string, on: b
   });
 }
 
-/** A new built effect's starting choices: electric damage, movement speed, or the status effect picked. */
+/** A new built effect's starting choices: electric damage, accuracy, or the status effect picked. */
 export function newBuiltEffect(kind: BuiltEffect["kind"], applies?: string): BuiltEffect {
   if (kind === "damage") return { kind, damageType: "Electric" };
-  if (kind === "stat") return { kind, stat: "speed" };
+  if (kind === "stat") return { kind, stat: "accuracy" };
   if (!applies) throw new Error("Pick the status effect the roll applies.");
   return { kind, applies };
 }

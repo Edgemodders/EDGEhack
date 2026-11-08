@@ -37,7 +37,7 @@ test("a built effect is kept in the document, and a bad one says what is wrong",
   assert.match(bad({ kind: "chance" }), /needs the status effect its roll applies/);
 });
 
-test("a damage over time is a status effect of its own on each tier, with Overheat's attack changed", async () => {
+test("a damage over time is a status effect of its own on each tier, with the game's attack of its type", async () => {
   const r = reader();
   const fam = await zap(r);
   let doc = withAddedEffect(newHackDoc("mod", "Zap", "Static"), { build: { kind: "damage", damageType: "Electric", sparks: true } });
@@ -46,7 +46,9 @@ test("a damage over time is a status effect of its own on each tier, with Overhe
   const added = await resolved(doc, fam, r);
   const { yaml, warnings } = writeTweaks(fam, doc, added);
   const L = "a1_ZapLvl1Program";
-  assert.match(block(yaml!, `Attacks.EDGEhack_mod_static_${L}`), /^ {2}\$base: Attacks\.OverheatQuickHackAttackLevel3\n {2}attackTag: EDGEhack\n {2}damageType: DamageTypes\.Electric\n {2}hitFlags:\n {4}- QuickHack\n {4}- DamageOverTime\n {2}statModifiers:\n {4}- EDGEhack\.mod_static\.a1_ZapLvl1Program_Damage$/);
+  // A copy of Overheat's attack dealt thermal damage whatever its type (H3.5's test): the game's own of each type.
+  assert.match(block(yaml!, `Attacks.EDGEhack_mod_static_${L}`), /^ {2}\$base: Attacks\.ElectricDamageOverTime\n {2}statModifiers:\n {4}- EDGEhack\.mod_static\.a1_ZapLvl1Program_Damage$/);
+  assert.ok(!/Overheat/.test(yaml!));
   assert.match(block(yaml!, `EDGEhack.mod_static.${L}_Damage`), /value: 12\n {2}modifierType: Additive\n {2}statType: BaseStats\.ElectricDamage/);
   const tick = block(yaml!, `EDGEhack.mod_static.${L}_Tick`);
   assert.match(tick, /\$type: ContinuousAttackEffector\n {2}effectorClassName: TriggerContinuousAttackEffector\n {2}attackRecord: Attacks\.EDGEhack_mod_static_a1_ZapLvl1Program\n {2}delayTime: 0\.25\n {2}timeDilationDriver: Effectors\.TDD_World\n {2}prereqRecord: Prereqs\.AlwaysTruePrereq/);
@@ -77,7 +79,7 @@ test("chemical and physical damage stay off machines, with the note; sparks only
   const added = await resolved(doc, fam, r);
   const { yaml } = writeTweaks(fam, doc, added);
   assert.match(block(yaml!, "EDGEhack.mod_zap.a1_ZapProgram_Tick"), /prereqRecord: EDGEhack\.mod_zap\.NotMachine/);
-  assert.match(yaml!, /damageType: DamageTypes\.Chemical/);
+  assert.match(block(yaml!, "Attacks.EDGEhack_mod_zap_a1_ZapProgram"), /\$base: Attacks\.ChemicalDamageOverTime\n/);
   assert.match(yaml!, /iconPath: poisoned/);
   assert.ok(!/Sparks/.test(yaml!), "no sparks on chemical damage");
   assert.ok(addedNotes(fam, added).some((n) => /keeps their damage off machines/.test(n)));
@@ -154,11 +156,11 @@ test("a chance on a status effect that is gone says so, and the rest is written"
   const r = reader();
   const fam = await zap(r);
   let doc = withAddedEffect(newHackDoc("mod", "Zap", "Static"), { build: { kind: "chance", applies: "BaseStatusEffect.Gone" } });
-  doc = withAddedEffect(doc, { build: { kind: "stat", stat: "speed" } });
+  doc = withAddedEffect(doc, { build: { kind: "stat", stat: "accuracy" } });
   const added = await resolved(doc, fam, r);
   const { yaml, warnings } = writeTweaks(fam, doc, added);
   assert.ok(warnings.some((w) => /BaseStatusEffect\.Gone is not in this game/.test(w)), warnings.join());
-  assert.match(yaml!, /statType: BaseStats\.MaxSpeed/);
+  assert.match(yaml!, /statType: BaseStats\.Accuracy/);
   assert.ok(!/a1_ZapProgram_Chance/.test(yaml!));
   assert.deepEqual(addedWarnings(fam, doc, added).filter((w) => !/Gone/.test(w)), []);
 });
@@ -179,4 +181,17 @@ test("the page has the Build one tab, and a built card shows its choices and num
   for (const f of ["damage", "every", "duration"]) assert.match(card, new RegExp(`data-added-field="${f}"`));
   assert.match(card, /placeholder="10"/);
   assert.match(card, /Built by EDGEhack/);
+});
+
+test("built cards with one name are numbered; movement speed is not offered, since it does nothing on enemies", async () => {
+  const r = reader();
+  const fam = await zap(r);
+  let doc = withAddedEffect(newDoc("mod", "Zap"), { build: { kind: "damage", damageType: "Electric" } });
+  doc = withAddedEffect(doc, { build: { kind: "damage", damageType: "Electric" } });
+  doc = withAddedEffect(doc, { build: { kind: "damage", damageType: "Chemical" } });
+  doc = withAddedEffect(doc, { build: { kind: "stat", stat: "speed" } });
+  const added = await resolved(doc, fam, r);
+  assert.deepEqual(added.map((a) => a.name), ["Electric damage over time", "Electric damage over time 2", "Chemical damage over time", "speed"]);
+  assert.match(added[3].problem ?? "", /speed is not a stat EDGEhack offers/);
+  assert.match(renderAddedEffects(fam, added, new Map()), /<b>Electric damage over time 2<\/b>/);
 });

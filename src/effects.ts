@@ -181,7 +181,6 @@ export interface StatChoice {
 }
 
 export const STAT_CHOICES: Record<string, StatChoice> = {
-  speed: { label: "Movement speed", stats: ["BaseStats.MaxSpeed"], how: "Multiplier", value: 0.5, unit: "times", hint: "0.5 is half speed. The game's grenades use 0.2 to 0.9" },
   accuracy: { label: "Accuracy", stats: ["BaseStats.Accuracy"], how: "Multiplier", value: 0.4, unit: "times", hint: "0.4 is what a Flash grenade does" },
   armor: { label: "Armor", stats: ["BaseStats.Armor"], how: "Additive", value: -30, unit: "added", hint: "Negative lowers it. The game's electric statuses use -10 to -50" },
   chemicalResistance: { label: "Chemical resistance", stats: ["BaseStats.ChemicalResistance"], how: "Additive", value: -30, unit: "added", hint: "Negative lowers it, -100 to 100" },
@@ -199,6 +198,18 @@ export const STAT_CHOICES: Record<string, StatChoice> = {
 /** The icons a built effect shows (the game's own), when the game shows one: no icon showed over an enemy in H3.5's spike. */
 export const DAMAGE_ICONS: Record<DamageTypeName, string> = { Electric: "electricuted", Thermal: "burning_icon", Chemical: "poisoned", Physical: "wounded_disabled_icon" };
 export const STAT_ICON = "decreased_stats_icon";
+
+/**
+ * The game's own damage over time of each type, which a built damage card copies with its own damage
+ * (H3.5's test, 2026-11-08). A copy of Overheat's attack dealt thermal damage whatever type it was given,
+ * shown in the thermal colour; the game's electric one showed the electric colour at once.
+ */
+export const DAMAGE_ATTACKS: Record<DamageTypeName, string> = {
+  Electric: "Attacks.ElectricDamageOverTime",
+  Thermal: "Attacks.ThermalDamageOverTime",
+  Chemical: "Attacks.ChemicalDamageOverTime",
+  Physical: "Attacks.PhysicalDamageOverTime",
+};
 
 /** Damage types EDGEhack keeps off machines, as an added poison or bleed (H3.4b). */
 export const DAMAGE_OFF_MACHINES = new Set<DamageTypeName>(["Chemical", "Physical"]);
@@ -285,8 +296,12 @@ export async function resolveAdded(doc: QuickhackDoc, fam: Family, ctx: ResolveC
         out.push({ entry, name: builtName(b), byTier, problem: `${b.stat} is not a stat EDGEhack offers, so it was left out.` });
         continue;
       }
-      for (const t of fam.tiers) byTier.set(tierKey(t), builtOnTier(entry, tierKey(t), applied));
-      out.push({ entry, name: builtName(b, applied), byTier, applied });
+      // Two built cards with one name get a number, so a card cannot be taken for another.
+      let name = builtName(b, applied);
+      const same = out.filter((r) => r.entry.build && (r.name === name || r.name.startsWith(`${name} `))).length;
+      if (same) name = `${name} ${same + 1}`;
+      for (const t of fam.tiers) byTier.set(tierKey(t), { ...builtOnTier(entry, tierKey(t), applied), name });
+      out.push({ entry, name, byTier, applied });
       continue;
     }
     if (entry.from && entry.effect) {

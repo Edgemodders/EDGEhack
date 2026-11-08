@@ -5,7 +5,7 @@
 import type { QuickhackDoc, TierEdit } from "./document";
 import { mainEffect, Tier, Family, Variant, Effect, tierKey } from "./read";
 import { NEW_HACK_SCRIPT } from "./newHackScript";
-import { addedGameValue, addedWarnings, builtValue, DAMAGE_ICONS, DAMAGE_OFF_MACHINES, keptOffMachines, ResolvedAdded, STAT_CHOICES, STAT_ICON } from "./effects";
+import { addedGameValue, addedWarnings, builtValue, DAMAGE_ATTACKS, DAMAGE_ICONS, DAMAGE_OFF_MACHINES, keptOffMachines, ResolvedAdded, STAT_CHOICES, STAT_ICON } from "./effects";
 
 export interface TextEntry {
   key: string;
@@ -306,8 +306,9 @@ const quoted = (text: string): string => JSON.stringify(text);
  * A built effect on one tier (H3.5), as its own records, and the effect record for the action's list. Each
  * is a status effect EDGEhack writes from nothing, of the neutral type Misc, as H3.5's spike proved:
  *
- * - damage: a ContinuousAttackEffector running an attack copied from Overheat's (its `damage_over_time`
- *   game effect) with the type and damage changed. Chemical and physical stay off machines (H3.4b's check).
+ * - damage: a ContinuousAttackEffector running a copy of the game's own damage over time of that type
+ *   (DAMAGE_ATTACKS) with the card's damage in place of the game's. Chemical and physical stay off
+ *   machines (H3.4b's check).
  * - stat: the stats in the status effect's package.
  * - chance: a carrier status effect of 1 s whose package applies the status effect behind the game's
  *   `SetChancePrereq`, which rolls once when it is applied. The game's ApplyStatusEffectByChanceEffector
@@ -336,7 +337,7 @@ function builtOnTier(out: Out, doc: QuickhackDoc, r: ResolvedAdded, t: Tier, lab
   if (b.kind === "damage") {
     const type = b.damageType!;
     const attack = `Attacks.EDGEhack_${doc.id}_${L}`;
-    out.records.push(copy(attack, "Attacks.OverheatQuickHackAttackLevel3", { attackTag: "EDGEhack", damageType: `DamageTypes.${type}`, hitFlags: ["QuickHack", "DamageOverTime"], statModifiers: [out.modifier(`${L}_Damage`, `BaseStats.${type}Damage`, v("damage"))] }));
+    out.records.push(copy(attack, DAMAGE_ATTACKS[type], { statModifiers: [out.modifier(`${L}_Damage`, `BaseStats.${type}Damage`, v("damage"))] }));
     const tick = `${out.prefix}.${L}_Tick`;
     const prereq = DAMAGE_OFF_MACHINES.has(type) ? out.notMachine() : "Prereqs.AlwaysTruePrereq";
     out.records.push(`${tick}:\n  $type: ContinuousAttackEffector\n  effectorClassName: TriggerContinuousAttackEffector\n  attackRecord: ${attack}\n  delayTime: ${round(Math.max(0.05, v("every")))}\n  timeDilationDriver: Effectors.TDD_World\n  prereqRecord: ${prereq}\n`);
