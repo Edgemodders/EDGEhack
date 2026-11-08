@@ -49,10 +49,10 @@ One main file: `EDGEhack-<version>-nexus.zip` (`tools/nexus-zip.mjs`), with:
 |---|---|
 | `npm run nexus:status` | The page's version, its files and whether the description matches |
 | `npm run nexus:pull` | The live description into `description.bbcode`, the ids into `nexus.json`. Then `git diff nexus/` and merge. |
-| `node tools/nexus/nexus.mjs check --version <v>` | What a release would do, and whether it may |
+| `node ../EDGErepo/tools/nexus/nexus.mjs check --version <v>` | What a release would do, and whether it may |
 | `node tools/check-bbcode.mjs nexus/description.bbcode` | Checks the BBCode's tags before a push |
 
-`tools/nexus/nexus.mjs` and `api.mjs` are REDnode's, copied as they are: change them in REDnode, then copy them again (REDnode's CLAUDE.md lists the repos that keep a copy).
+The Nexus tool is shared, in [EDGErepo](https://github.com/Edgemodders/EDGErepo). These commands need it checked out beside this repo (`../EDGErepo`). The release workflow clones it at the tag `v1`. Change it there.
 
 ## BBCode used
 

@@ -39,7 +39,7 @@ Releases are made by the **Release** workflow on GitHub (Actions > Release > Run
 
 1. Rename **Unreleased** in `CHANGELOG.md` to `## <version> (<date>)` and start a new empty one.
 2. Update README.md's status line (`**Status: <version> released on <date>** ...`) and the `status` entry in `tools/brand/badges.py`, then `python -I tools/brand/badges.py docs/assets/brand/badges`, and the README's `<img alt>` for the badge.
-3. For Nexus: the page must exist (there is none yet) and be in `nexus/nexus.json` ([nexus/README.md](https://github.com/Edgemodders/EDGEhack/blob/main/nexus/README.md)).
+3. For Nexus: the page must exist (there is none yet) and be in `nexus/nexus.json` ([nexus/README.md](https://github.com/Edgemodders/EDGEhack/blob/main/nexus/README.md)). To run the Nexus commands on a PC, check out [EDGErepo](https://github.com/Edgemodders/EDGErepo) beside this repo; the release workflow clones it by itself.
 
 The workflow needs the Edgemodders organisation secrets `VSCE_PAT` (Marketplace), `OVSX_PAT` (Open VSX) and `NEXUS_KEY` (Nexus). If they are limited to selected repositories, EDGEhack must be added to them. **Verify publish tokens** (Actions) checks the two store tokens without publishing.
 
