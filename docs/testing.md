@@ -39,15 +39,15 @@ Last updated 2026-11-10.
 
 ## H3.7b Desk icons
 
-EDGEhack 0.0.17, in VS Code only, asked for after H3.7's run: a trash can on each Desk entry, and Add to Project's icon with a small plus.
+EDGEhack 0.0.18, in VS Code only, asked for after H3.7's run: a trash can on each Desk entry, and Add to Project with the new-file icon EDGEfab's Desk uses (0.0.17 had a drawn project board with a plus; the owner chose EDGEfab's as cleaner).
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | Install `edgehack-0.0.17.vsix` and reload VS Code. Hover a quickhack on the Desk | Two icons at the right of its row: Add to Project (a project board with a small plus at its corner), then a trash can, rightmost |
+| 1 | Install `edgehack-0.0.18.vsix` and reload VS Code. Hover a quickhack on the Desk | Two icons at the right of its row: Add to Project (a page with a plus, as on EDGEfab's Desk), then a trash can, rightmost |
 | 2 | Hover the trash can | Its tooltip says **Remove from the Desk...** |
 | 3 | Press it, then **Cancel** | It asks first; Cancel leaves the entry |
 | 4 | Press it again and confirm | The entry leaves the Desk, its tab closes if open, and it is in the Recycle Bin |
-| 5 | Hover an entry of the **Project** group, then switch VS Code's theme between light and dark | No trash can on project entries. Add to Project's icon reads clearly in both themes |
+| 5 | Hover an entry of the **Project** group | No trash can on project entries |
 
 | Run | Result |
 |---|---|
@@ -74,7 +74,7 @@ Then say what differed. Loose Ping and the Short Circuit change can be removed f
 
 | Run | Result |
 |---|---|
-| 2026-11-10, EDGEhack 0.0.16 | **Pass**, all 10 steps. Asked for after it: a hover trash can on each Desk entry, and a small plus on Add to Project's icon (H3.7b, EDGEhack 0.0.17) |
+| 2026-11-10, EDGEhack 0.0.16 | **Pass**, all 10 steps. Asked for after it: a hover trash can on each Desk entry, and Add to Project's icon with a plus (H3.7b, EDGEhack 0.0.18, with EDGEfab's new-file icon) |
 
 ## H3.6b Get it
 
