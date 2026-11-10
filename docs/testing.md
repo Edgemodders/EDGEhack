@@ -19,7 +19,7 @@ Last updated 2026-11-10.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | | Waiting |
+| [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 5 steps (EDGEhack 0.0.18) |
 | [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.16). The owner asked for a trash can on each entry and a plus on Add to Project's icon: H3.7b |
 | [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | 2026-11-10 | Pass, Parts A and B (EDGEhack 0.0.15) |
 | [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-09 | Pass: a vendor shows a new schematic on an existing save at once, buying teaches it, crafting makes the new hack; a crafting cost set from another file does not take |
@@ -35,7 +35,7 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-- [H3.7b Desk icons](#h37b-desk-icons).
+None.
 
 ## H3.7b Desk icons
 
@@ -51,6 +51,7 @@ EDGEhack 0.0.18, in VS Code only, asked for after H3.7's run: a trash can on eac
 
 | Run | Result |
 |---|---|
+| 2026-11-10, EDGEhack 0.0.18 | **Pass**, all 5 steps |
 
 
 ## H3.7 Desk
