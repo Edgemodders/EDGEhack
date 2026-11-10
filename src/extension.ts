@@ -9,6 +9,10 @@ import { recordOfArg } from "./quickhack";
 import { QuickhackEditor } from "./editor";
 import { DeskView } from "./deskView";
 import { copyName, deskRoot, duplicateDeskItem, deskNewHackProblem } from "./desk";
+import { projectFilesOf } from "./projectDocs";
+import { removeTexts } from "./projectFiles";
+import { bridge, redcode } from "./redcode";
+import * as path from "node:path";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
 class Empty implements vscode.TreeDataProvider<never> {
@@ -130,6 +134,41 @@ export function activate(context: vscode.ExtensionContext): void {
           if (uri && uri.fsPath.startsWith(item.folder)) await vscode.window.tabGroups.close(tab);
         }
         await vscode.workspace.fs.delete(vscode.Uri.file(item.folder), { recursive: true, useTrash: true });
+        desk.refresh();
+        return true;
+      } catch (err) {
+        failed(err);
+        return false;
+      }
+    }),
+    vscode.commands.registerCommand("edgehack.project.remove", async (arg?: unknown, confirmed?: boolean) => {
+      try {
+        const entry = DeskView.projectDocOf(arg);
+        const project = (await redcode()).project();
+        if (!entry || !project) return false;
+        const id = path.basename(entry.file).replace(/\.quickhack\.json$/, "");
+        const files = projectFilesOf(project, id);
+        const shown = entry.doc?.name || entry.doc?.family || id;
+        if (confirmed !== true) {
+          const list = files.map((f) => path.relative(project.dir, f).split(path.sep).join("/"));
+          const choice = await vscode.window.showWarningMessage(
+            `Remove ${shown} from ${project.name}?`,
+            { modal: true, detail: `These go to the Recycle Bin:\n${list.join("\n")}\n\nIts texts are taken out of the project's onscreens file. A copy on the Desk stays.` },
+            "Remove from Project",
+          );
+          if (choice !== "Remove from Project") return false;
+        }
+        for (const tab of vscode.window.tabGroups.all.flatMap((g) => g.tabs)) {
+          const uri = (tab.input as { uri?: vscode.Uri } | undefined)?.uri;
+          if (uri && files.some((f) => uri.fsPath === f || uri.fsPath.startsWith(f + path.sep))) await vscode.window.tabGroups.close(tab);
+        }
+        for (const f of files) await vscode.workspace.fs.delete(vscode.Uri.file(f), { recursive: true, useTrash: true });
+        try {
+          await removeTexts(project, await bridge(), id);
+        } catch (err) {
+          void vscode.window.showWarningMessage(`EDGEhack removed ${shown}, but not its texts from the onscreens file: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        hub.log.appendLine(`Removed ${id} from ${project.name}: ${files.join(", ")}`);
         desk.refresh();
         return true;
       } catch (err) {

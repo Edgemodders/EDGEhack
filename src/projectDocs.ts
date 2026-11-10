@@ -8,8 +8,8 @@ import type { Family } from "./read";
 import { writeTweaks } from "./tweaks";
 import type { Sales } from "./getit";
 import type { ResolvedAdded } from "./effects";
-import { ProjectResult, writeProject } from "./projectFiles";
-import { IconWriter, writeOwnIcons } from "./ownIcons";
+import { ProjectResult, writeProject, yamlFile } from "./projectFiles";
+import { atlasPaths, iconsDir, IconWriter, writeOwnIcons } from "./ownIcons";
 
 /** Where a document lives in a project: source/raw/edgehack/<id>.quickhack.json. */
 export const docFile = (project: ProjectRef, id: string): string => path.join(project.raw, "edgehack", `${id}.quickhack.json`);
@@ -62,6 +62,17 @@ export function makeNewHackDoc(project: ProjectRef, familyKeys: string[], family
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, printDoc(doc));
   return { file, doc };
+}
+
+/**
+ * What a document put into the project, that Remove from Project takes out: the document, its own icons'
+ * pictures, its TweakXL file, and its icons' texture and atlas. Only those that exist. Its texts are in the
+ * shared onscreens file (removeTexts), and the shared script stays, since other documents may need it.
+ */
+export function projectFilesOf(project: ProjectRef, id: string): string[] {
+  const doc = docFile(project, id);
+  const icons = atlasPaths(id);
+  return [doc, iconsDir(doc, id), yamlFile(project, id), path.join(project.raw, icons.png), path.join(project.archive, icons.xbm), path.join(project.archive, icons.atlas)].filter((f) => fs.existsSync(f));
 }
 
 /** A document's mod files, written into the project. `added` is its added effects, read; `sales`, how the game hands out its family (Get it). */

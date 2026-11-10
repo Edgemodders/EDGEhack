@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -141,6 +141,12 @@
         "title": "Remove from the Desk...",
         "category": "EDGEhack",
         "icon": "$(trash)"
+      },
+      {
+        "command": "edgehack.project.remove",
+        "title": "Remove from Project...",
+        "category": "EDGEhack",
+        "icon": "$(trash)"
       }
     ],
     "menus": {
@@ -206,6 +212,16 @@
           "command": "edgehack.desk.remove",
           "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\./",
           "group": "z@9"
+        },
+        {
+          "command": "edgehack.project.remove",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.doc\\./",
+          "group": "inline@9"
+        },
+        {
+          "command": "edgehack.project.remove",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.doc\\./",
+          "group": "z@9"
         }
       ],
       "commandPalette": [
@@ -239,6 +255,10 @@
         },
         {
           "command": "edgehack.desk.remove",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.project.remove",
           "when": "false"
         }
       ]

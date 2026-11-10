@@ -92,6 +92,15 @@ export class DeskView implements vscode.TreeDataProvider<Node> {
   }
 
   /** The Desk item a node or a document's file stands for. */
+  /** The project's document a row, path or URI names. */
+  static projectDocOf(arg: unknown): ProjectDoc | undefined {
+    const node = arg as Node | undefined;
+    if (node && typeof node === "object" && node.kind === "doc") return node.entry;
+    const file = typeof arg === "string" ? arg : arg instanceof vscode.Uri ? arg.fsPath : undefined;
+    if (!file || !file.endsWith(".quickhack.json")) return undefined;
+    return { file };
+  }
+
   static itemOf(arg: unknown): DeskItem | undefined {
     const node = arg as Node | undefined;
     if (node && typeof node === "object" && node.kind === "desk") return node.item;

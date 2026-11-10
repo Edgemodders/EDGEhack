@@ -12,14 +12,15 @@ Last updated 2026-11-10.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 107 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 108 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3b.2 Upload](#h3b2-upload) | By hand, then in the game | H3b | | Waiting |
+| [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | | Waiting |
+| [H3b.2 Upload](#h3b2-upload) | By hand, then in the game | H3b | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.19, with REDcode's test build from main e9b5e7b) |
 | [H3b.1 Own icons spike](#h3b1-own-icons-spike) | By hand, in the game | H3b | 2026-11-10 | Pass, steps 1 to 6: our item card, wheel glyph and status symbol all showed |
 | [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 5 steps (EDGEhack 0.0.18) |
 | [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.16). The owner asked for a trash can on each entry and a plus on Add to Project's icon: H3.7b |
@@ -37,7 +38,26 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-- [H3b.2 Upload](#h3b2-upload).
+- [H3.7c Remove from Project](#h37c-remove-from-project).
+
+## H3.7c Remove from Project
+
+EDGEhack 0.0.20, in VS Code only, asked for by the owner on 2026-11-10: a trash can on each quickhack of the Desk view's Project group. Keep the REDcode test build from H3b.2 installed.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.20.vsix` and reload. In the Desk view, hover a quickhack in **Project: EDGEhack_Test1** | A trash can at the right of its row; its tooltip says **Remove from Project...** |
+| 2 | Press it on **Icon Test** (from H3b.2) | A dialog lists what goes to the Recycle Bin: its document, its `.icons` folder, its YAML, and its icons' texture and atlas. It says its texts leave the onscreens file and a Desk copy stays |
+| 3 | Press **Cancel** | Nothing changes |
+| 4 | Press the trash can again and **Remove from Project** | Icon Test leaves the Project group (in the Quickhacks view too), its tab closes if open, and the files are in the Recycle Bin |
+| 5 | Open the project's onscreens file in REDcode (source/archive, `localization/en-us.json`) | No `EDGEhack-edgehack_test1_icon_test-` entries; the other quickhacks' entries are there |
+| 6 | Hover a quickhack on the Desk itself (not in the Project group) | Its trash can still says **Remove from the Desk...** |
+
+Then say what differed.
+
+| Run | Result |
+|---|---|
+
 
 ## H3b.2 Upload
 
@@ -60,7 +80,7 @@ Then say what differed, with a screenshot of any icon that looks wrong.
 
 | Run | Result |
 |---|---|
-
+| 2026-11-10, EDGEhack 0.0.19, REDcode main e9b5e7b, dev PC, game 2.5 | **Pass**, all 10 steps: the first real call of REDcode's `importFile` with `texture` from EDGEhack |
 
 ## H3b.1 Own icons spike
 

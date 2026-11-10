@@ -8,8 +8,9 @@ import { readFamily } from "../src/read";
 import { render } from "../src/pageHtml";
 import { renderEditor } from "../src/editorHtml";
 import { newDoc, newHackDoc, printDoc } from "../src/document";
-import { docFile, makeNewHackDoc, newHackProblem, projectDocs } from "../src/projectDocs";
-import type { ProjectRef } from "../src/redcode";
+import { docFile, makeNewHackDoc, newHackProblem, projectDocs, projectFilesOf } from "../src/projectDocs";
+import { removeTexts, yamlFile } from "../src/projectFiles";
+import type { BridgeClient, ProjectRef } from "../src/redcode";
 import { fetchRecord, fetchText } from "./fixture";
 
 function scratchProject(): ProjectRef {
@@ -92,4 +93,42 @@ test("a change's editor stays as it was", async () => {
   assert.match(html, /A change to the game's Zap/);
   assert.match(html, /data-field="bossRam"/);
   assert.doesNotMatch(html, /data-new-hack|data-give/);
+});
+
+test("Remove from Project names what the document put into the project, and takes its texts out", async () => {
+  const project = scratchProject();
+  const id = "my_mod_zap";
+  const files = [
+    docFile(project, id),
+    path.join(project.raw, "edgehack", `${id}.icons`, "item.png"),
+    yamlFile(project, id),
+    path.join(project.raw, "edgehack", "icons", `${id}.png`),
+    path.join(project.archive, "edgehack", "icons", `${id}.xbm`),
+    path.join(project.archive, "edgehack", "icons", `${id}.inkatlas`),
+  ];
+  for (const f of files) {
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.writeFileSync(f, "x");
+  }
+  // Another document's files are not named.
+  fs.writeFileSync(docFile(project, "my_mod_other"), "x");
+  const named = projectFilesOf(project, id);
+  assert.deepEqual(named, [files[0], path.dirname(files[1]), files[2], files[3], files[4], files[5]]);
+  fs.rmSync(files[2]);
+  assert.equal(projectFilesOf(project, id).length, 5, "only those that exist");
+
+  const entries = (keys: string[]) => JSON.stringify({ Data: { RootChunk: { root: { Data: { entries: keys.map((k) => ({ secondaryKey: k, femaleVariant: k })) } } } } });
+  let written: string | undefined;
+  const bridge = {
+    locProjectFiles: async () => [{ file: "source/archive/loc.json", exists: true, xl: null }],
+    fileToJson: async () => ({ json: entries([`EDGEhack-${id}-Name`, "EDGEhack-my_mod_other-Name", "Other"]) }),
+    fromJson: async (_f: string, s: { json: string }) => {
+      written = s.json;
+      return { file: _f, bytes: 0 };
+    },
+  } as unknown as BridgeClient;
+  assert.equal(await removeTexts(project, bridge, id), true);
+  const keys = JSON.parse(written!).Data.RootChunk.root.Data.entries.map((e: { secondaryKey: string }) => e.secondaryKey);
+  assert.deepEqual(keys, ["EDGEhack-my_mod_other-Name", "Other"]);
+  assert.equal(await removeTexts(project, { ...bridge, fileToJson: async () => ({ json: written }) } as typeof bridge, id), false, "nothing of it left: no write");
 });

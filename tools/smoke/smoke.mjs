@@ -498,4 +498,17 @@ await sleep(2500);
 const deskRows = await main(`[...document.querySelectorAll('.monaco-list-row')].map((r) => r.getAttribute("aria-label") ?? r.textContent)`);
 check(deskRows.some((r) => /Smoke Desk Two/.test(r)) && deskRows.filter((r) => /Smoke Desk/.test(r) && /new, from Overheat/.test(r)).length >= 3, `the Desk view lists both, and the project's copy: ${deskRows.filter((r) => /Smoke Desk/.test(r)).length} rows`);
 await shot("desk.png");
+
+// Remove from Project: the document and its mod files go (to the Recycle Bin), its texts leave the
+// onscreens file, and the Desk's copy stays.
+const addedYaml = path.join(T, "proj", "source", "resources", "r6", "tweaks", "smokemod", "smokemod_smoke_desk.yaml");
+check(fs.existsSync(addedYaml), "the added quickhack has its YAML in the project");
+await step({ command: "edgehack.project.remove", args: [added, true] });
+await sleep(1500);
+check(!fs.existsSync(added) && !fs.existsSync(addedYaml), "Remove from Project takes its document and YAML out of the project");
+check(fs.existsSync(deskFile), "and leaves the Desk's copy");
+await step({ dumpLoc: true });
+const locAfter = JSON.parse(fs.readFileSync(path.join(T, "loc.json"), "utf8"));
+const entriesAfter = locAfter ? JSON.parse(locAfter).Data.RootChunk.root.Data.entries : [];
+check(!entriesAfter.some((e) => e.secondaryKey?.startsWith("EDGEhack-smokemod_smoke_desk-")) && entriesAfter.some((e) => e.secondaryKey?.startsWith("EDGEhack-smokemod_overheat-")), "its texts leave the onscreens file; the others' stay");
 finish();

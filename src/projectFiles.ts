@@ -42,9 +42,26 @@ export function mergeEntries(json: string, id: string, texts: TextEntry[]): stri
   return JSON.stringify(doc);
 }
 
+/** Where a document's TweakXL file goes in the project. */
+export const yamlFile = (project: ProjectRef, id: string): string => path.join(project.resources, "r6", "tweaks", project.modName, `${id}.yaml`);
+
+/** Takes a document's texts out of the project's onscreens file. Answers whether the file changed. */
+export async function removeTexts(project: ProjectRef, bridge: BridgeClient, id: string): Promise<boolean> {
+  const files = await bridge.locProjectFiles(project.dir, "en-us");
+  const existing = files.find((f) => f.exists)?.file;
+  if (!existing) return false;
+  const full = path.join(project.dir, existing);
+  const before = (await bridge.fileToJson(full)).json;
+  if (typeof before !== "string") throw new Error(`REDbridge could not read ${existing}.`);
+  const after = mergeEntries(before, id, []);
+  if (after === JSON.stringify(JSON.parse(before))) return false;
+  await bridge.fromJson(full, { json: after });
+  return true;
+}
+
 export async function writeProject(project: ProjectRef, bridge: BridgeClient, doc: QuickhackDoc, written: WrittenTweaks): Promise<ProjectResult> {
   const result: ProjectResult = { created: [] };
-  const yaml = path.join(project.resources, "r6", "tweaks", project.modName, `${doc.id}.yaml`);
+  const yaml = yamlFile(project, doc.id);
   if (fs.existsSync(yaml) && !fs.readFileSync(yaml, "utf8").startsWith(MADE_BY)) {
     throw new Error(`${yaml} exists and was not made by EDGEhack, so it was left alone. Move or rename it.`);
   }

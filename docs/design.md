@@ -626,7 +626,9 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 | The page | `src/editorHtml.ts`, `media/editor.js` | A Status figure (Upload and Game's, no picker), Upload on each, Black is see-through on Wheel and Status; the fit (contain, centred, on nothing) and the black-to-transparent step run in the page's canvas, which reads PNG and JPG. Own pictures show as data URLs (the page's policy allows `data:` images) |
 | Desk | `src/desk.ts` | Duplicate and Add to Project take the pictures along (`copyOwnIcons`) |
 
-Checked: 107 unit tests (7 new, `test/ownIcons.test.ts`); the smoke test uploads a white square on black to the wheel through the page's file input, and checks the fitted 64 x 64 picture, the `.xbm` (imported with the UI setup through REDbridge 0.12.1, in the stand-in REDcode), the atlas, the YAML, and Game's removing them. Unverified until the hand test: REDcode 0.10.8's own `importFile` called from EDGEhack.
+Checked: 107 unit tests (7 new, `test/ownIcons.test.ts`); the smoke test uploads a white square on black to the wheel through the page's file input, and checks the fitted 64 x 64 picture, the `.xbm` (imported with the UI setup through REDbridge 0.12.1, in the stand-in REDcode), the atlas, the YAML, and Game's removing them. **H3b.2 passed its hand test and in the game on 2026-11-10** (EDGEhack 0.0.19, with REDcode's test build from main): the uploaded item, wheel and status icons showed on a new quickhack, the game's Overheat kept its own, and Duplicate and Add to Project carried the pictures.
+
+**Remove from Project (2026-11-10, EDGEhack 0.0.20, asked for by the owner):** the Desk view's Project rows get a trash can (`edgehack.project.remove`, inline and in the menu). After a modal that lists them, the document, its `.icons` folder, its YAML and its icons' texture and atlas go to the Recycle Bin (`projectFilesOf` in `src/projectDocs.ts`), and its texts leave the onscreens file (`removeTexts` in `src/projectFiles.ts`). The shared script stays, since other documents may need it.
 
 ### H3c Scripts: plan
 
