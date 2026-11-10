@@ -19,6 +19,7 @@ Last updated 2026-11-10.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3b.1 Own icons spike](#h3b1-own-icons-spike) | By hand, in the game | H3b | | Waiting |
 | [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 5 steps (EDGEhack 0.0.18) |
 | [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.16). The owner asked for a trash can on each entry and a plus on Add to Project's icon: H3.7b |
 | [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | 2026-11-10 | Pass, Parts A and B (EDGEhack 0.0.15) |
@@ -35,7 +36,26 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-None.
+- [H3b.1 Own icons spike](#h3b1-own-icons-spike).
+
+## H3b.1 Own icons spike
+
+In the game, no EDGEhack needed. The files are in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H3b_spike\out`: Claude copies them into the game folder with your OK (`archive\pc\mod\EDGEhack_H3b_spike.archive` and `r6\tweaks\EDGEhack_H3b_spike.yaml`). They give the game's own **Overheat** our test icons: a cyan bolt in a ring on a dark card with gold pins (item), a white bolt in a ring (wheel), a solid white bolt (status).
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Load a save. If V has no Overheat, switch on **Console** in REDnode's launcher and run `await game.player.addItem('Items.OverheatLvl3Program')` | |
+| 2 | Open the inventory, then the cyberdeck's quickhacks, and hover Overheat | The card with the cyan bolt, at the size of the other quickhacks' cards, not stretched or cut |
+| 3 | Open the crafting menu's quickhack tab and find Overheat | The same card |
+| 4 | Scan an enemy and look at the quickhack wheel | Overheat's entry shows the white bolt in a ring, the size of the others |
+| 5 | Upload Overheat on the enemy | Say what shows where the game showed its burning icon on the enemy: the solid white bolt, the game's icon, or nothing |
+| 6 | Quit the game | Claude removes the two files after, so Overheat is the game's again |
+
+Then say what differed, with a screenshot of any icon that looks wrong.
+
+| Run | Result |
+|---|---|
+
 
 ## H3.7b Desk icons
 

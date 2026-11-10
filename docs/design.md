@@ -602,6 +602,18 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 
 **Unverified, to settle in H3b:** how close a fixed prompt gets to the game's look, which needs real generated images and the owner's eye, so the prompts will be tuned in that phase's test; the Status look's size; whether the atlas needs a 1080p texture as well as the 4K one the game's have.
 
+**Steps (2026-11-10, after H3.7; the owner asked to finish EDGEhack first, for its release):**
+
+| Step | What | Test |
+|---|---|---|
+| **H3b.1 Spike** | A script, not EDGEhack: our own test art imported as an `.xbm` with the game's UI texture setup, an `.inkatlas` with three parts, and `UIIcon` records pointing the game's Overheat at them. Answers: do our parts show on the item, the wheel and the target; how big the status icon is drawn; whether one texture in both of the atlas's slots is enough | In the game |
+| **H3b.2 Upload** | Upload on each icon (with the black-to-transparent switch for Wheel and Status), the fit to each look's size, and the atlas, texture and `UIIcon` records written on save | By hand, then in the game |
+| **H3b.3 Generate** | Generate and Generate All through OpenAI's GPT Image, the key from the shared store, Show the Prompt, Keep and Try Again | By hand: the owner judges the prompts' looks |
+
+**What the game's atlases are (read with REDbridge 0.12.1 on game 2.5):** the item icons are 99 x 128 parts of 2048-wide atlases (`quickhack_overheat` in `item_icons21.inkatlas`, reached through the item's `iconPath`, a `UIIcon.<iconPath>` record); the wheel icons are 64 x 64 parts of `quickhacks_icons.inkatlas` (512 x 384), reached through the wheel entry's caption part (`ChoiceCaptionParts.OverheatIcon.texturePartID`); the status icon is the status effect's `StatusEffectUIData.iconPath` (Overheat's `burning_icon`). Each atlas has a 4K texture in slot 0 and a 1080p one in slot 1, with `isSingleTextureMode` on. Their textures: group `TEXG_Generic_UI`, compression `TCM_QualityColor`, `TRF_TrueColor`, gamma, no mipmaps, not streamed. REDbridge's `project.import` sets all of that with its `texture` option (0.12.0); REDcode's API does not pass that option yet, so EDGEhack needs it there (a `request` issue on REDcode, at H3b.2).
+
+**H3b.1 built (2026-11-10):** the script is in the session's scratchpad (`h3b/spike.py`); its output in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H3b_spike\out` (`archive\pc\mod\EDGEhack_H3b_spike.archive`, 12 KB, and `r6\tweaks\EDGEhack_H3b_spike.yaml`). A 256 x 256 texture holds an item card (99 x 128: a dark frame, gold pins, a teal-edged screen, a cyan bolt in a ring), a wheel glyph (64 x 64, a white bolt in a ring) and a status symbol (64 x 64, a solid white bolt); the atlas puts the same texture in both slots. The texture read back through REDbridge as drawn.
+
 ### H3c Scripts: plan
 
 Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Agreed the same day. Read from game 2.5's scripts; nothing here has run in the game yet.
