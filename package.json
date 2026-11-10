@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -129,7 +129,10 @@
         "command": "edgehack.desk.addToProject",
         "title": "Add to Project",
         "category": "EDGEhack",
-        "icon": "$(project)"
+        "icon": {
+          "light": "media/icons/add-to-project-light.svg",
+          "dark": "media/icons/add-to-project-dark.svg"
+        }
       },
       {
         "command": "edgehack.desk.duplicate",
@@ -196,6 +199,11 @@
           "command": "edgehack.desk.duplicate",
           "when": "view == edgehack.desk && viewItem == edgehack.desk.new",
           "group": "navigation@2"
+        },
+        {
+          "command": "edgehack.desk.remove",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\./",
+          "group": "inline@9"
         },
         {
           "command": "edgehack.desk.remove",

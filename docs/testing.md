@@ -19,7 +19,8 @@ Last updated 2026-11-10.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | | Waiting |
+| [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | | Waiting |
+| [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.16). The owner asked for a trash can on each entry and a plus on Add to Project's icon: H3.7b |
 | [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | 2026-11-10 | Pass, Parts A and B (EDGEhack 0.0.15) |
 | [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-09 | Pass: a vendor shows a new schematic on an existing save at once, buying teaches it, crafting makes the new hack; a crafting cost set from another file does not take |
 | [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-09 | Pass, the drone check too |
@@ -34,7 +35,23 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-- [H3.7 Desk](#h37-desk).
+- [H3.7b Desk icons](#h37b-desk-icons).
+
+## H3.7b Desk icons
+
+EDGEhack 0.0.17, in VS Code only, asked for after H3.7's run: a trash can on each Desk entry, and Add to Project's icon with a small plus.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `edgehack-0.0.17.vsix` and reload VS Code. Hover a quickhack on the Desk | Two icons at the right of its row: Add to Project (a project board with a small plus at its corner), then a trash can, rightmost |
+| 2 | Hover the trash can | Its tooltip says **Remove from the Desk...** |
+| 3 | Press it, then **Cancel** | It asks first; Cancel leaves the entry |
+| 4 | Press it again and confirm | The entry leaves the Desk, its tab closes if open, and it is in the Recycle Bin |
+| 5 | Hover an entry of the **Project** group, then switch VS Code's theme between light and dark | No trash can on project entries. Add to Project's icon reads clearly in both themes |
+
+| Run | Result |
+|---|---|
+
 
 ## H3.7 Desk
 
@@ -57,6 +74,7 @@ Then say what differed. Loose Ping and the Short Circuit change can be removed f
 
 | Run | Result |
 |---|---|
+| 2026-11-10, EDGEhack 0.0.16 | **Pass**, all 10 steps. Asked for after it: a hover trash can on each Desk entry, and a small plus on Add to Project's icon (H3.7b, EDGEhack 0.0.17) |
 
 ## H3.6b Get it
 
