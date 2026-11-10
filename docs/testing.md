@@ -19,8 +19,8 @@ Last updated 2026-11-07.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | | Waiting |
-| [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-08 | Pass (a drone check left) |
+| [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-09 | Pass: a vendor shows a new schematic on an existing save at once, buying teaches it, crafting makes the new hack; a crafting cost set from another file does not take |
+| [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-09 | Pass, the drone check too |
 | [H3.5 Attack features spike](#h35-attack-features-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-07 | Done: findings for the build |
 | [H3.4b Machines](#h34b-machines) | By hand, then in the game | H3 | 2026-11-07 | Pass (EDGEhack 0.0.9): a drone and an android took only the burn, with no poison or bleed icon; humans the burn, poison and bleed |
 | [H3.4b Machines spike](#h34b-machines-spike) | By hand, in the game, with REDnode's Console | H3 | 2026-11-07 | An immunity did nothing; a check on the damage effector stopped the damage on a drone, not on a human |
@@ -32,8 +32,7 @@ Last updated 2026-11-07.
 
 ## Waiting for a hand test
 
-- [H3.6a Get it spike](#h36a-get-it-spike).
-- [H3.5 Build one](#h35-build-one), Part C's step 10 only: a built chemical or physical damage on a drone shows no numbers.
+None.
 
 ## H3.6a Get it spike
 
@@ -65,6 +64,7 @@ Then quit the game and say what differed. Claude moves the spike's file to the R
 
 | Run | Result |
 |---|---|
+| 2026-11-09, dev PC, game 2.5, REDnode 0.59.0 | **Pass**, steps 1 to 9 as written. The schematic was in the shop at once on an existing save, so no restock was needed; buying it taught the recipe (`KnowsRecipe` true); the crafting menu crafted Shock Ping Rare, and it worked on an enemy. Step 2 gave `0x0000001DC7C7B066`, which is `Items.PingLvl2CraftingPackage`, the game's own: the crafting package set as a flat from the spike's file, on a record EDGEhack_Test1's file makes, did not take, so crafting asked for 30 components. H3.6b writes the package in the item's own record, as planned |
 
 ## H3.5 Build one
 
@@ -150,6 +150,7 @@ const ses = await api.GameInstance.GetStatusEffectSystem(game.instance); const t
 | 2026-11-08, EDGEhack 0.0.11, dev PC, Part B | Steps 1 and 3 **pass**: Shock Ping on the wheel, `blind: true` (the chance route from the file, as from the Console). Step 2: only yellow numbers. The saved document shows why: step 13's type change landed on the **first** damage card (a1: Chemical, 40 a hit, sparks set), and the fourth (a4) stayed Electric at 10, so the yellow numbers were a4's. Whether the editor sent the change to the wrong card is open: both cards were titled Electric damage over time. Still, a1's chemical damage showed no numbers on a human, with its records as designed (a chemical attack, the tick behind EDGEhack's machines check): to settle in the next run. Step 4: not seen, since the blinded enemy stood still. Step 5: no drone near. Both go in the next run |
 | 2026-11-08, EDGEhack 0.0.12, dev PC, Console checks on the same build | Both damage statuses were on the enemy (`chemical: true, electric: true`), yet only yellow numbers came, with the damage numbers set to Individual too. The game's colours (`damage_types.inkstyle`, `main_colors.inkstyle`): Electric light blue, **Thermal yellow-orange**, Chemical green, Physical white. So both built cards dealt thermal damage: they copied Overheat's attack, and the copy deals thermal whatever type it is given. With the electric card's tick pointed at the game's own `Attacks.ElectricDamageOverTime`, its numbers showed **blue** at once. Changes from the Console to the chemical card's tick (prereq, timing, tag, attack) showed no difference, unexplained. Triple Heat (H3.4's quickhack, rebuilt) still showed burn, poison and bleed numbers. Step 3 of the next run: an alerted enemy with the stat change moved at normal speed, running for cover: `MaxSpeed` does not slow an enemy. Pack and Play while the game runs swaps the archive only: a new quickhack's records need a restart |
 | 2026-11-08, EDGEhack 0.0.13, dev PC, Part C | **Pass**, steps 1 to 9 as written: the Movement speed card said it is no longer offered; with one damage card per tier, Common showed green (chemical, with the machines check, on a human), Rare light blue (electric), Legendary yellow-orange (thermal), Legendary++ white (physical). Step 10 (a drone) not run: none near. **H3.5 passes**, with the drone check for chemical and physical damage left for the next in-game test |
+| 2026-11-09, EDGEhack 0.0.14, dev PC, Part C step 10 | **Pass**: on a drone, the Common tier (chemical) and the Legendary++ tier (physical) showed no damage numbers. H3.5 is done |
 
 ## H3.5 Attack features spike
 
