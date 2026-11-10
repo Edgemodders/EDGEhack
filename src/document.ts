@@ -77,6 +77,17 @@ export interface AddedEffect {
   build?: BuiltEffect;
 }
 
+/**
+ * How one tier of a new quickhack is got (H3.6). By default the way the game's tier of its family is:
+ * the same vendors and gate, its own schematic where the game sells one, the family's crafting cost.
+ */
+export interface GetIt {
+  /** False: not sold by any vendor. */
+  sell?: false;
+  /** How many components crafting it takes; the kind stays the game's for that quality. */
+  components?: number;
+}
+
 export interface QuickhackDoc {
   format: 1;
   /** Names the mod's records and text keys. Fixed once written: saves and other mods refer to them. */
@@ -98,6 +109,8 @@ export interface QuickhackDoc {
   tiers: Record<string, TierEdit>;
   /** Effects added to it. Missing when there are none. */
   effects?: AddedEffect[];
+  /** A new quickhack's Get it, by the tier's item. Missing: every tier is got the way the family's is. */
+  getIt?: Record<string, GetIt>;
 }
 
 /** A name fit for record paths and text keys: lowercase letters, digits and underscores. */
@@ -190,6 +203,24 @@ function addedEffects(v: unknown): AddedEffect[] | undefined {
   return out.length ? out : undefined;
 }
 
+function getItOf(v: unknown): Record<string, GetIt> | undefined {
+  if (v === undefined || v === null) return undefined;
+  if (typeof v !== "object" || Array.isArray(v)) throw new Error("Get it must be an object by tier.");
+  const out: Record<string, GetIt> = {};
+  for (const [tier, raw] of Object.entries(v as Record<string, Record<string, unknown>>)) {
+    const g: GetIt = {};
+    if (raw?.sell === false) g.sell = false;
+    else if (raw?.sell !== undefined && raw?.sell !== true) throw new Error(`Get it's sell on ${tier} is true or false.`);
+    const c = number(raw?.components, `Get it's components on ${tier}`);
+    if (c !== undefined) {
+      if (c < 1 || !Number.isInteger(c)) throw new Error(`Get it's components on ${tier} must be a whole number, 1 or more.`);
+      g.components = c;
+    }
+    if (Object.keys(g).length) out[tier] = g;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
 /** Reads a document's text. Throws with a message for the modder when it cannot be used. */
 export function parseDoc(source: string): QuickhackDoc {
   let raw: unknown;
@@ -225,6 +256,7 @@ export function parseDoc(source: string): QuickhackDoc {
     cooldown: number(o.cooldown, "The cooldown"),
     tiers,
     effects: addedEffects(o.effects),
+    getIt: getItOf(o.getIt),
   };
 }
 
@@ -251,6 +283,19 @@ export function withTierField(doc: QuickhackDoc, tier: string, field: TierField,
   if (value === undefined || value === game) delete edit[field];
   else edit[field] = value;
   return { ...doc, tiers: { ...doc.tiers, [tier]: edit } };
+}
+
+/** A document with one tier's Get it changed; a value equal to the game's (or sell true) is taken out. */
+export function withGetIt(doc: QuickhackDoc, tier: string, field: keyof GetIt, value: boolean | number | undefined, game?: number): QuickhackDoc {
+  const g: GetIt = { ...doc.getIt?.[tier] };
+  if (field === "sell") {
+    if (value === false) g.sell = false;
+    else delete g.sell;
+  } else if (value === undefined || value === game || typeof value !== "number") delete g.components;
+  else g.components = Math.max(1, Math.round(value));
+  const all = { ...doc.getIt, [tier]: g };
+  if (!Object.keys(g).length) delete all[tier];
+  return { ...doc, getIt: Object.keys(all).length ? all : undefined };
 }
 
 /** A document with one more effect. Its id is never one the document has used, so a copy's records keep their names. */

@@ -81,7 +81,8 @@ test("a new quickhack's editor says what it is, drops bosses and gives a Console
   assert.match(html, /A new quickhack, started from the game's Zap/);
   assert.doesNotMatch(html, /data-field="bossRam"/);
   assert.doesNotMatch(html, /data-field="bossUpload"/);
-  assert.match(html, /data-tier="0"><code data-give>await game\.player\.addItem\("Items\.EDGEhack_my_mod_static_skull_ZapProgram"\)/);
+  assert.match(html, /<h2>Get it<\/h2>/);
+  assert.match(html, /data-tier="0"><p class="none">Reading where the game sells it…<\/p><p class="foot">While testing, in REDnode's Console: <code data-give>await game\.player\.addItem\("Items\.EDGEhack_my_mod_static_skull_ZapProgram"\)/);
   assert.match(html, /Items\.EDGEhack_my_mod_static_skull_ZapLvl1Program/);
 });
 

@@ -8,11 +8,14 @@ import { Catalog, familyOfPath, readCatalog } from "./catalog";
 import { Family, IconRef, readAction, readFamily } from "./read";
 import { PoolEntry, readEffectPool, ResolvedAdded, resolveAdded } from "./effects";
 import type { QuickhackDoc } from "./document";
+import { readSaleIndex, SaleIndex, Sales, tierSales } from "./getit";
 
 export class Hub {
   private catalogP: Promise<Catalog> | undefined;
   private uiIcons: Promise<IconRef[]> | undefined;
   private pool: Promise<PoolEntry[]> | undefined;
+  private saleIndex: Promise<SaleIndex> | undefined;
+  private readonly salesOf = new Map<string, Promise<Sales>>();
   private records = this.newRecords();
   private readonly families = new Map<string, Promise<Family>>();
   readonly icons: Icons;
@@ -128,6 +131,28 @@ export class Hub {
     return this.pool;
   }
 
+  /**
+   * How the game hands out each tier of a family (Get it, H3.6): every stock line, vendor and schematic,
+   * read once (a few seconds), then per family.
+   */
+  sales(fam: Family): Promise<Sales> {
+    if (!this.saleIndex) {
+      const started = Date.now();
+      this.saleIndex = (async () => readSaleIndex(await bridge()))();
+      this.saleIndex.then(
+        (i) => this.log.appendLine(`Get it: ${i.entriesOf.size} items sold, ${i.recipesOf.size} crafted from schematics, in ${Date.now() - started} ms`),
+        () => (this.saleIndex = undefined),
+      );
+    }
+    let p = this.salesOf.get(fam.key);
+    if (!p) {
+      p = this.saleIndex.then((index) => tierSales(fam, index, this.records));
+      p.catch(() => this.salesOf.delete(fam.key));
+      this.salesOf.set(fam.key, p);
+    }
+    return p;
+  }
+
   /** A document's added effects, read. */
   added(doc: QuickhackDoc, fam: Family): Promise<ResolvedAdded[]> {
     return resolveAdded(doc, fam, { family: (key) => this.family(key), records: this.records });
@@ -136,6 +161,8 @@ export class Hub {
   refresh(): void {
     this.uiIcons = undefined;
     this.pool = undefined;
+    this.saleIndex = undefined;
+    this.salesOf.clear();
     this.catalogP = undefined;
     this.records = this.newRecords();
     this.families.clear();

@@ -19,6 +19,7 @@ Last updated 2026-11-07.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | | Waiting |
 | [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-09 | Pass: a vendor shows a new schematic on an existing save at once, buying teaches it, crafting makes the new hack; a crafting cost set from another file does not take |
 | [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-09 | Pass, the drone check too |
 | [H3.5 Attack features spike](#h35-attack-features-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-07 | Done: findings for the build |
@@ -32,7 +33,36 @@ Last updated 2026-11-07.
 
 ## Waiting for a hand test
 
-None.
+- [H3.6b Get it](#h36b-get-it).
+
+## H3.6b Get it
+
+EDGEhack 0.0.15. A new quickhack sold and crafted the way the game's tier it started from is. Shock Ping in EDGEhack_Test1 is the quickhack.
+
+**Part A, in VS Code.**
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `edgehack-0.0.15.vsix` and reload VS Code. Open Shock Ping's editor | A **Get it** section near the bottom. At first it may say "Reading where the game sells it..." for a few seconds |
+| 2 | Pick **Rare** in the Numbers header | Get it says the game's Rare Ping is sold as it is by 8 vendors, once V is level 15 or more (or has a cyberdeck of quality 4 or more), and its schematic by 13 vendors, once V is level 12 or more. **Sell it there** is ticked. **Components to craft it** shows 30, "Tier 3 Quickhack Components" |
+| 3 | Pick **Common** | Sold as it is by 13 vendors, with no gate; its components 25 |
+| 4 | On Rare, set **Components to craft it** to 2. On Legendary++, untick **Sell it there**. Press **Ctrl+S** | The page says it saved |
+| 5 | Open the YAML (the message's **Open**, or `source/resources/r6/tweaks/EDGEhack_Test1/edgehack_test1_shock_ping.yaml`) | `Vendors.EDGEhack_edgehack_test1_shock_ping_PingProgram` and the others, `Items.Recipe_EDGEhack_edgehack_test1_shock_ping_PingLvl2Program`, a block per vendor ending in `.itemStock:` with `- !append-once` lines, and `CraftingData:` in the Rare item's own block. Nothing for Legendary++ in any vendor's stock |
+
+**Part B, in the game.** Quit the game first, click **Pack and Play**, then start the game and load a save where V is level 15 or more.
+
+| Step | Do | Expect |
+|---|---|---|
+| 6 | Go to Edge Net in Kabuki, or another netrunner who sells Ping, and open the shop | Shock Ping as a quickhack (Common, and Rare if V is level 15 or more), and a Rare Shock Ping schematic, beside Ping's. Legendary shows only once V is level 32 or more |
+| 7 | Buy the Common Shock Ping quickhack | It is in the backpack: Shock Ping, Common |
+| 8 | Buy the Rare Shock Ping schematic, then open **Crafting**, on its quickhacks tab | Shock Ping, Rare, asking for 2 components. If you lack them, switch on **Console** in the launcher and run `game.player.addItem("Items.QuickHackRareMaterial1", 2)` |
+| 9 | Craft it, equip it and upload it on an enemy | It works as before: a chance to blind and blue electric numbers |
+| 10 | Look for a Legendary++ Shock Ping at the Kabuki tech store that sells Ping's Legendary++ schematic | It is not there: Sell it there was off |
+
+Then quit the game and say what differed.
+
+| Run | Result |
+|---|---|
 
 ## H3.6a Get it spike
 

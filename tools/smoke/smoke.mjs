@@ -133,8 +133,15 @@ async function step(s) {
   throw new Error(`No answer to ${JSON.stringify(s)}`);
 }
 const images = (page) => run(page, `const all = [...document.images]; await Promise.all(all.map((i) => i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; }))); return { total: all.length, broken: all.filter((i) => !i.naturalWidth).map((i) => i.src.slice(-40)) };`);
+// A screenshot of a window in the background can wait for a frame that never comes (seen on 2026-11-09):
+// bring it forward first, and give up on the picture, not the run, after 15 s.
 const shot = async (name) => {
-  const s = await cdp("Page.captureScreenshot", { format: "png" });
+  await cdp("Page.bringToFront").catch(() => {});
+  const s = await Promise.race([cdp("Page.captureScreenshot", { format: "png" }), sleep(15000).then(() => null)]);
+  if (!s?.data) {
+    log("screenshot skipped (no frame in 15 s):", name);
+    return;
+  }
   fs.writeFileSync(path.join(T, name), Buffer.from(s.data, "base64"));
   log("screenshot", path.join(T, name));
 };
@@ -279,6 +286,16 @@ check(/A new quickhack, started from the game's Overheat/.test(await run(made, `
 await run(made, `document.querySelector('th button[data-pick="2"]').click();`);
 await sleep(300);
 check((await run(made, `return document.querySelector('.tier.on [data-give]').textContent;`)) === 'await game.player.addItem("Items.EDGEhack_smokemod_smoke_static_OverheatLvl2Program")', "the Console line follows the selected tier");
+// Get it (H3.6): how the game's tier is got, filled in once the vendors are read; its stock lines in the YAML.
+let getIt = "";
+for (let i = 0; i < 40; i++) {
+  getIt = await run(made, `return document.querySelector('[data-getit] .tier.on').textContent;`);
+  if (!/Reading where/.test(getIt)) break;
+  await sleep(500);
+}
+log("Get it:", getIt.replace(/\s+/g, " ").slice(0, 240));
+check(/sold as it is by \d+ vendors?|schematic is sold by \d+ vendors?|not sold by any vendor/.test(getIt), "Get it says how the game's tier is got");
+check(/^Vendors\.\w+\.itemStock:\n {2}- !append-once Vendors\.EDGEhack_smokemod_smoke_static_/m.test(yaml), "and the YAML adds its stock lines to the family's vendors");
 await shot("newhack.png");
 
 // Its numbers copy the chain, and Pack and Play waits for the files.

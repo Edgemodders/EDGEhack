@@ -542,6 +542,24 @@ REDnode's Console stays the way to get one while testing, and the editor's **Giv
 | Known from the start? | Later, with H3c's scripts, as above |
 | Also offer the schematic of a tier the game sells as it is (Common)? | No: copy the game's way. A box per tier can add it later |
 
+
+**H3.6b built (2026-11-09), EDGEhack 0.0.15:** Get it, from what the spike found (docs/testing.md, "H3.6a Get it spike").
+
+| Part | Where | What |
+|---|---|---|
+| Reading how the game hands out a tier | `src/getit.ts` | Once a session, through REDbridge: every `VendorItem` (item, gate), `Vendor` (its stock), `ItemRecipe` (its result) and `CraftingResult` (its item), about 100 ms after TweakDB has loaded; per family, each tier's stock lines, the schematic sold for it, its crafting package and component, and each gate in words (`gateWords`: V's level, Street Cred, the cyberdeck's quality, AND and OR) |
+| Writing it | `writeNewHack` in `src/tweaks.ts` | Per tier: a copy of each stock line naming the new item; a copy of the schematic (`Items.Recipe_EDGEhack_<id>_<tier>`, with the new name and a copy of its result naming the new item) and of its stock lines; each vendor's stock appended once, under one key (`!append-once`); changed components as a crafting package and element of its own, set in the item's own record |
+| The document | `getIt` by tier: `sell: false`, `components` | Missing: every tier is got the way the family's is |
+| The editor | **Get it** on a new quickhack's page, per tier | How the game's tier is got, in words; **Sell it there**; **Components to craft it**, with the game's component and amount; the Console line for testing. The page opens at once and fills this in when the vendors are read |
+
+| Found while building | Why it matters |
+|---|---|
+| A tier can be sold both ways: Ping's Rare is sold as it is by 8 vendors (V at level 15) and as a schematic by 13 (level 12) | The plan's table had each tier one way. Both are copied, each with its own gate |
+| The gate is V's level or the cyberdeck's quality, not Street Cred | The plan's Street Cred field is not built: the copy keeps the game's gate. A gate of one's own would need records of its own, later if wanted |
+| Common Ping's schematic exists but no vendor sells it | A schematic is written only when a vendor sells the family's |
+
+Checked: 90 unit tests (9 new, `test/getit.test.ts`); against the real game (scratchpad `h36/smoke.ts`): Ping's four tiers read (13, 8 and 13, 11 and 13, 1 and 1 vendors), the YAML for a new quickhack from Ping names 71 game records, none missing, and 42 records' fields all exist on their types, with 13 vendors' stock appended; the page smoke test (`npm run smoke`, now with two Get it checks and a screenshot that no longer stops the run when the window is in the background).
+
 ### Own icons (H3b)
 
 Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.

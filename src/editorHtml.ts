@@ -6,6 +6,8 @@ import { ADDED_FIELDS, DAMAGE_TYPES, type AddedField } from "./document";
 import { mainEffect, tierKey, type Family, type IconRef, type Tier } from "./read";
 import { esc, img, rec, tierPanel } from "./pageHtml";
 import { newItemPath } from "./tweaks";
+import { vendorCount, type Sales } from "./getit";
+import { words } from "./records";
 import { addedGameValue, builtDefault, builtFields, builtOffMachines, builtSummary, effectSummary, keptOffMachines, STAT_CHOICES, worthAdding, type ResolvedAdded } from "./effects";
 
 /** What the game has for one of a tier's numbers, or undefined when the tier has none to change. */
@@ -186,7 +188,44 @@ export function renderAddedEffects(fam: Family, added: ResolvedAdded[], icons: M
   return added.map((r) => addedCard(fam, r, icons)).join("\n");
 }
 
-export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = []): string {
+/**
+ * A new quickhack's Get it (H3.6), a panel per tier: how the game hands out the family's tier, the Sell it
+ * box, the components to craft it, and a Console line for testing. `sales` undefined: still being read.
+ */
+export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undefined): string {
+  return fam.tiers
+    .map((t, i) => {
+      if (!t.item) return "";
+      const key = tierKey(t);
+      const give = `<p class="foot">While testing, in REDnode's Console: <code data-give>await game.player.addItem("${esc(newItemPath(doc, t))}")</code></p>`;
+      if (!sales) return `<div class="tier" data-tier="${i}"><p class="none">Reading where the game sells it…</p>${give}</div>`;
+      const sale = sales.get(key);
+      const want = doc.getIt?.[key] ?? {};
+      const asIs = sale ? vendorCount(sale.asIs) : 0;
+      const schematic = sale?.recipe ? vendorCount(sale.recipe.lines) : 0;
+      const once = (g: string | undefined): string => (g ? `, once ${esc(g)}` : "");
+      const vendors = (n: number): string => `${n} vendor${n === 1 ? "" : "s"}`;
+      const said: string[] = [];
+      if (asIs) said.push(`The game's ${esc(t.quality ?? "")} ${esc(fam.name)} is sold as it is by ${vendors(asIs)}${once(sale?.gate)}.`);
+      if (schematic) said.push(`${asIs ? "Its" : `The game's ${esc(t.quality ?? "")} ${esc(fam.name)}:`} schematic is sold by ${vendors(schematic)}${once(sale?.schematicGate)}, and buying it teaches V to craft it.`);
+      const sold = asIs + schematic > 0;
+      const what = sold
+        ? `${said.join(" ")} This one is sold the same way, from the same vendors.`
+        : `The game's ${esc(t.quality ?? "")} ${esc(fam.name)} is not sold by any vendor: it comes some other way, such as loot, a quest or the start, which EDGEhack does not copy yet.`;
+      const sell = sold ? `<label class="who"><input type="checkbox" data-getit-sell data-tier-key="${esc(key)}"${want.sell === false ? "" : " checked"}> Sell it there</label>` : "";
+      const c = sale?.crafting;
+      const craft =
+        c && c.kinds === 1 && c.amount !== undefined
+          ? `<label>Components to craft it <input type="number" min="1" step="1" data-getit-components data-tier-key="${esc(key)}" data-game="${c.amount}" placeholder="${c.amount}" value="${want.components ?? ""}"></label> <span class="none">${esc(c.ingredientName ?? words(c.ingredient ?? ""))}, as the game's (${c.amount})</span>`
+          : c
+            ? `<span class="none">Crafting it takes ${c.kinds} kinds of component, as the game's does.</span>`
+            : `<span class="none">The game's tier is not crafted.</span>`;
+      return `<div class="tier" data-tier="${i}"><p>${what}</p>${sell ? `<p>${sell}</p>` : ""}<p>${craft}</p>${give}</div>`;
+    })
+    .join("");
+}
+
+export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales): string {
   const tiers = fam.tiers;
   const top = tiers[tiers.length - 1];
   const head = tiers.map((t, i) => `<th data-tier="${i}"><button data-pick="${i}" data-tier="${i}" data-key="${esc(tierKey(t))}">${esc(t.quality ?? `Tier ${i + 1}`)}</button></th>`).join("");
@@ -206,11 +245,11 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
   const about = doc.newHack
     ? `A new quickhack, started from the game's ${esc(fam.name)}, which it leaves as it is. Empty fields keep ${esc(fam.name)}'s value. Spread and the versions for bosses are left out for now.`
     : `A change to the game's ${esc(fam.name)}. Empty fields keep the game's value.`;
-  // Until Get it (H3.6), a line for REDnode's Console, for the tier selected above.
+  // Get it (H3.6): how each tier is got, for the tier selected above.
   const getIt = doc.newHack
-    ? `<section><h2>Give yourself one</h2>
-<p class="foot">Crafting and vendors come later. For now, in REDnode's Console, for the tier selected above:</p>
-${tiers.map((t, i) => (t.item ? `<div class="tier" data-tier="${i}"><code data-give>await game.player.addItem("${esc(newItemPath(doc, t))}")</code></div>` : "")).join("")}
+    ? `<section><h2>Get it</h2>
+<div data-getit>${renderGetIt(fam, doc, sales)}</div>
+<p class="foot">Each tier is got the way the game's ${esc(fam.name)} is: a stock line of its own at the same vendors, behind the same gate, and a schematic of its own where the game sells one. Vendors show it on a save you already have. The kind of component stays the game's for that quality.</p>
 </section>`
     : "";
   return `<main data-start="${start}" class="edit"${doc.newHack ? " data-new-hack" : ""}>

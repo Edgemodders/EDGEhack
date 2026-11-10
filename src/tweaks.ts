@@ -5,6 +5,7 @@
 import type { QuickhackDoc, TierEdit } from "./document";
 import { mainEffect, Tier, Family, Variant, Effect, tierKey } from "./read";
 import { NEW_HACK_SCRIPT } from "./newHackScript";
+import type { Sales } from "./getit";
 import { addedGameValue, addedWarnings, builtValue, DAMAGE_ATTACKS, DAMAGE_ICONS, DAMAGE_OFF_MACHINES, keptOffMachines, ResolvedAdded, STAT_CHOICES, STAT_ICON } from "./effects";
 
 export interface TextEntry {
@@ -153,9 +154,12 @@ function variant(out: Out, v: Variant | undefined, name: string, edit: TierEdit,
   if (v.main?.durationGroup) duration(out, v.main, diffs.duration, name);
 }
 
-/** The YAML and texts for a document. `added` is its added effects, read (resolveAdded). */
-export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = []): WrittenTweaks {
-  if (doc.newHack) return writeNewHack(fam, doc, added);
+/**
+ * The YAML and texts for a document. `added` is its added effects, read (resolveAdded); `sales` is how the
+ * game hands out the family's tiers (getit.ts), for a new quickhack's Get it. Without it, Get it is left out.
+ */
+export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = [], sales?: Sales): WrittenTweaks {
+  if (doc.newHack) return writeNewHack(fam, doc, added, sales);
   const out = new Out(`EDGEhack.${doc.id}`);
   const texts: TextEntry[] = [];
   const textKey = (field: string, text: string): string => {
@@ -436,8 +440,13 @@ function addedOnTier(out: Out, doc: QuickhackDoc, added: ResolvedAdded[], t: Tie
  * and Chimera actions are left out, since they point at the family's own records. Proved in the game with
  * one tier by the H3.1 spike.
  */
-function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[]): WrittenTweaks {
+function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sales?: Sales): WrittenTweaks {
   const out = new Out(`EDGEhack.${doc.id}`);
+  // Get it: the stock lines each vendor gets, kept to append once per vendor at the end.
+  const stock = new Map<string, string[]>();
+  const stockUp = (vendors: string[], entry: string): void => {
+    for (const v of vendors) stock.set(v, [...(stock.get(v) ?? []), entry]);
+  };
   if (fam.kind !== "people") {
     return { texts: [], warnings: [`${fam.name} is a ${fam.kind} hack: a new quickhack can start only from one for people, for now.`] };
   }
@@ -548,19 +557,63 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[]): W
       }),
     );
     if (!t.item) continue;
+    const item = newItemPath(doc, t);
+    const key = tierKey(t);
+    const sale = sales?.get(key);
+    const want = doc.getIt?.[key] ?? {};
+
+    // Crafting: the family's package, or one of its own when the components change. In the item's own
+    // body: set from another file, the H3.6a spike's package did not take.
+    let craftingData: string | undefined;
+    if (want.components !== undefined && sales) {
+      const c = sale?.crafting;
+      if (!c) out.warnings.push(`${label}: the game's tier is not crafted, so its components were left out.`);
+      else if (c.kinds !== 1 || !c.element) out.warnings.push(`${label}: crafting it takes ${c.kinds} kinds of component, so its components were left as the game has them.`);
+      else if (want.components !== c.amount) {
+        const element = `${out.prefix}.${label}_CraftingElement`;
+        records.push(copy(element, c.element, { amount: String(want.components) }));
+        craftingData = `${out.prefix}.${label}_Crafting`;
+        records.push(copy(craftingData, c.package, { craftingRecipe: [element] }));
+      }
+    }
+
     // As the game's tiers do, each item lists its own action and every lower tier's.
     records.push(
-      copy(newItemPath(doc, t), t.item, {
+      copy(item, t.item, {
         displayName: nameKey,
         localizedDescription: descriptionKey,
         iconPath: doc.itemIcon?.replace(/^UIIcon\./, ""),
         shardType: name,
         objectActions: [...t.lists.objectActions.filter((a) => !/^QuickHack\./.test(a)), ...actions.filter((a) => a.rank <= t.rank).map((a) => a.path)],
+        CraftingData: craftingData,
       }),
     );
+
+    // Sold the way the family's tier is: its stock lines copied with this item, at the same vendors and
+    // behind the same gate, and a schematic of its own where the game sells one (H3.6a's spike: a vendor
+    // shows a new line at once on an existing save, and buying the schematic teaches the recipe).
+    if (!sale || want.sell === false) continue;
+    sale.asIs.forEach((l, n) => {
+      const entry = `Vendors.EDGEhack_${doc.id}_${label}${n ? `_${n + 1}` : ""}`;
+      records.push(copy(entry, l.entry, { item }));
+      stockUp(l.vendors, entry);
+    });
+    if (sale.recipe?.lines.length) {
+      const recipe = `Items.Recipe_EDGEhack_${doc.id}_${label}`;
+      const result = `${recipe}_Result`;
+      records.push(sale.recipe.result ? copy(result, sale.recipe.result, { item }) : `${result}:\n  $type: CraftingResult\n  amount: 1\n  item: ${item}\n`);
+      records.push(copy(recipe, sale.recipe.record, { displayName: nameKey, craftingResult: result }));
+      sale.recipe.lines.forEach((l, n) => {
+        const entry = `Vendors.EDGEhack_${doc.id}_${label}_Schematic${n ? `_${n + 1}` : ""}`;
+        records.push(copy(entry, l.entry, { item: recipe }));
+        stockUp(l.vendors, entry);
+      });
+    }
   }
+  // Each vendor's stock under one key: a second key of the same name would replace the first.
+  for (const [vendor, entries] of stock) out.changes.push(`${vendor}.itemStock:\n${entries.map((e) => `  - !append-once ${e}\n`).join("")}`);
 
   out.warnings.push(...addedWarnings(fam, doc, added));
-  const yaml = [`# Made by EDGEhack from ${doc.id}.quickhack.json. Change that document, not this file: saving it writes this again.\n`, ...records].join("\n");
+  const yaml = [`# Made by EDGEhack from ${doc.id}.quickhack.json. Change that document, not this file: saving it writes this again.\n`, ...records, ...out.changes].join("\n");
   return { yaml, texts, warnings: out.warnings, script: NEW_HACK_SCRIPT };
 }

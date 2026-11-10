@@ -6,6 +6,7 @@ import type { BridgeClient, ProjectRef } from "./redcode";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId } from "./document";
 import type { Family } from "./read";
 import { writeTweaks } from "./tweaks";
+import type { Sales } from "./getit";
 import type { ResolvedAdded } from "./effects";
 import { ProjectResult, writeProject } from "./projectFiles";
 
@@ -62,7 +63,7 @@ export function makeNewHackDoc(project: ProjectRef, familyKeys: string[], family
   return { file, doc };
 }
 
-/** A document's mod files, written into the project. `added` is its added effects, read. */
-export function writeDocFiles(project: ProjectRef, bridge: BridgeClient, fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = []): Promise<ProjectResult> {
-  return writeProject(project, bridge, doc, writeTweaks(fam, doc, added));
+/** A document's mod files, written into the project. `added` is its added effects, read; `sales`, how the game hands out its family (Get it). */
+export function writeDocFiles(project: ProjectRef, bridge: BridgeClient, fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = [], sales?: Sales): Promise<ProjectResult> {
+  return writeProject(project, bridge, doc, writeTweaks(fam, doc, added, sales));
 }

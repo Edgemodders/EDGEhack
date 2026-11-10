@@ -3,12 +3,13 @@
 // REDcode's project (docs/design.md, "H2: plan").
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
-import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc } from "./document";
+import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt } from "./document";
 import { Family, iconOf, IconRef } from "./read";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
-import { addedIcons, gameValue, renderAddedEffects, renderEditor } from "./editorHtml";
+import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt } from "./editorHtml";
+import type { Sales } from "./getit";
 import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
 import { bridge, redcode } from "./redcode";
@@ -81,7 +82,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     const { file, doc } = makeNewHackDoc(project, keys, key, name);
     this.hub.log.appendLine(`Made ${doc.id} from ${key}: ${file}`);
     try {
-      const result = await writeDocFiles(project, await bridge(), await this.hub.family(key), doc);
+      const fam = await this.hub.family(key);
+      const result = await writeDocFiles(project, await bridge(), fam, doc, [], await this.salesFor(fam));
       this.hub.log.appendLine(`Wrote ${doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -108,6 +110,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     let fam: Family;
     let added: ResolvedAdded[];
     let iconSet: Map<string, string>;
+    // Get it's reading of the game's vendors and schematics: a few seconds the first time, so the page
+    // opens without it and shows it when it comes.
+    let sales: Sales | undefined;
     try {
       doc = parseDoc(document.getText());
       fam = await this.hub.family(doc.family);
@@ -117,6 +122,12 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       iconSet = icons.all;
       await this.addIcons(w, iconSet, added);
       w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added));
+      if (doc.newHack) {
+        void this.salesFor(fam).then((got) => {
+          sales = got;
+          void w.postMessage({ getItHtml: renderGetIt(fam, doc, sales), warnings: writeTweaks(fam, doc, added, sales).warnings });
+        });
+      }
     } catch (e) {
       w.html = this.shell(w, `<p class="error">${message(e).replace(/</g, "&lt;")}</p>`);
       return;
@@ -132,7 +143,14 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       if (mine !== turn) return;
       doc = now;
       added = read;
-      await w.postMessage({ doc, familyName: fam.name, warnings: writeTweaks(fam, doc, added).warnings, notes: addedNotes(fam, added), effectsHtml: renderAddedEffects(fam, added, iconSet) });
+      await w.postMessage({
+        doc,
+        familyName: fam.name,
+        warnings: writeTweaks(fam, doc, added, sales).warnings,
+        notes: addedNotes(fam, added),
+        effectsHtml: renderAddedEffects(fam, added, iconSet),
+        ...(doc.newHack ? { getItHtml: renderGetIt(fam, doc, sales) } : {}),
+      });
     };
     const changed = vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.uri.toString() !== document.uri.toString() || !e.contentChanges.length) return;
@@ -142,7 +160,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       changed.dispose();
       shown.delete(panel);
     });
-    void w.postMessage({ warnings: writeTweaks(fam, doc, added).warnings, notes: addedNotes(fam, added) });
+    void w.postMessage({ warnings: writeTweaks(fam, doc, added, sales).warnings, notes: addedNotes(fam, added) });
 
     // One message at a time, each from the document as it is now: two quick changes would otherwise
     // both start from the same text, and the second would undo the first.
@@ -166,6 +184,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         addedWho?: { id: string; on: "target" | "V" };
         addedValue?: { id: string; tier: string; field: AddedField; value?: number; game?: number };
         addedAll?: { id: string; tier: string; field: AddedField };
+        getIt?: { tier: string; field: keyof GetIt; value?: boolean | number; game?: number };
         open?: string;
         pack?: boolean;
       }) => {
@@ -196,6 +215,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.addedWho) await apply(document, withAddedRecipient(current(), m.addedWho.id, m.addedWho.on));
           if (m.addedValue) await apply(document, withAddedValue(current(), m.addedValue.id, m.addedValue.tier, m.addedValue.field, m.addedValue.value, m.addedValue.game));
           if (m.addedAll) await apply(document, applyAddedToAll(current(), await this.hub.added(current(), fam), m.addedAll.id, m.addedAll.tier, m.addedAll.field));
+          if (m.getIt) await apply(document, withGetIt(current(), m.getIt.tier, m.getIt.field, m.getIt.value, m.getIt.game));
           if (m.pack) {
             await document.save();
             await this.writing.get(document.uri.toString());
@@ -223,13 +243,25 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         return;
       }
       const fam = await this.hub.family(doc.family);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam));
+      const sales = doc.newHack ? await this.salesFor(fam) : undefined;
+      if (doc.newHack && !sales) say("Saved, but where the game sells it could not be read, so Get it was left out this time. Save again to try once more.", true);
+      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam), sales);
       this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}`);
       announceCreated(project.dir, result.created);
       say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
     } catch (e) {
       this.hub.log.appendLine(`Saving ${document.fileName} failed: ${message(e)}`);
       say(message(e), true);
+    }
+  }
+
+  /** How the game hands out a family's tiers, or undefined (logged) when it could not be read. */
+  private async salesFor(fam: Family): Promise<Sales | undefined> {
+    try {
+      return await this.hub.sales(fam);
+    } catch (e) {
+      this.hub.log.appendLine(`Get it: reading where the game sells ${fam.name} failed: ${message(e)}`);
+      return undefined;
     }
   }
 
