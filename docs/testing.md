@@ -12,13 +12,14 @@ Last updated 2026-11-10.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-07 | Pass, 72 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 100 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | | Waiting |
 | [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | 2026-11-10 | Pass, Parts A and B (EDGEhack 0.0.15) |
 | [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-09 | Pass: a vendor shows a new schematic on an existing save at once, buying teaches it, crafting makes the new hack; a crafting cost set from another file does not take |
 | [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-09 | Pass, the drone check too |
@@ -33,7 +34,29 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-None.
+- [H3.7 Desk](#h37-desk).
+
+## H3.7 Desk
+
+EDGEhack 0.0.16, in VS Code only. The Desk: quickhacks outside any project. Keep EDGEhack_Test1 open in REDcode until step 8.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `edgehack-0.0.16.vsix` and reload VS Code. Open the EDGEhack side bar | The **Desk** view has a **+** in its title bar, and lists **Project: EDGEhack_Test1** with Shock Ping |
+| 2 | Press the Desk's **+**, pick **Overheat**, and name it **Desk Heat** | Its editor opens: "On the Desk: it writes no mod files until you add it to a project", and an **Add to Project** button where Pack and Play was. The Desk lists Desk Heat, "new, from Overheat", above the Project group. No `desk_heat` file appears in the project |
+| 3 | Pick **Rare**, set RAM to 2, press **Ctrl+S** | The page says "Saved on the Desk". Get it has no Console line: it says the line shows once the quickhack is in a project |
+| 4 | Right-click Desk Heat in the Desk view, **Duplicate...**, keep "Desk Heat copy" | The copy opens, with RAM 2 on Rare. The Desk lists both, the copy first |
+| 5 | On Desk Heat's page, press **Add to Project** | A message names `edgehack_test1_desk_heat.yaml` added to the project. The project's copy opens, with **Pack and Play** and a Console line in Get it, RAM 2 on Rare. The Project group lists Desk Heat; the Desk still has its own |
+| 6 | In the Desk view, press the inline **Add to Project** icon on Desk Heat. Press **Cancel**, then do it again and press **Replace** | It asks before replacing the project's copy. Cancel changes nothing; Replace writes it again |
+| 7 | Right-click Desk Heat copy, **Remove from the Desk...**, confirm | It leaves the Desk, its tab closes, and it is in the Recycle Bin |
+| 8 | Run **REDcode: Close Project** from the Command Palette. In the Quickhacks view right-click **Ping**, **Clone and Modify...**, name it **Loose Ping** | The box says it goes on the Desk. Loose Ping opens on the Desk, with Add to Project |
+| 9 | Open the game's **Short Circuit** page from the Quickhacks view and press **Edit** | A change to Short Circuit opens on the Desk; the Desk lists it as "changes Short Circuit" |
+| 10 | On Loose Ping's page press **Add to Project** | A message asks you to open a project first. Then open EDGEhack_Test1 again |
+
+Then say what differed. Loose Ping and the Short Circuit change can be removed from the Desk afterwards.
+
+| Run | Result |
+|---|---|
 
 ## H3.6b Get it
 

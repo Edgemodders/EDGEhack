@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -67,7 +67,7 @@
     "viewsWelcome": [
       {
         "view": "edgehack.desk",
-        "contents": "Quickhacks you are working on wait here until they go into a project. Coming in H2 and H3.\n[Read the design](https://edgemodders.github.io/EDGEhack/design.html)"
+        "contents": "Quickhacks you work on outside a project wait here, until you add them to one.\n[Clone and Modify on the Desk](command:edgehack.desk.new)\nWith no project open in REDcode, Clone and Modify and Edit in the Quickhacks view land here too."
       },
       {
         "view": "edgehack.library",
@@ -118,10 +118,38 @@
         "command": "edgehack.newQuickhack",
         "title": "Clone and Modify...",
         "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.desk.new",
+        "title": "Clone and Modify on the Desk...",
+        "category": "EDGEhack",
+        "icon": "$(add)"
+      },
+      {
+        "command": "edgehack.desk.addToProject",
+        "title": "Add to Project",
+        "category": "EDGEhack",
+        "icon": "$(project)"
+      },
+      {
+        "command": "edgehack.desk.duplicate",
+        "title": "Duplicate...",
+        "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.desk.remove",
+        "title": "Remove from the Desk...",
+        "category": "EDGEhack",
+        "icon": "$(trash)"
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "edgehack.desk.new",
+          "when": "view == edgehack.desk",
+          "group": "navigation@1"
+        },
         {
           "command": "edgehack.quickhacks.filter",
           "when": "view == edgehack.quickhacks && !edgehack.quickhacksFiltered",
@@ -153,6 +181,26 @@
           "command": "edgehack.openQuickhackFromREDcode",
           "when": "view == redcode.tweakdb && viewItem == tweakRecord",
           "group": "navigation@9"
+        },
+        {
+          "command": "edgehack.desk.addToProject",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\.(new|change)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "edgehack.desk.addToProject",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\.(new|change)$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "edgehack.desk.duplicate",
+          "when": "view == edgehack.desk && viewItem == edgehack.desk.new",
+          "group": "navigation@2"
+        },
+        {
+          "command": "edgehack.desk.remove",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\./",
+          "group": "z@9"
         }
       ],
       "commandPalette": [
@@ -174,6 +222,18 @@
         },
         {
           "command": "edgehack.editQuickhack",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.desk.addToProject",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.desk.duplicate",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.desk.remove",
           "when": "false"
         }
       ]

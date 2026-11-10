@@ -9,6 +9,7 @@ import { iconOf } from "./read";
 import { ProjectRef, redcode } from "./redcode";
 import { ProjectDoc, projectDocs } from "./projectDocs";
 import { EditorViewType } from "./editor";
+import type { QuickhackDoc } from "./document";
 
 type Node =
   | { kind: "project"; name: string; docs: ProjectDoc[] }
@@ -131,31 +132,8 @@ export class QuickhacksView implements vscode.TreeDataProvider<Node> {
         item.iconPath = new vscode.ThemeIcon("project");
         return item;
       }
-      case "doc": {
-        const { entry } = node;
-        const file = path.basename(entry.file);
-        const open = { command: "vscode.openWith", title: "Open", arguments: [vscode.Uri.file(entry.file), EditorViewType] };
-        if (!entry.doc) {
-          const item = new vscode.TreeItem(file, vscode.TreeItemCollapsibleState.None);
-          item.id = `${filtered ? "f:" : ""}doc:${entry.file}`;
-          item.description = "cannot be read";
-          item.tooltip = entry.error;
-          item.iconPath = new vscode.ThemeIcon("warning");
-          item.command = open;
-          return item;
-        }
-        const doc = entry.doc;
-        const family = await this.hub.catalog().then((c) => c.families.find((f) => f.key === doc.family), () => undefined);
-        const from = family?.name ?? doc.family;
-        const item = new vscode.TreeItem(doc.name || from, vscode.TreeItemCollapsibleState.None);
-        item.id = `${filtered ? "f:" : ""}doc:${entry.file}`;
-        item.description = doc.newHack ? `new, from ${from}` : `changes ${from}`;
-        item.tooltip = `${doc.name || from}\n${item.description}\n${entry.file}`;
-        item.iconPath = await this.icon(doc.itemIcon ?? family?.icon, "zap");
-        item.contextValue = "edgehack.doc";
-        item.command = open;
-        return item;
-      }
+      case "doc":
+        return docTreeItem(this.hub, node.entry, `${filtered ? "f:" : ""}doc:`, "edgehack.doc");
       case "group": {
         const item = new vscode.TreeItem(node.label, node.id === "people" || filtered ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.Collapsed);
         item.id = `${filtered ? "f:" : ""}group:${node.id}`;
@@ -223,15 +201,46 @@ export class QuickhacksView implements vscode.TreeDataProvider<Node> {
     return undefined;
   }
 
-  private async icon(uiIcon: string | undefined, fallback: string): Promise<vscode.Uri | vscode.ThemeIcon> {
-    if (uiIcon) {
-      try {
-        const file = await this.hub.icons.file(await iconOf(this.hub.reader, uiIcon));
-        if (file) return vscode.Uri.file(file);
-      } catch {
-        // the theme icon below
-      }
-    }
-    return new vscode.ThemeIcon(fallback);
+  private icon(uiIcon: string | undefined, fallback: string): Promise<vscode.Uri | vscode.ThemeIcon> {
+    return treeIcon(this.hub, uiIcon, fallback);
   }
+}
+
+/** A game icon for a tree row, or a theme icon when it cannot be had. */
+export async function treeIcon(hub: Hub, uiIcon: string | undefined, fallback: string): Promise<vscode.Uri | vscode.ThemeIcon> {
+  if (uiIcon) {
+    try {
+      const file = await hub.icons.file(await iconOf(hub.reader, uiIcon));
+      if (file) return vscode.Uri.file(file);
+    } catch {
+      // the theme icon below
+    }
+  }
+  return new vscode.ThemeIcon(fallback);
+}
+
+/** A quickhack document's row, in a project or on the Desk: its name, what it starts from, a click opens it. */
+export async function docTreeItem(hub: Hub, entry: { file: string; doc?: QuickhackDoc; error?: string }, idPrefix: string, contextValue: string): Promise<vscode.TreeItem> {
+  const open = { command: "vscode.openWith", title: "Open", arguments: [vscode.Uri.file(entry.file), EditorViewType] };
+  if (!entry.doc) {
+    const item = new vscode.TreeItem(path.basename(entry.file), vscode.TreeItemCollapsibleState.None);
+    item.id = `${idPrefix}${entry.file}`;
+    item.description = "cannot be read";
+    item.tooltip = entry.error;
+    item.iconPath = new vscode.ThemeIcon("warning");
+    item.contextValue = `${contextValue}.broken`;
+    item.command = open;
+    return item;
+  }
+  const doc = entry.doc;
+  const family = await hub.catalog().then((c) => c.families.find((f) => f.key === doc.family), () => undefined);
+  const from = family?.name ?? doc.family;
+  const item = new vscode.TreeItem(doc.name || from, vscode.TreeItemCollapsibleState.None);
+  item.id = `${idPrefix}${entry.file}`;
+  item.description = doc.newHack ? `new, from ${from}` : `changes ${from}`;
+  item.tooltip = `${doc.name || from}\n${item.description}\n${entry.file}`;
+  item.iconPath = await treeIcon(hub, doc.itemIcon ?? family?.icon, "zap");
+  item.contextValue = doc.newHack ? `${contextValue}.new` : `${contextValue}.change`;
+  item.command = open;
+  return item;
 }

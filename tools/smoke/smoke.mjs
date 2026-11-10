@@ -27,14 +27,14 @@ const CODE = process.env.EH_CODE ?? cachedCode ?? path.join(local, "Programs", "
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log("[smoke]", ...a);
 
-for (const f of ["ud", "proj", "control.json", "done.json", "packed.json", "opened.json", "loc.json"]) fs.rmSync(path.join(T, f), { recursive: true, force: true });
+for (const f of ["ud", "proj", "desk", "control.json", "done.json", "packed.json", "opened.json", "loc.json"]) fs.rmSync(path.join(T, f), { recursive: true, force: true });
 fs.mkdirSync(path.join(T, "proj", "source", "raw"), { recursive: true });
 fs.mkdirSync(path.join(T, "ud", "User"), { recursive: true });
 fs.cpSync(path.join(here, "stub"), path.join(T, "stub"), { recursive: true });
 fs.writeFileSync(path.join(T, "ud", "User", "settings.json"), JSON.stringify({ "window.dialogStyle": "custom", "security.workspace.trust.enabled": false }));
 for (const f of [BRIDGE, CODE]) if (!fs.existsSync(f)) throw new Error(`Not found: ${f}`);
 
-const env = { ...process.env, EH_SMOKE: T, EH_BRIDGE: BRIDGE, EH_GAME: GAME };
+const env = { ...process.env, EH_SMOKE: T, EH_BRIDGE: BRIDGE, EH_GAME: GAME, EDGEHACK_DESK: path.join(T, "desk") };
 // Started from a VS Code terminal, these would attach it to that VS Code, or run it as Node.
 for (const k of Object.keys(env)) if (/^(VSCODE_|ELECTRON_)/.test(k)) delete env[k];
 const code = spawn(CODE, ["--new-window", "--user-data-dir", path.join(T, "ud"), "--extensions-dir", path.join(T, "ex"), "--disable-extensions", "--extensionDevelopmentPath", repo, "--extensionDevelopmentPath", path.join(T, "stub"), "--remote-debugging-port=9347", "--skip-welcome", "--skip-release-notes", "--disable-workspace-trust", path.join(T, "proj")], { env, stdio: "ignore" });
@@ -421,4 +421,39 @@ check(rows.some((r) => /Smoke Static/.test(r) && /new, from Overheat/.test(r)), 
 check(rows.some((r) => /Smoke Heat|Overheat/.test(r) && /changes Overheat/.test(r)), "and the change to the game's");
 await shot("view.png");
 log("new document:", fs.readFileSync(newFile, "utf8").replace(/\s+/g, " ").slice(0, 300));
+
+// ---- The Desk (H3.7): in the scratch folder (EDGEHACK_DESK), never the modder's own.
+const deskItem = path.join(T, "desk", "smoke_desk.quickhack.asset");
+const deskFile = path.join(deskItem, "source", "raw", "edgehack", "smoke_desk.quickhack.json");
+const deskYaml = path.join(T, "proj", "source", "resources", "r6", "tweaks", "smokemod", "smokemod_smoke_desk.yaml");
+await step({ command: "edgehack.desk.new", args: ["Overheat", "Smoke Desk"] });
+check(fs.existsSync(deskFile) && JSON.parse(fs.readFileSync(path.join(deskItem, "asset.json"), "utf8")).kind === "quickhack", "Clone and Modify on the Desk makes a Library-shaped item");
+check(!fs.existsSync(deskYaml), "and writes no mod files");
+const deskPage = await pageWith("!!document.querySelector('main[data-desk]')", "the Desk quickhack's editor");
+check(await run(deskPage, `return !!document.querySelector("[data-add-to-project]") && !document.querySelector("[data-pack]");`), "its page offers Add to Project, not Pack and Play");
+check(await run(deskPage, `return !document.querySelector("[data-give]");`), "and no Console line until it is in a project");
+await setInput(deskPage, '[data-tier-key="Items.OverheatLvl3Program"][data-field="ram"]', "9");
+await sleep(800);
+await step({ command: "workbench.action.files.save" });
+await sleep(1200);
+check(JSON.parse(fs.readFileSync(deskFile, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 9, "a change is saved on the Desk");
+check(JSON.parse(fs.readFileSync(path.join(deskItem, "asset.json"), "utf8")).version === 2, "and raises the item's version");
+check(/Saved on the Desk/.test(await run(deskPage, `return document.querySelector("[data-status]").textContent;`)), "the page says it was saved on the Desk");
+check(!fs.existsSync(deskYaml), "still with no mod files");
+await run(deskPage, `document.querySelector("[data-add-to-project]").click();`);
+const added = path.join(T, "proj", "source", "raw", "edgehack", "smokemod_smoke_desk.quickhack.json");
+for (let i = 0; i < 40 && !fs.existsSync(deskYaml); i++) await sleep(500);
+check(fs.existsSync(added) && JSON.parse(fs.readFileSync(added, "utf8")).id === "smokemod_smoke_desk", "Add to Project puts it in the project under the project's id");
+check(JSON.parse(fs.readFileSync(added, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 9, "with its changes");
+check(fs.existsSync(deskYaml) && /^Items\.EDGEhack_smokemod_smoke_desk_OverheatLvl2Program:/m.test(fs.readFileSync(deskYaml, "utf8")), "and writes its mod files");
+check(fs.existsSync(deskFile), "the Desk keeps its own");
+await pageWith("!!document.querySelector('main[data-new-hack]:not([data-desk]) [data-pack]') && document.querySelector('[data-title]').textContent === 'Smoke Desk'", "the project's copy, opened");
+await step({ command: "edgehack.desk.duplicate", args: [deskFile, "Smoke Desk Two"] });
+const twoFile = path.join(T, "desk", "smoke_desk_two.quickhack.asset", "source", "raw", "edgehack", "smoke_desk_two.quickhack.json");
+check(fs.existsSync(twoFile) && JSON.parse(fs.readFileSync(twoFile, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 9, "Duplicate copies it under another name");
+await step({ command: "workbench.view.extension.edgehack" });
+await sleep(2500);
+const deskRows = await main(`[...document.querySelectorAll('.monaco-list-row')].map((r) => r.getAttribute("aria-label") ?? r.textContent)`);
+check(deskRows.some((r) => /Smoke Desk Two/.test(r)) && deskRows.filter((r) => /Smoke Desk/.test(r) && /new, from Overheat/.test(r)).length >= 3, `the Desk view lists both, and the project's copy: ${deskRows.filter((r) => /Smoke Desk/.test(r)).length} rows`);
+await shot("desk.png");
 finish();

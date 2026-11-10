@@ -560,6 +560,20 @@ REDnode's Console stays the way to get one while testing, and the editor's **Giv
 
 Checked: 90 unit tests (9 new, `test/getit.test.ts`); against the real game (scratchpad `h36/smoke.ts`): Ping's four tiers read (13, 8 and 13, 11 and 13, 1 and 1 vendors), the YAML for a new quickhack from Ping names 71 game records, none missing, and 42 records' fields all exist on their types, with 13 vendors' stock appended; the page smoke test (`npm run smoke`, now with two Get it checks and a screenshot that no longer stops the run when the window is in the background).
 
+
+**H3.7 built (2026-11-10), EDGEhack 0.0.16:** the Desk.
+
+| Part | Where | What |
+|---|---|---|
+| The Desk's folder | `src/desk.ts` (no VS Code) | `%LOCALAPPDATA%\EDGEhack\desk\<id>.quickhack.asset\` with `asset.json` (`format`, `id`, `name`, `kind: "quickhack"`, `main`, `version`, the shared fields of EDGEbuilder's library.md) and `source\raw\edgehack\<id>.quickhack.json`. `EDGEHACK_DESK` moves it, for tests |
+| Ids on the Desk | `deskNewHackDoc`, `deskChange` | A Desk document has no mod, so its id is its name alone (a new quickhack) or its family (a change). Its records' names are fixed only when it goes into a project, so a name changed on the Desk is the one the project gets |
+| Add to Project | `projectPlace`, `writeToProject`; `QuickhackEditor.addToProject` | The document takes the project's id (the mod's name and the quickhack's), is written into the project, its mod files are written and the project's copy opens. The Desk keeps its own, as EDGEfab's does. Adding again replaces the project's copy after asking; a different document at that place is refused |
+| Where new documents land | `QuickhackEditor.makeNew`, `edit` | With no project open, Clone and Modify and Edit go to the Desk. **Clone and Modify on the Desk** always does, project or not |
+| The page on the Desk | `renderEditor(..., desk)`, `renderGetIt(..., desk)` | **Add to Project** in place of Pack and Play; Get it without its Console line, since the item's id changes in the project; a save raises the item's `version` and says no mod files were written |
+| The Desk view | `src/deskView.ts` | The Desk's quickhacks, newest first, then a **Project** group as in the Quickhacks view (both views keep one for now). Add to Project (inline and in the menu), Duplicate (new quickhacks), Remove from the Desk (to the Recycle Bin, after asking). Add to Library waits for H5 |
+
+Checked: 100 unit tests (10 new, `test/desk.test.ts`); the page smoke test with 14 Desk checks (made on the Desk with no mod files, saved there with its version raised, Add to Project with the project's id and its mod files, Duplicate, the view's rows), in a scratch Desk.
+
 ### Own icons (H3b)
 
 Asked for by the owner on 2026-11-04: a new quickhack can have its own icons, uploaded or generated. It comes right after H3, since a new quickhack is where it is wanted. Own icons were in H5; they move here.
@@ -667,6 +681,24 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 - A fixed "disabled" text set in the editor, since the function returns only true or false.
 
 A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
+
+## In-game add-on: the Netrunner bench (proposed)
+
+The owner's idea of 2026-11-10: quickhack crafting in the game, on the crafting screen's quickhack tab, whose middle panel is empty but for a placeholder picture. A REDnode app, released on its own, that reuses EDGEhack's parts. Not scheduled; its place in the order is to be agreed.
+
+What the player does: names the quickhack they craft, and adds effects to it, other quickhacks' effects and added ones. Each effect has a component cost and a skill cost. V's Netrunner skill level is the budget: a recipe scoring 54 cannot be crafted while Netrunner is 50, until effects come off.
+
+**The owner's answers (2026-11-10):**
+
+| Question | Answer |
+|---|---|
+| Does a craft change the recipe for later crafts? | No. Each craft is one instance with its own choices |
+| Which quickhacks? | The game's own only, not ones made with EDGEhack |
+| How are effect costs set? | By a rule, which modders can override in EDGEhack. The bench must not need EDGEhack: EDGEhack is for modders, the bench is for players |
+| Is the name per crafted item, or the recipe's? | Per crafted item |
+| Native ink or an overlay panel? | Native ink only. Overlay apps that act like part of the game's UI (shown on a game event or a click on a game button, with the game's cursor carried across, no F10) come as a REDnode ticket of the owner's |
+
+**What it needs (unverified, from what is known today):** clicks and text input in the game's own UI, REDnode's I3 Input, which is not built; per-item effects applied when the hack lands (REDnode #42's `onLand`), keyed by the crafted item and kept with the save; reading V's Netrunner skill; taking the extra components at craft time; and the parts of EDGEhack it reuses (the effect pool, the cost rule) in a core that runs without VS Code, reading TweakDB live in the game instead of through REDbridge. A spike first: draw in the crafting screen's middle panel, read the Netrunner level, find an id for each crafted item, and give one item its own name.
 
 ## Decisions
 

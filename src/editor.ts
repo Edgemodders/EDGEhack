@@ -13,6 +13,7 @@ import type { Sales } from "./getit";
 import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
 import { bridge, redcode } from "./redcode";
+import { deskChange, deskNewHackProblem, deskRoot, makeDeskNewHack, onDesk, projectPlace, savedOnDesk, writeToProject } from "./desk";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -36,11 +37,15 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     );
   }
 
-  /** Makes the document for a family in the open project, or opens the one it has. */
+  /** Makes the document for a family in the open project, or on the Desk with none open, or opens the one there. */
   async edit(key: string): Promise<void> {
     const project = (await redcode()).project();
     if (!project) {
-      void vscode.window.showWarningMessage("EDGEhack: open a WolvenKit project in REDcode first. A changed quickhack goes into a project (the Desk, for working without one, comes later).");
+      const familyName = (await this.hub.catalog()).families.find((f) => f.key === key)?.name ?? key;
+      const item = deskChange(deskRoot(), key, familyName);
+      this.hub.log.appendLine(`Edit ${key} on the Desk: ${item.file}`);
+      this.onDeskChanged?.();
+      await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(item.file), EditorViewType);
       return;
     }
     const doc = newDoc(project.modName, key);
@@ -56,17 +61,15 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
    * Makes a new quickhack from a family of the game's, in the open project, and opens it. Its mod files
    * are written at once, so Pack and Play works before any change (a save of an unchanged file writes
    * nothing). Asks for the name unless given one. Returns the document's file, or undefined if none was made.
+   * With no project open, or `toDesk`, it goes on the Desk instead, with no mod files (H3.7).
    */
-  async makeNew(key: string, given?: string): Promise<string | undefined> {
+  async makeNew(key: string, given?: string, toDesk = false): Promise<string | undefined> {
     if (key.startsWith("action:")) {
       void vscode.window.showInformationMessage("A new quickhack can start only from one for people, for now. Device and vehicle hacks come later.");
       return undefined;
     }
-    const project = (await redcode()).project();
-    if (!project) {
-      void vscode.window.showWarningMessage("EDGEhack: open a WolvenKit project in REDcode first. A new quickhack goes into a project (the Desk, for working without one, comes later).");
-      return undefined;
-    }
+    const project = toDesk ? undefined : (await redcode()).project();
+    if (!project) return this.makeOnDesk(key, given);
     const catalog = await this.hub.catalog();
     const keys = catalog.families.map((f) => f.key);
     const familyName = catalog.families.find((f) => f.key === key)?.name ?? key;
@@ -93,6 +96,73 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     return file;
   }
 
+  /** Called when the Desk's folders change, so its view can follow. */
+  onDeskChanged?: () => void;
+
+  private async makeOnDesk(key: string, given?: string): Promise<string | undefined> {
+    const root = deskRoot();
+    const catalog = await this.hub.catalog();
+    const keys = catalog.families.map((f) => f.key);
+    const familyName = catalog.families.find((f) => f.key === key)?.name ?? key;
+    const name =
+      given ??
+      (await vscode.window.showInputBox({
+        title: `Clone and Modify ${familyName}, on the Desk`,
+        prompt: "The new quickhack's name, as players see it. It goes on the Desk until you add it to a project; its record names come from its name then.",
+        placeHolder: "Spike Static",
+        validateInput: (text) => (text ? deskNewHackProblem(root, keys, key, text) : undefined),
+      }));
+    if (!name) return undefined;
+    const item = makeDeskNewHack(root, keys, key, name);
+    this.hub.log.appendLine(`Made ${item.doc?.id} from ${key} on the Desk: ${item.file}`);
+    this.onDeskChanged?.();
+    await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(item.file), EditorViewType);
+    return item.file;
+  }
+
+  /**
+   * Add to Project: a Desk document goes into the open project under the project's ids, its mod files are
+   * written, and the project's copy opens. The Desk keeps its own, as EDGEfab's does; adding it again
+   * replaces the project's, after asking. Returns the project's file, or undefined if nothing was added.
+   */
+  async addToProject(file: string): Promise<string | undefined> {
+    const project = (await redcode()).project();
+    if (!project) {
+      void vscode.window.showWarningMessage("EDGEhack: open a WolvenKit project in REDcode first, then Add to Project again.");
+      return undefined;
+    }
+    const open = vscode.workspace.textDocuments.find((d) => d.uri.fsPath === vscode.Uri.file(file).fsPath);
+    if (open?.isDirty) await open.save();
+    const doc = parseDoc(fs.readFileSync(file, "utf8"));
+    const catalog = await this.hub.catalog();
+    const place = projectPlace(project, catalog.families.map((f) => f.key), doc);
+    const shown = doc.name || catalog.families.find((f) => f.key === doc.family)?.name || doc.family;
+    if (place.replaces) {
+      const choice = await vscode.window.showWarningMessage(
+        `${project.name} already has ${path.basename(place.file)}. Replace it with the Desk's ${shown}? Changes made to it in the project are lost.`,
+        { modal: true },
+        "Replace",
+      );
+      if (choice !== "Replace") return undefined;
+      // An open editor on the project's copy would keep its old text and could save it back.
+      const there = vscode.workspace.textDocuments.find((d) => d.uri.fsPath === vscode.Uri.file(place.file).fsPath);
+      if (there?.isDirty) await vscode.commands.executeCommand("workbench.action.revertFile", there.uri);
+    }
+    writeToProject(place);
+    this.hub.log.appendLine(`Added ${shown} from the Desk to ${project.name}: ${place.file}`);
+    try {
+      const fam = await this.hub.family(place.doc.family);
+      const sales = place.doc.newHack ? await this.salesFor(fam) : undefined;
+      const result = await writeDocFiles(project, await bridge(), fam, place.doc, await this.hub.added(place.doc, fam), sales);
+      this.hub.log.appendLine(`Wrote ${place.doc.id}: ${result.yaml ?? "no YAML"}`);
+      announceCreated(project.dir, result.created);
+    } catch (e) {
+      void vscode.window.showErrorMessage(`EDGEhack added the document to the project, but not its mod files: ${message(e)} Change something and save to try again.`);
+    }
+    await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(place.file), EditorViewType);
+    return place.file;
+  }
+
   async resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): Promise<void> {
     const w = panel.webview;
     w.options = {
@@ -105,6 +175,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     shown.add(panel);
     this.panels.set(document.uri.toString(), shown);
     w.html = this.shell(w, `<p class="loading">Reading the quickhack from the game…</p>`);
+    const desk = onDesk(document.fileName);
 
     let doc: QuickhackDoc;
     let fam: Family;
@@ -121,11 +192,11 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const icons = await this.icons(w, fam, doc);
       iconSet = icons.all;
       await this.addIcons(w, iconSet, added);
-      w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added));
+      w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added, undefined, desk));
       if (doc.newHack) {
         void this.salesFor(fam).then((got) => {
           sales = got;
-          void w.postMessage({ getItHtml: renderGetIt(fam, doc, sales), warnings: writeTweaks(fam, doc, added, sales).warnings });
+          void w.postMessage({ getItHtml: renderGetIt(fam, doc, sales, desk), warnings: writeTweaks(fam, doc, added, sales).warnings });
         });
       }
     } catch (e) {
@@ -149,7 +220,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         warnings: writeTweaks(fam, doc, added, sales).warnings,
         notes: addedNotes(fam, added),
         effectsHtml: renderAddedEffects(fam, added, iconSet),
-        ...(doc.newHack ? { getItHtml: renderGetIt(fam, doc, sales) } : {}),
+        ...(doc.newHack ? { getItHtml: renderGetIt(fam, doc, sales, desk) } : {}),
       });
     };
     const changed = vscode.workspace.onDidChangeTextDocument((e) => {
@@ -187,6 +258,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         getIt?: { tier: string; field: keyof GetIt; value?: boolean | number; game?: number };
         open?: string;
         pack?: boolean;
+        addToProject?: boolean;
       }) => {
         queue = queue.then(async () => {
         try {
@@ -216,6 +288,10 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.addedValue) await apply(document, withAddedValue(current(), m.addedValue.id, m.addedValue.tier, m.addedValue.field, m.addedValue.value, m.addedValue.game));
           if (m.addedAll) await apply(document, applyAddedToAll(current(), await this.hub.added(current(), fam), m.addedAll.id, m.addedAll.tier, m.addedAll.field));
           if (m.getIt) await apply(document, withGetIt(current(), m.getIt.tier, m.getIt.field, m.getIt.value, m.getIt.game));
+          if (m.addToProject) {
+            await document.save();
+            await this.addToProject(document.fileName);
+          }
           if (m.pack) {
             await document.save();
             await this.writing.get(document.uri.toString());
@@ -237,6 +313,12 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     };
     try {
       const doc = parseDoc(document.getText());
+      if (onDesk(document.fileName)) {
+        savedOnDesk(document.fileName, doc.name);
+        this.onDeskChanged?.();
+        say("Saved on the Desk. Add to Project writes its mod files into a project.");
+        return;
+      }
       const project = (await redcode()).project();
       if (!project || !isInside(document.fileName, project.dir)) {
         say("Saved, but this document is not in the project open in REDcode, so no mod files were written.", true);

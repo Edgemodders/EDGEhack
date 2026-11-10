@@ -1,5 +1,5 @@
-// EDGEhack's entry point: the side bar's views (Desk and Library still empty, the Quickhacks view
-// from H1), the quickhack page, and edgehack.openQuickhack, which any tool can call with any record
+// EDGEhack's entry point: the side bar's views (the Desk from H3.7, the Library still empty, the
+// Quickhacks view from H1), the quickhack page, and edgehack.openQuickhack, which any tool can call with any record
 // of a quickhack (docs/design.md, "Opening a quickhack from anywhere").
 import * as vscode from "vscode";
 import { Hub } from "./hub";
@@ -7,6 +7,8 @@ import { QuickhacksView } from "./quickhacksView";
 import { QuickhackPage } from "./page";
 import { recordOfArg } from "./quickhack";
 import { QuickhackEditor } from "./editor";
+import { DeskView } from "./deskView";
+import { copyName, deskRoot, duplicateDeskItem, deskNewHackProblem } from "./desk";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
 class Empty implements vscode.TreeDataProvider<never> {
@@ -28,6 +30,11 @@ export function activate(context: vscode.ExtensionContext): void {
   void quickhacks.watchProject().then((d) => context.subscriptions.push(d), () => undefined);
 
   const editor = new QuickhackEditor(hub);
+  const desk = new DeskView(hub);
+  const deskTree = vscode.window.createTreeView("edgehack.desk", { treeDataProvider: desk });
+  editor.onDeskChanged = () => desk.refresh();
+  void desk.watch().then((d) => context.subscriptions.push(d), (e: unknown) => log.appendLine(`Desk: not watched: ${e instanceof Error ? e.message : String(e)}`));
+  const failed = (err: unknown): void => void vscode.window.showErrorMessage(err instanceof Error ? err.message : String(err));
 
   const open = async (arg?: unknown): Promise<void> => {
     let target = recordOfArg(arg);
@@ -51,7 +58,85 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     log,
     view,
-    vscode.window.registerTreeDataProvider("edgehack.desk", new Empty()),
+    deskTree,
+    // Clone and Modify straight onto the Desk, whether a project is open or not.
+    vscode.commands.registerCommand("edgehack.desk.new", async (key?: string, name?: string) => {
+      try {
+        let family = typeof key === "string" ? key : undefined;
+        if (!family) {
+          const catalog = await hub.catalog();
+          const pick = await vscode.window.showQuickPick(
+            catalog.families.map((f) => ({ label: f.name, description: f.category, key: f.key })),
+            { title: "Clone and Modify on the Desk", placeHolder: "The game's quickhack to start from" },
+          );
+          family = pick?.key;
+        }
+        if (!family) return undefined;
+        return await editor.makeNew(family, name, true);
+      } catch (err) {
+        failed(err);
+        return undefined;
+      }
+    }),
+    vscode.commands.registerCommand("edgehack.desk.addToProject", async (arg?: unknown) => {
+      try {
+        const item = DeskView.itemOf(arg);
+        if (!item) return undefined;
+        const file = await editor.addToProject(item.file);
+        quickhacks.refreshProject();
+        desk.refresh();
+        return file;
+      } catch (err) {
+        failed(err);
+        return undefined;
+      }
+    }),
+    vscode.commands.registerCommand("edgehack.desk.duplicate", async (arg?: unknown, given?: string) => {
+      try {
+        const item = DeskView.itemOf(arg);
+        if (!item?.doc) return undefined;
+        const keys = (await hub.catalog()).families.map((f) => f.key);
+        const root = deskRoot();
+        const name =
+          given ??
+          (await vscode.window.showInputBox({
+            title: `Duplicate ${item.doc.name ?? item.doc.family}`,
+            prompt: "The copy's name, as players see it.",
+            value: copyName(root, keys, item.doc),
+            validateInput: (text) => (text ? deskNewHackProblem(root, keys, item.doc!.family, text) : undefined),
+          }));
+        if (!name) return undefined;
+        const copy = duplicateDeskItem(root, keys, item, name);
+        desk.refresh();
+        await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(copy.file), "edgehack.quickhack.editor");
+        return copy.file;
+      } catch (err) {
+        failed(err);
+        return undefined;
+      }
+    }),
+    // To the Recycle Bin, not deleted for good, after asking.
+    vscode.commands.registerCommand("edgehack.desk.remove", async (arg?: unknown, confirmed?: boolean) => {
+      try {
+        const item = DeskView.itemOf(arg);
+        if (!item) return false;
+        const shown = item.doc?.name || item.doc?.family || item.folder;
+        if (confirmed !== true) {
+          const choice = await vscode.window.showWarningMessage(`Move ${shown} off the Desk, to the Recycle Bin?`, { modal: true, detail: "A copy you added to a project stays in the project." }, "Move to Recycle Bin");
+          if (choice !== "Move to Recycle Bin") return false;
+        }
+        for (const tab of vscode.window.tabGroups.all.flatMap((g) => g.tabs)) {
+          const uri = (tab.input as { uri?: vscode.Uri } | undefined)?.uri;
+          if (uri && uri.fsPath.startsWith(item.folder)) await vscode.window.tabGroups.close(tab);
+        }
+        await vscode.workspace.fs.delete(vscode.Uri.file(item.folder), { recursive: true, useTrash: true });
+        desk.refresh();
+        return true;
+      } catch (err) {
+        failed(err);
+        return false;
+      }
+    }),
     vscode.window.registerTreeDataProvider("edgehack.library", new Empty()),
     vscode.commands.registerCommand("edgehack.openQuickhack", open),
     // The same, as REDcode's TweakDB view menu entry: a separate id so the palette shows only one.

@@ -191,13 +191,16 @@ export function renderAddedEffects(fam: Family, added: ResolvedAdded[], icons: M
 /**
  * A new quickhack's Get it (H3.6), a panel per tier: how the game hands out the family's tier, the Sell it
  * box, the components to craft it, and a Console line for testing. `sales` undefined: still being read.
+ * On the Desk (H3.7) the Console line waits: the records take the project's name when it goes into one.
  */
-export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undefined): string {
+export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undefined, desk = false): string {
   return fam.tiers
     .map((t, i) => {
       if (!t.item) return "";
       const key = tierKey(t);
-      const give = `<p class="foot">While testing, in REDnode's Console: <code data-give>await game.player.addItem("${esc(newItemPath(doc, t))}")</code></p>`;
+      const give = desk
+        ? `<p class="foot">The Console line for testing shows once it is in a project, since its records take the project's name.</p>`
+        : `<p class="foot">While testing, in REDnode's Console: <code data-give>await game.player.addItem("${esc(newItemPath(doc, t))}")</code></p>`;
       if (!sales) return `<div class="tier" data-tier="${i}"><p class="none">Reading where the game sells it…</p>${give}</div>`;
       const sale = sales.get(key);
       const want = doc.getIt?.[key] ?? {};
@@ -225,7 +228,8 @@ export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undef
     .join("");
 }
 
-export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales): string {
+/** The editor's page. `desk`: the document is on the Desk (H3.7), so it has no mod files and offers Add to Project. */
+export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales, desk = false): string {
   const tiers = fam.tiers;
   const top = tiers[tiers.length - 1];
   const head = tiers.map((t, i) => `<th data-tier="${i}"><button data-pick="${i}" data-tier="${i}" data-key="${esc(tierKey(t))}">${esc(t.quality ?? `Tier ${i + 1}`)}</button></th>`).join("");
@@ -248,16 +252,18 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
   // Get it (H3.6): how each tier is got, for the tier selected above.
   const getIt = doc.newHack
     ? `<section><h2>Get it</h2>
-<div data-getit>${renderGetIt(fam, doc, sales)}</div>
+<div data-getit>${renderGetIt(fam, doc, sales, desk)}</div>
 <p class="foot">Each tier is got the way the game's ${esc(fam.name)} is: a stock line of its own at the same vendors, behind the same gate, and a schematic of its own where the game sells one. Vendors show it on a save you already have. The kind of component stays the game's for that quality.</p>
 </section>`
     : "";
-  return `<main data-start="${start}" class="edit"${doc.newHack ? " data-new-hack" : ""}>
+  const status = desk ? "On the Desk: it writes no mod files until you add it to a project." : "Each save writes the mod's files into the project.";
+  const action = desk ? `<button data-add-to-project>Add to Project</button>` : `<button data-pack>Pack and Play</button>`;
+  return `<main data-start="${start}" class="edit"${doc.newHack ? " data-new-hack" : ""}${desk ? " data-desk" : ""}>
 <header class="hack">
   ${icons.item ? `<img class="icon big" src="${esc(icons.item)}" alt="">` : img(icons.all, top.icons.item ?? top.icons.wheel, "icon big", fam.name)}
   <div><h1 data-title>${esc(doc.name || fam.name)}</h1><p class="sub">Quickhack${fam.category ? ` &middot; ${esc(fam.category)}` : ""} &middot; ${tiers.length} tier${tiers.length === 1 ? "" : "s"}</p></div>
-  <p class="ro">${about} <b data-status>Each save writes the mod's files into the project.</b></p>
-  <p class="actions"><button data-pack>Pack and Play</button></p>
+  <p class="ro">${about} <b data-status>${status}</b></p>
+  <p class="actions">${action}</p>
   <ul class="warnings" data-warnings></ul>
   <ul class="notes" data-notes></ul>
 </header>

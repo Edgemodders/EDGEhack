@@ -180,6 +180,7 @@
     }
     if (ev.target.closest("[data-picker-close]")) q("[data-picker]").hidden = true;
     if (ev.target.closest("[data-pack]")) vscode.postMessage({ pack: true });
+    if (ev.target.closest("[data-add-to-project]")) vscode.postMessage({ addToProject: true });
   });
 
   window.addEventListener("message", ({ data: m }) => {
