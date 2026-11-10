@@ -54,7 +54,7 @@ EDGEhack 0.0.19 with REDcode 0.10.8 (a build from REDcode's main until it is rel
 | 7 | Hover Icon Test in the inventory's quickhacks, then find it in the crafting menu | Your item picture on its card, at the game's size |
 | 8 | Scan an enemy, upload Icon Test | Your wheel symbol on its wheel entry; your status symbol on the enemy where the game shows Overheat's burning icon. Overheat itself, if V has it, keeps the game's icons |
 | 9 | Quit. Back in VS Code, press **Game's** under Status, then Ctrl+S | The status icon goes back to the game's; the texture keeps the other two |
-| 10 | On the Desk, Clone and Modify a quickhack, upload an item picture, save, then **Duplicate** it and **Add to Project** | The copy and the project's document show the same picture |
+| 10 | In the EDGEhack side bar, hover the **Desk** view's title and press its **+** (**Clone and Modify on the Desk...**). Pick a quickhack and give it a name. On its page, upload an item picture and press Ctrl+S. Then right-click it in the Desk view, **Duplicate...**, and on the original's page press **Add to Project** | The copy and the project's document both show the same item picture |
 
 Then say what differed, with a screenshot of any icon that looks wrong.
 
