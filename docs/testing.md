@@ -6,7 +6,7 @@ title: Tests
 
 Every test run on EDGEhack: how to run it again, what to expect, and what it showed. Each phase ends with a hand test by the owner ([design, "Phases"](design.html#phases)); new tests are added here when they are first run, and their later runs' results too.
 
-Last updated 2026-11-07.
+Last updated 2026-11-10.
 
 ## At a glance
 
@@ -19,7 +19,7 @@ Last updated 2026-11-07.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | | Waiting |
+| [H3.6b Get it](#h36b-get-it) | By hand in VS Code, then in the game | H3 | 2026-11-10 | Pass, Parts A and B (EDGEhack 0.0.15) |
 | [H3.6a Get it spike](#h36a-get-it-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-09 | Pass: a vendor shows a new schematic on an existing save at once, buying teaches it, crafting makes the new hack; a crafting cost set from another file does not take |
 | [H3.5 Build one](#h35-build-one) | By hand in VS Code, then in the game | H3 | 2026-11-09 | Pass, the drone check too |
 | [H3.5 Attack features spike](#h35-attack-features-spike) | By hand, in the game, with a hand-written file and REDnode's Console | H3 | 2026-11-07 | Done: findings for the build |
@@ -33,7 +33,7 @@ Last updated 2026-11-07.
 
 ## Waiting for a hand test
 
-- [H3.6b Get it](#h36b-get-it).
+None.
 
 ## H3.6b Get it
 
@@ -63,6 +63,7 @@ Then quit the game and say what differed.
 
 | Run | Result |
 |---|---|
+| 2026-11-10, EDGEhack 0.0.15, on the laptop, game 2.5 | Pass: every step of Parts A and B as written. The new quickhack had to be made with Clone and Modify first, since Get it shows only on a new quickhack's page |
 
 ## H3.6a Get it spike
 
