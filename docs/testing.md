@@ -12,13 +12,14 @@ Last updated 2026-11-10.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 100 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 107 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3b.2 Upload](#h3b2-upload) | By hand, then in the game | H3b | | Waiting |
 | [H3b.1 Own icons spike](#h3b1-own-icons-spike) | By hand, in the game | H3b | 2026-11-10 | Pass, steps 1 to 6: our item card, wheel glyph and status symbol all showed |
 | [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 5 steps (EDGEhack 0.0.18) |
 | [H3.7 Desk](#h37-desk) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.16). The owner asked for a trash can on each entry and a plus on Add to Project's icon: H3.7b |
@@ -36,7 +37,30 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-None.
+- [H3b.2 Upload](#h3b2-upload).
+
+## H3b.2 Upload
+
+EDGEhack 0.0.19 with REDcode 0.10.8 (a build from REDcode's main until it is released: it has REDcode #25, the texture setup on import). Then in the game. Have three pictures ready, PNG or JPG: any picture for the item, and two white symbols on black for the wheel and the status icon.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install both, reload VS Code, open EDGEhack_Test1 in REDcode. **Clone and Modify** Overheat as **Icon Test** | Its page has three icons: Item, Wheel and Status, each with Upload; Wheel and Status have **Black is see-through** |
+| 2 | Item: **Upload...** your item picture | It shows in the Item box, fitted inside 99 x 128 without stretching |
+| 3 | Wheel: tick **Black is see-through**, then **Upload...** a white symbol on black | It shows as the white symbol with no black around it |
+| 4 | Status: the same with the other white symbol | The same |
+| 5 | Ctrl+S | A message names three files added: `edgehack/icons/<id>.png` in source/raw, and the `.xbm` and `.inkatlas` in source/archive. No error on the page |
+| 6 | Pack and Play, start the game, load a save. Switch on **Console** in REDnode's launcher and run the line **Get it** shows on Icon Test's page for the Epic tier (`await game.player.addItem("Items.EDGEhack_...")`) | V has Icon Test |
+| 7 | Hover Icon Test in the inventory's quickhacks, then find it in the crafting menu | Your item picture on its card, at the game's size |
+| 8 | Scan an enemy, upload Icon Test | Your wheel symbol on its wheel entry; your status symbol on the enemy where the game shows Overheat's burning icon. Overheat itself, if V has it, keeps the game's icons |
+| 9 | Quit. Back in VS Code, press **Game's** under Status, then Ctrl+S | The status icon goes back to the game's; the texture keeps the other two |
+| 10 | On the Desk, Clone and Modify a quickhack, upload an item picture, save, then **Duplicate** it and **Add to Project** | The copy and the project's document show the same picture |
+
+Then say what differed, with a screenshot of any icon that looks wrong.
+
+| Run | Result |
+|---|---|
+
 
 ## H3b.1 Own icons spike
 

@@ -237,6 +237,48 @@ check(docOf().wheelIcon === "UIIcon.OverLoad", "the document holds the wheel's i
 yaml = fs.readFileSync(yamlFile, "utf8");
 check(/ChoiceCaptionParts\.OverheatIcon\.texturePartID: UIIcon\.OverLoad/.test(yaml), "the YAML sets the wheel's icon");
 
+// Own icons (H3b.2): Upload on the wheel, fitted to 64 x 64 with black made see-through, then a save
+// writes the texture (imported with the UI setup), the atlas and the UIIcon record.
+check((await run(editor, `return !!document.querySelector('[data-icon-figure="status"] [data-icon-upload="status"]') && !document.querySelector('[data-icon-figure="status"] [data-icon]');`)) === true, "Status has Upload and no game picker");
+await run(
+  editor,
+  `const c = document.createElement("canvas"); c.width = 200; c.height = 100; const g = c.getContext("2d");
+   g.fillStyle = "#000"; g.fillRect(0, 0, 200, 100); g.fillStyle = "#fff"; g.fillRect(80, 30, 40, 40);
+   const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+   document.querySelector('[data-icon-black="wheel"]').checked = true;
+   document.querySelector('[data-icon-upload="wheel"]').click();
+   const input = document.querySelector("[data-icon-file]");
+   const dt = new DataTransfer(); dt.items.add(new File([blob], "wheel.png", { type: "image/png" }));
+   input.files = dt.files; input.dispatchEvent(new Event("change"));`,
+);
+const ownWheel = path.join(T, "proj", "source", "raw", "edgehack", "smokemod_overheat.icons", "wheel.png");
+for (let i = 0; i < 30 && !fs.existsSync(ownWheel); i++) await sleep(200);
+check(fs.existsSync(ownWheel), "Upload kept the picture beside the document");
+if (fs.existsSync(ownWheel)) {
+  const png = fs.readFileSync(ownWheel);
+  check(png.readUInt32BE(16) === 64 && png.readUInt32BE(20) === 64, `the picture is fitted to 64 x 64: ${png.readUInt32BE(16)} x ${png.readUInt32BE(20)}`);
+}
+await sleep(600);
+check((await run(editor, `return document.querySelector('[data-icon-figure="wheel"] img').src.startsWith("data:image/png");`)) === true, "the page shows the uploaded picture");
+await step({ command: "workbench.action.files.save" });
+const atlasFile = path.join(T, "proj", "source", "archive", "edgehack", "icons", "smokemod_overheat.inkatlas");
+const xbmFile = path.join(T, "proj", "source", "archive", "edgehack", "icons", "smokemod_overheat.xbm");
+for (let i = 0; i < 40 && !fs.existsSync(atlasFile); i++) await sleep(250);
+check(fs.existsSync(xbmFile), "a save imported the icons' texture as an .xbm");
+check(fs.existsSync(atlasFile), "and wrote the atlas beside it");
+check(docOf().ownIcons?.wheel === true, "the saved document marks the wheel's own icon");
+yaml = fs.readFileSync(yamlFile, "utf8");
+check(/UIIcon\.edgehack_smokemod_overheat_wheel:\n {2}\$type: UIIcon\n {2}atlasResourcePath: edgehack\\icons\\smokemod_overheat\.inkatlas/.test(yaml), "the YAML names the own icon's atlas part");
+check(/ChoiceCaptionParts\.OverheatIcon\.texturePartID: UIIcon\.edgehack_smokemod_overheat_wheel/.test(yaml), "the wheel uses the own icon, over the picked one");
+await shot("own-icon.png");
+// Game's: back to the picked icon; the texture and atlas go at the next save.
+await run(editor, `document.querySelector('[data-icon-reset="wheel"]').click();`);
+await sleep(600);
+await step({ command: "workbench.action.files.save" });
+for (let i = 0; i < 20 && fs.existsSync(atlasFile); i++) await sleep(250);
+check(docOf().ownIcons === undefined && docOf().wheelIcon === undefined, "Game's clears the own icon and the picked one");
+check(!fs.existsSync(atlasFile), "with no own icons, a save removes the atlas");
+
 // Back to the game's value: no change, no modifier.
 await setInput(editor, RAM, "6");
 await sleep(400);

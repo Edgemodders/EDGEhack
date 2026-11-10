@@ -1,7 +1,8 @@
 // The quickhack editor's HTML, pure (no VS Code): the document's values in inputs, the game's beside
 // them, and below them the read-only panels of what the game has. Each input names what it sets; the
 // page's script (media/editor.js) sends the changes to the host, which edits the document.
-import type { QuickhackDoc, TierField } from "./document";
+import type { IconLook, QuickhackDoc, TierField } from "./document";
+import { LOOKS } from "./ownIcons";
 import { ADDED_FIELDS, DAMAGE_TYPES, type AddedField } from "./document";
 import { mainEffect, tierKey, type Family, type IconRef, type Tier } from "./read";
 import { esc, img, rec, tierPanel } from "./pageHtml";
@@ -53,12 +54,21 @@ export interface EditorIcons {
   /** What the document's icons show now. */
   item?: string;
   wheel?: string;
+  /** The status icon shown now: its own, or the main effect's. */
+  status?: string;
 }
 
-function iconChoice(which: "item" | "wheel", label: string, src: string | undefined, changed: boolean): string {
+/**
+ * One icon's figure: what it shows, Change (the game's icons; not for Status), Upload (H3b), and Game's.
+ * Wheel and Status take a switch that makes black see-through, for a white-on-black picture.
+ */
+function iconChoice(which: IconLook, label: string, src: string | undefined, changed: boolean): string {
+  const look = LOOKS[which];
   const shown = src ? `<img class="icon" src="${esc(src)}" alt="${esc(label)}">` : `<span class="icon blank"></span>`;
-  return `<figure data-icon-figure="${which}"${changed ? ' class="changed"' : ""}>${shown}<figcaption>${esc(label)}<br>
-<button data-icon="${which}">Change...</button> <button data-icon-reset="${which}"${changed ? "" : " hidden"}>Game's</button></figcaption></figure>`;
+  const change = which === "status" ? "" : `<button data-icon="${which}">Change...</button> `;
+  const black = which === "item" ? "" : `<label class="black" title="For a white picture on black: the black becomes see-through, as the game's ${esc(label.toLowerCase())} icons are"><input type="checkbox" data-icon-black="${which}"> Black is see-through</label>`;
+  return `<figure data-icon-figure="${which}"${changed ? ' class="changed"' : ""}>${shown}<figcaption>${esc(label)} <small>${look.width} x ${look.height}</small><br>
+${change}<button data-icon-upload="${which}" data-width="${look.width}" data-height="${look.height}" title="A PNG or JPG, fitted to ${look.width} x ${look.height}">Upload...</button> <button data-icon-reset="${which}"${changed ? "" : " hidden"}>Game's</button>${black ? `<br>${black}` : ""}</figcaption></figure>`;
 }
 
 const ADDED_ROWS: Record<AddedField, { label: string; unit: string; hint?: string }> = {
@@ -277,7 +287,9 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
 </dl>
 </div><div>
 <h2>Icons</h2>
-<div class="icons">${iconChoice("item", "Item", icons.item ?? (top.icons.item && icons.all.get(`${top.icons.item.atlas}|${top.icons.item.part}`)), !!doc.itemIcon)}${iconChoice("wheel", "Wheel", icons.wheel ?? (top.icons.wheel && icons.all.get(`${top.icons.wheel.atlas}|${top.icons.wheel.part}`)), !!doc.wheelIcon)}</div>
+<div class="icons">${iconChoice("item", "Item", icons.item ?? (top.icons.item && icons.all.get(`${top.icons.item.atlas}|${top.icons.item.part}`)), !!doc.itemIcon || !!doc.ownIcons?.item)}${iconChoice("wheel", "Wheel", icons.wheel ?? (top.icons.wheel && icons.all.get(`${top.icons.wheel.atlas}|${top.icons.wheel.part}`)), !!doc.wheelIcon || !!doc.ownIcons?.wheel)}${iconChoice("status", "Status", icons.status, !!doc.ownIcons?.status)}</div>
+<input type="file" accept="image/png,image/jpeg" data-icon-file hidden>
+<p class="foot">Upload puts a picture of your own in the mod, fitted to the icon's size. Status is the icon on the hacked enemy.</p>
 <div class="picker" data-picker hidden><p data-picker-title></p><div class="grid" data-picker-grid></div><button data-picker-close>Close</button></div>
 </div></section>
 <section><h2>Numbers</h2>

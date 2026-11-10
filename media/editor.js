@@ -5,6 +5,51 @@
   const q = (s) => document.querySelector(s);
   const all = (s) => [...document.querySelectorAll(s)];
   let selected = Number(q("main")?.dataset.start ?? 0);
+  // The icon an Upload is for (H3b): its look, size and whether black becomes see-through.
+  let uploading = null;
+
+  /** A picture fitted inside the look's size, centred, on nothing; as PNG data. */
+  async function fitted(file, u) {
+    const bitmap = await createImageBitmap(file);
+    const c = document.createElement("canvas");
+    c.width = u.width;
+    c.height = u.height;
+    const g = c.getContext("2d");
+    g.imageSmoothingQuality = "high";
+    const scale = Math.min(u.width / bitmap.width, u.height / bitmap.height);
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    g.drawImage(bitmap, Math.floor((u.width - w) / 2), Math.floor((u.height - h) / 2), w, h);
+    if (u.black) {
+      // White on black: the brightness becomes the opacity, and the colour is what is left at full strength.
+      const d = g.getImageData(0, 0, u.width, u.height);
+      const p = d.data;
+      for (let i = 0; i < p.length; i += 4) {
+        const m = Math.max(p[i], p[i + 1], p[i + 2]);
+        const a = Math.round((m * p[i + 3]) / 255);
+        if (m > 0) {
+          p[i] = Math.round((p[i] * 255) / m);
+          p[i + 1] = Math.round((p[i + 1] * 255) / m);
+          p[i + 2] = Math.round((p[i + 2] * 255) / m);
+        }
+        p[i + 3] = a;
+      }
+      g.putImageData(d, 0, 0);
+    }
+    return c.toDataURL("image/png");
+  }
+
+  q("[data-icon-file]")?.addEventListener("change", async (ev) => {
+    const file = ev.target.files?.[0];
+    const u = uploading;
+    uploading = null;
+    if (!file || !u) return;
+    try {
+      vscode.postMessage({ uploadIcon: { which: u.which, png: await fitted(file, u) } });
+    } catch (e) {
+      vscode.postMessage({ uploadFailed: String(e?.message ?? e) });
+    }
+  });
 
   function pick(i) {
     selected = i;
@@ -171,6 +216,14 @@
     if (a) vscode.postMessage({ applyAll: { field: a.dataset.applyAll, tier: selectedKey() } });
     const i = ev.target.closest("[data-icon]");
     if (i) vscode.postMessage({ chooseIcon: i.dataset.icon });
+    const up = ev.target.closest("[data-icon-upload]");
+    if (up) {
+      const which = up.dataset.iconUpload;
+      uploading = { which, width: Number(up.dataset.width), height: Number(up.dataset.height), black: !!q(`[data-icon-black="${which}"]`)?.checked };
+      const input = q("[data-icon-file]");
+      input.value = "";
+      input.click();
+    }
     const ir = ev.target.closest("[data-icon-reset]");
     if (ir) vscode.postMessage({ setIcon: { which: ir.dataset.iconReset } });
     const c = ev.target.closest("[data-choice]");

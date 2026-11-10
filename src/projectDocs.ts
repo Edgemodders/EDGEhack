@@ -9,6 +9,7 @@ import { writeTweaks } from "./tweaks";
 import type { Sales } from "./getit";
 import type { ResolvedAdded } from "./effects";
 import { ProjectResult, writeProject } from "./projectFiles";
+import { IconWriter, writeOwnIcons } from "./ownIcons";
 
 /** Where a document lives in a project: source/raw/edgehack/<id>.quickhack.json. */
 export const docFile = (project: ProjectRef, id: string): string => path.join(project.raw, "edgehack", `${id}.quickhack.json`);
@@ -64,6 +65,18 @@ export function makeNewHackDoc(project: ProjectRef, familyKeys: string[], family
 }
 
 /** A document's mod files, written into the project. `added` is its added effects, read; `sales`, how the game hands out its family (Get it). */
-export function writeDocFiles(project: ProjectRef, bridge: BridgeClient, fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = [], sales?: Sales): Promise<ProjectResult> {
-  return writeProject(project, bridge, doc, writeTweaks(fam, doc, added, sales));
+export async function writeDocFiles(
+  project: ProjectRef,
+  bridge: BridgeClient,
+  fam: Family,
+  doc: QuickhackDoc,
+  added: ResolvedAdded[] = [],
+  sales?: Sales,
+  icons?: IconWriter,
+): Promise<ProjectResult> {
+  const result = await writeProject(project, bridge, doc, writeTweaks(fam, doc, added, sales));
+  // Its own icons' texture and atlas (H3b), or the removal of an earlier save's when it has none now.
+  if (icons) result.created.push(...(await writeOwnIcons({ raw: project.raw, archive: project.archive }, icons, doc, docFile(project, doc.id))));
+  else if (doc.ownIcons) throw new Error("This quickhack has its own icons, and nothing was given to write them.");
+  return result;
 }

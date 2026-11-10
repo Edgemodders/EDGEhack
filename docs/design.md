@@ -616,6 +616,18 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 
 **H3b.1's result (2026-11-10, game 2.5, dev PC): passed, every step.** Our item card showed in the inventory and the crafting menu at the size of the game's cards, the wheel glyph on the quickhack wheel, and our status symbol on the hacked enemy. What it settles for H3b.2: the item card is 99 x 128 and the wheel and status icons 64 x 64; one texture in both of the atlas's slots is enough (no separate 1080p texture); the texture setup above works; new `UIIcon` records reach all three places (an item's `iconPath`, a caption part's `texturePartID`, a status effect UI's `iconPath`). Found on the way: another mod changing the same quickhack's icons wins over EDGEhack's file (the owner's EDGEhack_Test1 changed Overheat's), as with any TweakXL change.
 
+**H3b.2 built (2026-11-10), EDGEhack 0.0.19:**
+
+| Part | Where | What |
+|---|---|---|
+| The document | `ownIcons` in `src/document.ts` (`ICON_LOOKS`, `withOwnIcon`) | `{ item?, wheel?, status? }`, true where the look has its own picture; the pictures are PNGs beside the document in `<id>.icons/` |
+| The mod's files | `src/ownIcons.ts` (no VS Code) | `LOOKS` (sizes and places in a 256 x 256 texture), `atlasImage`, `atlasJson` (the texture in both slots), `iconRecords`, `writeOwnIcons`: the texture into `source/raw/edgehack/icons/<id>.png`, imported through REDcode with `UI_TEXTURE`, and `source/archive/edgehack/icons/<id>.inkatlas` through REDbridge; with no own icons, an earlier save's files go. A REDcode answer with no `texture` field is too old (REDcode 0.10.8 has it, REDcode #25) |
+| The records | `src/tweaks.ts` | `UIIcon.edgehack_<id>_<look>` records; an own item or wheel icon wins over a picked one (`itemIconOf`, `wheelIconOf`). Status: a change sets the main effect's UI record's `iconPath`; a new quickhack copies its main status effect with its own UI record (`copyStatus`'s `icon`), so the game's keeps its icon. With no status effect of its own, a warning says the status icon shows nowhere |
+| The page | `src/editorHtml.ts`, `media/editor.js` | A Status figure (Upload and Game's, no picker), Upload on each, Black is see-through on Wheel and Status; the fit (contain, centred, on nothing) and the black-to-transparent step run in the page's canvas, which reads PNG and JPG. Own pictures show as data URLs (the page's policy allows `data:` images) |
+| Desk | `src/desk.ts` | Duplicate and Add to Project take the pictures along (`copyOwnIcons`) |
+
+Checked: 107 unit tests (7 new, `test/ownIcons.test.ts`); the smoke test uploads a white square on black to the wheel through the page's file input, and checks the fitted 64 x 64 picture, the `.xbm` (imported with the UI setup through REDbridge 0.12.1, in the stand-in REDcode), the atlas, the YAML, and Game's removing them. Unverified until the hand test: REDcode 0.10.8's own `importFile` called from EDGEhack.
+
 ### H3c Scripts: plan
 
 Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Agreed the same day. Read from game 2.5's scripts; nothing here has run in the game yet.

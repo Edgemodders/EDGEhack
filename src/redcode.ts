@@ -83,6 +83,12 @@ export interface REDcodeApi {
   gamePath(): string | undefined;
   project(): ProjectRef | undefined;
   readonly onDidChangeProject: vscode.Event<ProjectRef | undefined>;
+  /**
+   * Imports a file under the project's source/raw into source/archive, as Import from Raw does. `texture`
+   * sets an image's .xbm setup (REDcode issue 25, REDbridge 0.12.0); a REDcode with it answers the setup
+   * read back as `texture`, an older one leaves it out.
+   */
+  importFile(file: string, options?: { template?: string; texture?: Record<string, string | boolean> }): Promise<{ ok: boolean; written: string[]; texture?: unknown }>;
   /** Packs the project and gets it into the game as fast as it allows (REDcode: Pack and Play). */
   packAndPlay(): Promise<"rednode" | "hot" | "installed" | undefined>;
 }

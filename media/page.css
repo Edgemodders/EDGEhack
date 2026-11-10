@@ -115,3 +115,5 @@ main.edit select { background: var(--vscode-dropdown-background); color: var(--v
 .effect-row b { display: block; font-weight: normal; }
 .effect-row small { color: var(--dim); }
 .chance-mode { border-left: 3px solid var(--yellow, #fcee0a); padding: 4px 8px; margin: 6px 0; }
+.icons label.black { font-size: .8em; color: var(--dim); white-space: nowrap; }
+.icons figure { max-width: 190px; }

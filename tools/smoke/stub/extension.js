@@ -89,6 +89,11 @@ function activate(context) {
     gamePath: () => process.env.EH_GAME,
     project: () => project,
     onDidChangeProject: new vscode.EventEmitter().event,
+    // REDcode 0.10.8's import (issue 25): the texture setup passed to REDbridge, read back in the answer.
+    importFile: async (file, options) => {
+      const r = await call("project.import", { file, rawDir: project.raw, archiveDir: project.archive, keep: true, template: options?.template ?? null, ...(options?.texture ? { texture: options.texture } : {}) });
+      return { ok: r.ok, written: r.written, mesh: r.mesh ?? null, texture: r.texture ?? null };
+    },
     packAndPlay: async () => {
       write("packed.json", true);
       return "installed";

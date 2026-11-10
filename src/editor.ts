@@ -3,8 +3,10 @@
 // REDcode's project (docs/design.md, "H2: plan").
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
-import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt } from "./document";
-import { Family, iconOf, IconRef } from "./read";
+import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt, IconLook, withOwnIcon } from "./document";
+import { Family, iconOf, IconRef, mainEffect } from "./read";
+import { iconFile, IconWriter, LOOKS } from "./ownIcons";
+import { decodePng } from "./png";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
@@ -86,7 +88,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     this.hub.log.appendLine(`Made ${doc.id} from ${key}: ${file}`);
     try {
       const fam = await this.hub.family(key);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, [], await this.salesFor(fam));
+      const result = await writeDocFiles(project, await bridge(), fam, doc, [], await this.salesFor(fam), await iconWriter());
       this.hub.log.appendLine(`Wrote ${doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -148,12 +150,12 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const there = vscode.workspace.textDocuments.find((d) => d.uri.fsPath === vscode.Uri.file(place.file).fsPath);
       if (there?.isDirty) await vscode.commands.executeCommand("workbench.action.revertFile", there.uri);
     }
-    writeToProject(place);
+    writeToProject(place, { file, id: doc.id });
     this.hub.log.appendLine(`Added ${shown} from the Desk to ${project.name}: ${place.file}`);
     try {
       const fam = await this.hub.family(place.doc.family);
       const sales = place.doc.newHack ? await this.salesFor(fam) : undefined;
-      const result = await writeDocFiles(project, await bridge(), fam, place.doc, await this.hub.added(place.doc, fam), sales);
+      const result = await writeDocFiles(project, await bridge(), fam, place.doc, await this.hub.added(place.doc, fam), sales, await iconWriter());
       this.hub.log.appendLine(`Wrote ${place.doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -189,7 +191,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       fam = await this.hub.family(doc.family);
       added = await this.hub.added(doc, fam);
       panel.title = path.basename(document.fileName);
-      const icons = await this.icons(w, fam, doc);
+      const icons = await this.icons(w, fam, doc, document.fileName);
       iconSet = icons.all;
       await this.addIcons(w, iconSet, added);
       w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added, undefined, desk));
@@ -243,7 +245,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         setTier?: { tier: string; field: TierField; value?: number; game?: number };
         applyAll?: { field: TierField; tier?: string };
         chooseIcon?: "item" | "wheel";
-        setIcon?: { which: "item" | "wheel"; value?: string };
+        setIcon?: { which: IconLook; value?: string };
+        uploadIcon?: { which: IconLook; png: string };
+        uploadFailed?: string;
         addEffect?: boolean;
         pickFamily?: string;
         addFrom?: { from: string; effect: string };
@@ -268,10 +272,28 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.applyAll?.tier) await apply(document, applyToAll(fam, current(), m.applyAll.tier, m.applyAll.field));
           if (m.chooseIcon) await this.choose(w, m.chooseIcon);
           if (m.setIcon) {
-            const field = m.setIcon.which === "item" ? "itemIcon" : "wheelIcon";
-            await apply(document, withField(current(), field, m.setIcon.value));
-            await w.postMessage({ iconShown: { which: m.setIcon.which, changed: !!m.setIcon.value, src: await this.iconSrc(w, fam, m.setIcon.which, m.setIcon.value) } });
+            // A game icon picked, or Game's: either way the own picture (if any) stops being used. Its
+            // file stays, so VS Code's undo brings it back.
+            const which = m.setIcon.which;
+            let next = withOwnIcon(current(), which, false);
+            if (which !== "status") next = withField(next, which === "item" ? "itemIcon" : "wheelIcon", m.setIcon.value);
+            await apply(document, next);
+            await w.postMessage({ iconShown: { which, changed: !!m.setIcon.value, src: await this.iconSrc(w, fam, which, m.setIcon.value) } });
           }
+          if (m.uploadIcon) {
+            const which = m.uploadIcon.which;
+            const png = Buffer.from(m.uploadIcon.png.replace(/^data:image\/png;base64,/, ""), "base64");
+            const img = decodePng(png);
+            const look = LOOKS[which];
+            if (img.width !== look.width || img.height !== look.height) throw new Error(`The picture came back ${img.width} x ${img.height}, not ${look.width} x ${look.height}.`);
+            const doc = current();
+            const file = iconFile(document.fileName, doc.id, which);
+            fs.mkdirSync(path.dirname(file), { recursive: true });
+            fs.writeFileSync(file, png);
+            await apply(document, withOwnIcon(doc, which, true));
+            await w.postMessage({ iconShown: { which, changed: true, src: m.uploadIcon.png }, status: `${look.label} icon uploaded. Save to write it into the mod.` });
+          }
+          if (m.uploadFailed) await w.postMessage({ status: `That picture could not be read: ${m.uploadFailed}`, bad: true });
           if (m.addEffect) await this.offerEffects(w, fam);
           if (m.pickFamily) await this.offerFamily(w, m.pickFamily);
           if (m.addFrom) await apply(document, withAddedEffect(current(), { from: m.addFrom.from, effect: m.addFrom.effect }));
@@ -327,7 +349,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const fam = await this.hub.family(doc.family);
       const sales = doc.newHack ? await this.salesFor(fam) : undefined;
       if (doc.newHack && !sales) say("Saved, but where the game sells it could not be read, so Get it was left out this time. Save again to try once more.", true);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam), sales);
+      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam), sales, await iconWriter());
       this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}`);
       announceCreated(project.dir, result.created);
       say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
@@ -347,13 +369,20 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     }
   }
 
-  private async icons(w: vscode.Webview, fam: Family, doc: QuickhackDoc): Promise<{ all: Map<string, string>; item?: string; wheel?: string }> {
+  private async icons(w: vscode.Webview, fam: Family, doc: QuickhackDoc, docFile: string): Promise<{ all: Map<string, string>; item?: string; wheel?: string; status?: string }> {
     const all = new Map<string, string>();
     for (const icon of iconsOf(fam)) {
       const src = await this.src(w, icon);
       if (src) all.set(`${icon.atlas}|${icon.part}`, src);
     }
-    return { all, item: doc.itemIcon ? await this.src(w, await iconOf(this.hub.reader, doc.itemIcon)) : undefined, wheel: doc.wheelIcon ? await this.src(w, await iconOf(this.hub.reader, doc.wheelIcon)) : undefined };
+    const own = (look: IconLook): string | undefined => (doc.ownIcons?.[look] ? ownSrc(docFile, doc.id, look) : undefined);
+    const top = fam.tiers[fam.tiers.length - 1];
+    return {
+      all,
+      item: own("item") ?? (doc.itemIcon ? await this.src(w, await iconOf(this.hub.reader, doc.itemIcon)) : undefined),
+      wheel: own("wheel") ?? (doc.wheelIcon ? await this.src(w, await iconOf(this.hub.reader, doc.wheelIcon)) : undefined),
+      status: own("status") ?? (top ? await this.src(w, mainEffect(top.effects)?.icon) : undefined),
+    };
   }
 
   /** Adds the added effects' icons to those the page can show. */
@@ -366,8 +395,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     }
   }
 
-  private async iconSrc(w: vscode.Webview, fam: Family, which: "item" | "wheel", value?: string): Promise<string | undefined> {
+  private async iconSrc(w: vscode.Webview, fam: Family, which: IconLook, value?: string): Promise<string | undefined> {
     const top = fam.tiers[fam.tiers.length - 1];
+    if (which === "status") return this.src(w, mainEffect(top.effects)?.icon);
     return this.src(w, value ? await iconOf(this.hub.reader, value) : which === "item" ? top.icons.item : top.icons.wheel);
   }
 
@@ -413,7 +443,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     const css = w.asWebviewUri(vscode.Uri.joinPath(this.hub.extensionUri, "media", "page.css"));
     const js = w.asWebviewUri(vscode.Uri.joinPath(this.hub.extensionUri, "media", "editor.js"));
     return `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${w.cspSource}; style-src ${w.cspSource}; script-src ${w.cspSource};">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${w.cspSource} data:; style-src ${w.cspSource}; script-src ${w.cspSource};">
 <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="${css}"></head>
 <body>${body}${body.includes("<main") ? `<script src="${js}"></script>` : ""}</body></html>`;
   }
@@ -428,6 +458,25 @@ function announceCreated(projectDir: string, created: string[]): void {
     if (choice !== "Open") return;
     for (const f of created) await vscode.window.showTextDocument(vscode.Uri.file(f), { preview: false });
   });
+}
+
+/** What saving writes a document's own icons with: REDcode's import (with the texture setup) and REDbridge's JSON writer. */
+async function iconWriter(): Promise<IconWriter> {
+  const api = await redcode();
+  const b = await bridge();
+  return {
+    importFile: (file, texture) => api.importFile(file, { texture: { ...texture } }),
+    fromJson: (outFile, json) => b.fromJson(outFile, { json }),
+  };
+}
+
+/** An own icon's picture as data, for the page: it sits beside the document, outside the folders the page may read. */
+function ownSrc(docFile: string, id: string, look: IconLook): string | undefined {
+  try {
+    return `data:image/png;base64,${fs.readFileSync(iconFile(docFile, id, look)).toString("base64")}`;
+  } catch {
+    return undefined;
+  }
 }
 
 function message(e: unknown): string {

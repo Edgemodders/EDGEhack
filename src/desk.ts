@@ -13,6 +13,7 @@ import * as path from "node:path";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId } from "./document";
 import type { ProjectRef } from "./redcode";
 import { docFile, newHackProblem } from "./projectDocs";
+import { copyOwnIcons } from "./ownIcons";
 
 /** The Desk's folder: EDGEHACK_DESK when set (tests, the smoke test), else %LOCALAPPDATA%\EDGEhack\desk. */
 export function deskRoot(env: NodeJS.ProcessEnv = process.env): string {
@@ -149,7 +150,9 @@ export function duplicateDeskItem(root: string, familyKeys: string[], item: Desk
   const problem = deskNewHackProblem(root, familyKeys, item.doc.family, name);
   if (problem) throw new Error(problem);
   const fresh = deskNewHackDoc(item.doc.family, name.trim());
-  return write(root, { ...item.doc, id: fresh.id, name: name.trim() }, name.trim());
+  const copy = write(root, { ...item.doc, id: fresh.id, name: name.trim() }, name.trim());
+  copyOwnIcons(item.file, item.doc.id, copy.file, fresh.id);
+  return copy;
 }
 
 /** Where a Desk document goes in a project, and whether a document is already there. */
@@ -191,7 +194,9 @@ export function projectPlace(project: ProjectRef, familyKeys: string[], doc: Qui
 }
 
 /** Writes a Desk document into the project, at the place projectPlace gave. */
-export function writeToProject(place: ProjectPlace): void {
+/** Writes the document into the project; `from`, the Desk's document, whose own icons go with it (H3b). */
+export function writeToProject(place: ProjectPlace, from?: { file: string; id: string }): void {
   fs.mkdirSync(path.dirname(place.file), { recursive: true });
   fs.writeFileSync(place.file, printDoc(place.doc));
+  if (from) copyOwnIcons(from.file, from.id, place.file, place.doc.id);
 }

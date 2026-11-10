@@ -103,6 +103,12 @@ export interface QuickhackDoc {
   /** The UIIcon record of the item's icon, and of the wheel's. */
   itemIcon?: string;
   wheelIcon?: string;
+  /**
+   * Icons of its own (H3b), uploaded or generated, each kept as a PNG beside the document, in the
+   * folder `<id>.icons` (ownIcons.ts): true where the look has one. An own icon wins over the
+   * UIIcon field above.
+   */
+  ownIcons?: OwnIcons;
   /** The cooldown in seconds: for the whole family, whose tiers share one. */
   cooldown?: number;
   /** By the tier's item record. */
@@ -111,6 +117,31 @@ export interface QuickhackDoc {
   effects?: AddedEffect[];
   /** A new quickhack's Get it, by the tier's item. Missing: every tier is got the way the family's is. */
   getIt?: Record<string, GetIt>;
+}
+
+/** The three looks of a quickhack's icons (H3b): the item card, the wheel glyph, the target's status icon. */
+export const ICON_LOOKS = ["item", "wheel", "status"] as const;
+export type IconLook = (typeof ICON_LOOKS)[number];
+export type OwnIcons = Partial<Record<IconLook, true>>;
+
+/** A document with an own icon set or cleared. */
+export function withOwnIcon(doc: QuickhackDoc, look: IconLook, on: boolean): QuickhackDoc {
+  const own: OwnIcons = { ...(doc.ownIcons ?? {}) };
+  if (on) own[look] = true;
+  else delete own[look];
+  const { ownIcons: _old, ...rest } = doc;
+  return Object.keys(own).length ? { ...rest, ownIcons: own } : rest;
+}
+
+function ownIconsOf(v: unknown): OwnIcons | undefined {
+  if (v === undefined || v === null) return undefined;
+  if (typeof v !== "object" || Array.isArray(v)) throw new Error("ownIcons must be an object.");
+  const own: OwnIcons = {};
+  for (const [k, on] of Object.entries(v as Record<string, unknown>)) {
+    if (!(ICON_LOOKS as readonly string[]).includes(k)) throw new Error(`ownIcons has no look "${k}" (item, wheel, status).`);
+    if (on === true) own[k as IconLook] = true;
+  }
+  return Object.keys(own).length ? own : undefined;
 }
 
 /** A name fit for record paths and text keys: lowercase letters, digits and underscores. */
@@ -253,6 +284,7 @@ export function parseDoc(source: string): QuickhackDoc {
     wheelText: text(o.wheelText, "The wheel text"),
     itemIcon: text(o.itemIcon, "The item icon"),
     wheelIcon: text(o.wheelIcon, "The wheel icon"),
+    ownIcons: ownIconsOf(o.ownIcons),
     cooldown: number(o.cooldown, "The cooldown"),
     tiers,
     effects: addedEffects(o.effects),

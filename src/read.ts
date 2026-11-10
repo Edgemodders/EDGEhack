@@ -73,6 +73,8 @@ export interface Effect {
   damage: Damage[];
   stats: StatChange[];
   icon?: IconRef;
+  /** A status effect's UI record (its name and icon on the target), for an own status icon (H3b). */
+  ui?: string;
   /** Shared by every quickhack (armor down while hacked, the "was quickhacked" mark, ...). */
   shared: boolean;
   /** The cooldown V gets: shown with the costs, not as an effect. */
@@ -312,6 +314,7 @@ class Reader {
       damage,
       stats,
       icon: iconName ? await iconOf(this.r, `UIIcon.${iconName}`) : undefined,
+      ui: ui?.path,
       spread,
     };
   }

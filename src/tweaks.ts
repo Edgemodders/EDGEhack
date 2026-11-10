@@ -6,6 +6,7 @@ import type { QuickhackDoc, TierEdit } from "./document";
 import { mainEffect, Tier, Family, Variant, Effect, tierKey } from "./read";
 import { NEW_HACK_SCRIPT } from "./newHackScript";
 import type { Sales } from "./getit";
+import { iconName, iconRecord, iconRecords } from "./ownIcons";
 import { addedGameValue, addedWarnings, builtValue, DAMAGE_ATTACKS, DAMAGE_ICONS, DAMAGE_OFF_MACHINES, keptOffMachines, ResolvedAdded, STAT_CHOICES, STAT_ICON } from "./effects";
 
 export interface TextEntry {
@@ -158,6 +159,16 @@ function variant(out: Out, v: Variant | undefined, name: string, edit: TierEdit,
  * The YAML and texts for a document. `added` is its added effects, read (resolveAdded); `sales` is how the
  * game hands out the family's tiers (getit.ts), for a new quickhack's Get it. Without it, Get it is left out.
  */
+/** The item's icon record: its own (H3b), or one picked from the game. */
+function itemIconOf(doc: QuickhackDoc): string | undefined {
+  return doc.ownIcons?.item ? iconRecord(doc.id, "item") : doc.itemIcon;
+}
+
+/** The wheel's icon record: its own, or one picked from the game. */
+function wheelIconOf(doc: QuickhackDoc): string | undefined {
+  return doc.ownIcons?.wheel ? iconRecord(doc.id, "wheel") : doc.wheelIcon;
+}
+
 export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = [], sales?: Sales): WrittenTweaks {
   if (doc.newHack) return writeNewHack(fam, doc, added, sales);
   const out = new Out(`EDGEhack.${doc.id}`);
@@ -225,12 +236,20 @@ export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded
     const key = textKey("Wheel", doc.wheelText);
     for (const u of uis) out.set(`${u}.description`, key);
   }
-  if (doc.itemIcon) {
-    for (const i of items) out.set(`${i}.iconPath`, doc.itemIcon.replace(/^UIIcon\./, ""));
+  const itemIcon = itemIconOf(doc);
+  if (itemIcon) {
+    for (const i of items) out.set(`${i}.iconPath`, itemIcon.replace(/^UIIcon\./, ""));
   }
-  if (doc.wheelIcon) {
-    for (const p of parts) out.set(`${p}.texturePartID`, doc.wheelIcon);
+  const wheelIcon = wheelIconOf(doc);
+  if (wheelIcon) {
+    for (const p of parts) out.set(`${p}.texturePartID`, wheelIcon);
   }
+  if (doc.ownIcons?.status) {
+    const uis = [...new Set(fam.tiers.map((t) => mainEffect(t.effects)?.ui).filter((u): u is string => !!u))];
+    for (const u of uis) out.set(`${u}.iconPath`, iconName(doc.id, "status"));
+    if (!uis.length) out.warnings.push(`${fam.name}'s tiers apply no status effect with an icon of its own, so the status icon shows nowhere.`);
+  }
+  out.records.unshift(...iconRecords(doc));
 
   if (!out.records.length && !out.changes.length) return { texts, warnings: out.warnings };
   const yaml = [`# Made by EDGEhack from ${doc.id}.quickhack.json. Change that document, not this file: saving it writes this again.\n`, ...out.records, ...out.changes].join("\n");
@@ -267,8 +286,14 @@ interface StatusDiffs {
  * at the end of a chain, each link naming the next, so each is copied. `label` names the records. With
  * `offMachines`, its damage effector gets the check that keeps it off machines (H3.4b), numbers changed or not.
  */
-function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs: StatusDiffs, offMachines = false): string | undefined {
+function copyStatus(out: Out, doc: QuickhackDoc, label: string, e: Effect, diffs: StatusDiffs, offMachines = false, icon?: string): string | undefined {
   const fields: Record<string, Field> = {};
+  if (icon && e.ui) {
+    // Its own UI record, so the game's effect keeps its icon (H3b).
+    const ui = `${out.prefix}.${label}_UI`;
+    out.records.push(copy(ui, e.ui, { iconPath: icon }));
+    fields.uiData = ui;
+  }
   if (round(diffs.duration) !== 0 && e.durationGroup) {
     const group = `${out.prefix}.${label}_Duration`;
     out.records.push(`${group}:\n  $type: StatModifierGroup\n  statModsLimit: -1\n  statModifiers:\n${[...(e.durationMods ?? []), out.modifier(`${label}_DurationMod`, "BaseStats.MaxDuration", diffs.duration)].map((m) => `    - ${m}\n`).join("")}`);
@@ -462,6 +487,7 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sa
   const descriptionKey = textKey("Description", doc.description);
   const wheelKey = textKey("Wheel", doc.wheelText);
   const records = out.records;
+  records.push(...iconRecords(doc));
 
   // One wheel entry and icon part for each the family's tiers use: nearly always one.
   const uis = new Map<string, string>();
@@ -471,7 +497,7 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sa
     const ui = `Interactions.EDGEhack_${doc.id}${suffix}`;
     uis.set(t.ui, ui);
     const part = `ChoiceCaptionParts.EDGEhack_${doc.id}${suffix}Icon`;
-    if (t.captionIcon) records.push(copy(part, t.captionIcon, { texturePartID: doc.wheelIcon }));
+    if (t.captionIcon) records.push(copy(part, t.captionIcon, { texturePartID: wheelIconOf(doc) }));
     records.push(copy(ui, t.ui, { caption: nameKey, description: wheelKey, captionIcon: t.captionIcon ? part : undefined }));
   }
 
@@ -521,8 +547,10 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sa
     if (edit.damage !== undefined && !damage) out.warnings.push(`${label}: it has no damage to change.`);
     if (edit.duration !== undefined && !main?.duration) out.warnings.push(`${label}: its main effect has no duration to change.`);
     // A copied status effect needs its effect on the action to be the plain kind that names it.
-    if ((round(damageDiff) !== 0 || round(durationDiff) !== 0) && main?.status && !main.effector) {
-      const status = copyStatus(out, doc, label, main, { damage: damageDiff, duration: durationDiff, stacks: 0 });
+    const statusIcon = doc.ownIcons?.status && main?.ui ? iconName(doc.id, "status") : undefined;
+    if (doc.ownIcons?.status && !main?.ui) out.warnings.push(`${label}: its main effect has no status icon of its own, so the status icon shows nowhere.`);
+    if ((round(damageDiff) !== 0 || round(durationDiff) !== 0 || statusIcon) && main?.status && !main.effector) {
+      const status = copyStatus(out, doc, label, main, { damage: damageDiff, duration: durationDiff, stacks: 0 }, false, statusIcon);
       if (status) {
         const effect = `QuickHack.EDGEhack_${doc.id}_${label}_Effect`;
         records.push(copy(effect, main.record, { statusEffect: status }));
@@ -582,7 +610,7 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sa
       copy(item, t.item, {
         displayName: nameKey,
         localizedDescription: descriptionKey,
-        iconPath: doc.itemIcon?.replace(/^UIIcon\./, ""),
+        iconPath: itemIconOf(doc)?.replace(/^UIIcon\./, ""),
         shardType: name,
         objectActions: [...t.lists.objectActions.filter((a) => !/^QuickHack\./.test(a)), ...actions.filter((a) => a.rank <= t.rank).map((a) => a.path)],
         CraftingData: craftingData,
