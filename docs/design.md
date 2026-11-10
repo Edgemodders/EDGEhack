@@ -614,6 +614,8 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 
 **H3b.1 built (2026-11-10):** the script is in the session's scratchpad (`h3b/spike.py`); its output in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H3b_spike\out` (`archive\pc\mod\EDGEhack_H3b_spike.archive`, 12 KB, and `r6\tweaks\EDGEhack_H3b_spike.yaml`). A 256 x 256 texture holds an item card (99 x 128: a dark frame, gold pins, a teal-edged screen, a cyan bolt in a ring), a wheel glyph (64 x 64, a white bolt in a ring) and a status symbol (64 x 64, a solid white bolt); the atlas puts the same texture in both slots. The texture read back through REDbridge as drawn.
 
+**H3b.1's result (2026-11-10, game 2.5, dev PC): passed, every step.** Our item card showed in the inventory and the crafting menu at the size of the game's cards, the wheel glyph on the quickhack wheel, and our status symbol on the hacked enemy. What it settles for H3b.2: the item card is 99 x 128 and the wheel and status icons 64 x 64; one texture in both of the atlas's slots is enough (no separate 1080p texture); the texture setup above works; new `UIIcon` records reach all three places (an item's `iconPath`, a caption part's `texturePartID`, a status effect UI's `iconPath`). Found on the way: another mod changing the same quickhack's icons wins over EDGEhack's file (the owner's EDGEhack_Test1 changed Overheat's), as with any TweakXL change.
+
 ### H3c Scripts: plan
 
 Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Agreed the same day. Read from game 2.5's scripts; nothing here has run in the game yet.
