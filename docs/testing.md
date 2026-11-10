@@ -45,7 +45,7 @@ EDGEhack 0.0.19 with REDcode 0.10.8 (a build from REDcode's main until it is rel
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | Install both, reload VS Code, open EDGEhack_Test1 in REDcode. **Clone and Modify** Overheat as **Icon Test** | Its page has three icons: Item, Wheel and Status, each with Upload; Wheel and Status have **Black is see-through** |
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.19.vsix`, and REDcode's test build over the store's: `code --install-extension "E:\Modding\Cyberpunk 2077\REDcode\distedcode-cyberpunk-main-e9b5e7b.vsix" --force` (its version still reads 0.10.7). Run **Developer: Reload Window**, open EDGEhack_Test1 in REDcode. **Clone and Modify** Overheat as **Icon Test** | Its page has three icons: Item, Wheel and Status, each with Upload; Wheel and Status have **Black is see-through** |
 | 2 | Item: **Upload...** your item picture | It shows in the Item box, fitted inside 99 x 128 without stretching |
 | 3 | Wheel: tick **Black is see-through**, then **Upload...** a white symbol on black | It shows as the white symbol with no black around it |
 | 4 | Status: the same with the other white symbol | The same |
