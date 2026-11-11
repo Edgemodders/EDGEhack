@@ -43,7 +43,7 @@ Last updated 2026-11-10.
 
 ## H3b.3 Generate
 
-EDGEhack 0.0.21, with REDcode's test build from H3b.2 still installed (or REDcode 0.10.8 once released). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
+EDGEhack 0.0.21 with REDcode 0.10.8 (released on 2026-11-10; REDcode's test build from H3b.2 works too). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
 
 | Step | Do | Expect |
 |---|---|---|
