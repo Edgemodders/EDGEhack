@@ -9,7 +9,7 @@ import { writeTweaks } from "./tweaks";
 import type { Sales } from "./getit";
 import type { ResolvedAdded } from "./effects";
 import { ProjectResult, writeProject, yamlFile } from "./projectFiles";
-import { atlasPaths, iconsDir, IconWriter, writeOwnIcons } from "./ownIcons";
+import { atlasPaths, iconsDir, IconWriter, onDisk, writeOwnIcons } from "./ownIcons";
 import { itemsOf, ScriptEntry, writeScriptPackage } from "./scripts";
 
 /** A family by its key, as the hub reads it. */
@@ -76,7 +76,7 @@ export function makeNewHackDoc(project: ProjectRef, familyKeys: string[], family
 export function projectFilesOf(project: ProjectRef, id: string): string[] {
   const doc = docFile(project, id);
   const icons = atlasPaths(id);
-  return [doc, iconsDir(doc, id), yamlFile(project, id), path.join(project.raw, icons.png), path.join(project.archive, icons.xbm), path.join(project.archive, icons.atlas)].filter((f) => fs.existsSync(f));
+  return [doc, iconsDir(doc, id), yamlFile(project, id), onDisk(project.raw, icons.png), onDisk(project.archive, icons.xbm), onDisk(project.archive, icons.atlas)].filter((f) => fs.existsSync(f));
 }
 
 /**

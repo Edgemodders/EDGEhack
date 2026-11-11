@@ -9,6 +9,9 @@ import * as path from "node:path";
 import { ICON_LOOKS, IconLook, QuickhackDoc } from "./document";
 import { decodePng, encodePng, Image } from "./png";
 
+/** A game path (backslashes, as the game's depot has them) inside a folder on disk, on any system. */
+export const onDisk = (folder: string, gamePath: string): string => path.join(folder, ...gamePath.split("\\"));
+
 /** Each look's size, and where it sits in the mod's texture. */
 export const LOOKS: Record<IconLook, { width: number; height: number; x: number; y: number; label: string }> = {
   item: { width: 99, height: 128, x: 0, y: 0, label: "Item" },
@@ -140,9 +143,9 @@ export interface IconFolders {
 export async function writeOwnIcons(folders: IconFolders, writer: IconWriter, doc: QuickhackDoc, docFile: string): Promise<string[]> {
   const looks = ownLooks(doc);
   const paths = atlasPaths(doc.id);
-  const png = path.join(folders.raw, paths.png);
-  const xbm = path.join(folders.archive, paths.xbm);
-  const atlas = path.join(folders.archive, paths.atlas);
+  const png = onDisk(folders.raw, paths.png);
+  const xbm = onDisk(folders.archive, paths.xbm);
+  const atlas = onDisk(folders.archive, paths.atlas);
   if (!looks.length) {
     for (const f of [png, xbm, atlas]) fs.rmSync(f, { force: true });
     return [];
