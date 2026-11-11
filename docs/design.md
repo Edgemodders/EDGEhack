@@ -709,7 +709,9 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 
 **H3c.1's result (2026-11-05, game 2.5): passed.** Both wraps and the fallback work with no REDnode change, and a locked entry shows our text as the game's do. 90 rebuilds in about 4 minutes, with no loop. Lowering the health pool from a function works, and a kill that way looked normal. A hand-built `gameHitEvent` crashed the game.
 
-**Still open for H3c.2:** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, not run yet, since nothing V has spread Overheat in that test (a way to spread: the Spillover perk with Overclock active, Copy-Paste, or a cyberdeck's ability); Boss and Chimera actions.
+**H3c.2's result (2026-11-11, REDnode 0.61.1): passed** (REDnode's docs/quickhacks.md): `quickhacks.define(items, { canUse, onLand, disabledText, hold })`, `target.damage` and `target.addEffect` from V (a status effect from a function works; a kill by `damage` looked normal), the functions gone when the package stops and set again after a load. Spread was not run, and Boss and Chimera versions were not tried: both unverified. A define finds an item's hacks from their ids, so EDGEhack's TweakXL records work the same way.
+
+**Still open for H3c.2 (before its run):** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, not run yet, since nothing V has spread Overheat in that test (a way to spread: the Spillover perk with Overclock active, Copy-Paste, or a cyberdeck's ability); Boss and Chimera actions.
 
 **Agreed with the owner on 2026-11-05:**
 
