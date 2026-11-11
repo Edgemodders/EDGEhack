@@ -54,7 +54,7 @@ EDGEhack 0.0.27 and REDnode 0.61.1 (the update zip from REDnode's quickhack test
 | 2 | **Add** on On land (or **Open** if it is there) | The same tab shows `onLand`: no second tab |
 | 3 | Make the file read as below, save it. Type `People only` in **A disabled hack says**, then Ctrl+S on the page | The page shows **Open** on both rows. The status line ends "…, and the mod's REDnode package." |
 | 4 | With the game closed, **Pack and Play** | The game folder has `red4ext\plugins\REDnode\apps\edgehack_test1\` with `main.mjs`, `rednode-app.json`, `quickhacks.d.ts` and the script. If not, say what is there |
-| 5 | Start the game and load a save. In REDnode's launcher (F10), find **edgehack_test1 quickhacks** in the Mod Manager and switch it on; switch on **Console** too. Run Gen Test's **Get it** line for the Epic tier in the Console, and put Gen Test in the cyberdeck | The Mod log has no error from edgehack_test1 quickhacks |
+| 5 | Start the game and load a save. In REDnode's launcher (F10), find the mod's package, **EDGEhack_Test1 quickhacks** (the project's mod name, then "quickhacks"), in the Mod Manager and switch it on; switch on **Console** too. Run Gen Test's **Get it** line for the Epic tier in the Console, and put Gen Test in the cyberdeck | The Mod log has no error from it |
 | 6 | F10 to close the overlay, scan a person | Gen Test shows "Checking..." for about a second, then usable |
 | 7 | Scan a drone, a robot or a turret, if one is handy | Gen Test disabled, with "People only" |
 | 8 | Upload Gen Test on a person at full health | It works as Overheat does. The Mod log says "Gen Test landed on a person at 100% health (tier 4)" |
