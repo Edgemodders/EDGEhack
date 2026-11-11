@@ -47,6 +47,15 @@ Last updated 2026-11-11.
 
 Nothing.
 
+## H4 live names spike
+
+REDnode 0.62.2, then 0.62.3, with the app **EDGEhack live names spike** (`Projects/EDGEhack_H4_names_spike`): can a name written in EDGEhack show in the running game without packing? Its buttons: **1 Table** (the text tables REDnode kept), **2 Rename Overheat** (its key `LocKey#27962`), **3 New key** (`EDGEhack-spike-Name`, with Overheat (Rare)'s name pointed at it), **4 Change it**, **TweakXL reload**, **5 Put back**. Each one logs what the game's own lookup gives.
+
+| Run | Result |
+|---|---|
+| 2026-11-11, by the owner, dev PC, REDnode 0.62.2 | The plugin kept only the last of the four tables the game loads (10,276 entries); Overheat's key was not in it, and the new key added there was not found. Nothing changed in the inventory |
+| 2026-11-11, by the owner, dev PC, REDnode 0.62.3 (every table kept) | **No.** Overheat's entry in the base table (62,375 entries) changed, and the new key was added there, but the game's lookup still gave "Overheat" and nothing for the new key; the inventory did not change, nor after TweakXL's reload. The game looks names up in an index it builds at load. Parked (design, "Live names spike") |
+
 ## H4.3 Try Live
 
 EDGEhack 0.0.29 in VS Code, REDnode 0.62.1 in the game, on the dev PC. Try Live sends a quickhack's changes to the running game with no packing; Stop puts them back. Use **Gen Test** in EDGEhack_Test1 (a new quickhack). **Quickhack test** off.
