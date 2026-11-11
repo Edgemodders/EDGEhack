@@ -157,3 +157,11 @@ test("the server's package has EDGEhack's version", () => {
   const server = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "packages", "edgehack-mcp", "package.json"), "utf8"));
   assert.equal(server.version, root.version, "raise both together: the release publishes the server with EDGEhack's version");
 });
+
+test("the MCP provider src/mcp.ts registers is declared in package.json, or VS Code refuses it", () => {
+  const root = path.join(__dirname, "..");
+  const id = /registerMcpServerDefinitionProvider!\("([^"]+)"/.exec(fs.readFileSync(path.join(root, "src", "mcp.ts"), "utf8"))?.[1];
+  const declared = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).contributes.mcpServerDefinitionProviders ?? [];
+  assert.ok(id, "src/mcp.ts names its provider");
+  assert.ok(declared.some((p: { id: string }) => p.id === id), `package.json declares ${id}`);
+});

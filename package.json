@@ -315,6 +315,12 @@
         ],
         "priority": "default"
       }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "edgehack.mcp",
+        "label": "EDGEhack"
+      }
     ]
   },
   "scripts": {
