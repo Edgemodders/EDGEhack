@@ -845,6 +845,45 @@ Settled here, as the design left open: `hack_pack` packs through REDbridge itsel
 | A quickhack REDagent makes in the game | **It lives on the Desk and is tried live; the player adds it to a project in VS Code to pack** (Add to Project exists); or the server packs Desk quickhacks into a project of their own |
 | The order | **H4.1 to H4.3 (Try Live), then H4.4 to H4.6 (MCP)**; or the MCP server first, with `hack_try` later |
 
+### H5 Library: plan
+
+Written on 2026-11-11 after H4 passed, for the owner to agree. The Library is the EDGE platform's shared warehouse of finished work (EDGEbuilder's [shared rules](https://edgemodders.github.io/EDGEbuilder/library.html#shared-rules)): a modder keeps quickhacks there, organised in folders of their own, and takes them into any project. It is never required: a modder without one works on the Desk and in projects as now.
+
+What the rules already settle for quickhacks:
+
+| Rule | For a quickhack |
+|---|---|
+| One root, in `%APPDATA%\EDGE\library.json` | Read as every tool does. If there is none, the first Add to Library asks where, offering `Documents\EDGE Library`, as REDcode's Add to Library does |
+| The folders are the modder's | Add to Library offers the folder last used, or another; EDGEhack never makes folders of its own |
+| Use the game path | Not offered: a quickhack is TweakDB records, with no game path |
+| Items describe themselves | `<name>.quickhack.asset/`, the shape the Desk's folders already have: `asset.json` (`format`, `id`, `name`, `kind: "quickhack"`, `main`, `version`) and `source/raw/edgehack/<id>.quickhack.json`, with its own icons beside it (`<id>.icons/`). So Add to Library is a copy |
+| The kind | `quickhack` is new, and EDGEbuilder keeps the list of kinds: a `request` issue there first. Its `main` is the document's path in the item, since a quickhack has no game path |
+| The came-from note | Add to Project from the Library writes the project's `source/library.json` entry (`id`, `kind: "quickhack"`, `path`, `version`, `added`, `by: "edgehack"`, `files`), keeping other tools' entries, as EDGEbuilder's `bake.ts` does |
+
+The steps:
+
+| Step | Delivers | Ends with |
+|---|---|---|
+| **H5.0 Two fixes from H4** | Try Live's note on a quickhack never packed says it shows its text key (`LocKey#...`) as its name until Pack and Play and a restart, in the editor and in `hack_try`'s answer (it said "as last packed"). REDagent's briefing: all of one request's changes in one `hack_edit` call (H4.6 saw four calls, each asking, for one sentence; REDagent 0.4.3) | Unit tests; checked in the next game run |
+| **H5.1 The kind** | A `request` issue on EDGEbuilder for the `quickhack` kind, in `docs/library.md`'s items table and the wiki's Library page. Building does not wait for it: the shape is the Desk's, which the rules allow | The issue filed, with the owner's agreement |
+| **H5.2 Add to Library** | On a Desk quickhack (inline and in its menu) and on a project's quickhack: the root asked the first time, then the folder picker with the last folder first, then a copy of the item. A project's document is made project-free on the way, as a Desk document is (its id from its name alone). Adding the same quickhack again finds it by its `id` and asks before replacing the Library's copy, raising its version | `src/library.ts` (no VS Code: the root, folders, items, the came-from note), unit tests |
+| **H5.3 The Library view** | The Library's folders, with only the folders that hold quickhacks and the way to them, each quickhack with its family's icon. **Open** (the editor; a save raises the item's version, as on the Desk), **Add to Project** (the project's names, its mod files written, the came-from note), **Copy to the Desk**, **Reveal in File Explorer**, **Remove from Library** (to the Recycle Bin, after asking). With no root: a welcome text saying Add to Library sets it up | Unit tests, the smoke test, a hand test |
+| **H5.4 Refresh from Library** | In a project, the Project group marks a quickhack whose Library item has a newer version than the came-from note says, found by `id`; **Refresh from Library** copies it over after asking (the project's own changes to it are lost) and writes its mod files | The hand test |
+| **H5.5 Assistants** | `hack_find` lists the Library's quickhacks (`where: "library"`); `hack_new` with a Library file and a project adds it to the project, with the came-from note, as Add to Project does. Adding to the Library stays the modder's, in VS Code, since the folders are theirs | The MCP client check |
+
+The hand test: a Desk quickhack added to a new Library (the root asked, a folder made by the modder in the picker), then opened, changed and saved there; added to EDGEhack_Test1, the came-from note written; changed again in the Library and refreshed into the project; a project quickhack added to the Library; Copy to the Desk; Remove from Library. In the game: the refreshed quickhack after Pack and Play.
+
+**Decision points, with a recommendation each:**
+
+| Question | Recommended |
+|---|---|
+| The Library's copy of a Desk quickhack: the same `id` as the Desk's, or a new one? | The same. The Desk is the work in progress of that item, so adding it again updates the Library's copy (after asking) instead of making a second |
+| Add to Library from a project's quickhack too, not only from the Desk? | Yes. A finished mod's quickhacks are the ones most worth keeping |
+| A Library quickhack edited in place, or read-only with Copy to the Desk to change it? | In place, with each save raising its version, as EDGEbuilder edits scenes only in the Library; Refresh then carries the change into projects |
+| Refresh from Library in H5, or later? | In H5, for quickhacks: it is what makes one Library item serve several mods |
+| Assistants adding to the Library? | Not in H5: they list it and take from it. The folders are the modder's |
+| Remove from Library | To the Recycle Bin, after asking; a project that took it keeps its copy |
+
 ## In-game add-on: the Netrunner bench (proposed)
 
 The owner's idea of 2026-11-10: quickhack crafting in the game, on the crafting screen's quickhack tab, whose middle panel is empty but for a placeholder picture. A REDnode app, released on its own, that reuses EDGEhack's parts. Not scheduled; its place in the order is to be agreed.
