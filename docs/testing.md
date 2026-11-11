@@ -19,7 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H4.3 Try Live](#h43-try-live) | By hand, then in the game | H4 | | Waiting |
+| [H4.3 Try Live](#h43-try-live) | By hand, then in the game | H4 | 2026-11-11 | Pass, steps 1 to 6 and 8 (EDGEhack 0.0.29, REDnode 0.62.1, dev PC); step 7, a name written in EDGEhack, shows only after Pack and Play, as the page says |
 | [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | 2026-11-11 | Pass, all 8 steps (EDGEhack 0.0.28, on the dev PC) |
 | [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | 2026-11-11 | Pass, in two runs (REDnode 0.61.1, then 0.61.2 for names): every change shows live, a quickhack made live works, all of it undone when the spike stops |
 | [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.27, REDnode 0.61.1, on the laptop): Pack and Play installs the mod's REDnode package, and REDnode runs its script |
@@ -45,7 +45,7 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- [H4.3 Try Live](#h43-try-live).
+Nothing.
 
 ## H4.3 Try Live
 
@@ -66,6 +66,7 @@ Then undo the test changes in VS Code (Ctrl+Z or set them back) and quit the gam
 
 | Run | Result |
 |---|---|
+| 2026-11-11, by the owner, dev PC, EDGEhack 0.0.29, REDnode 0.62.1, with **Icon Test** (a new quickhack from Overheat) in place of Gen Test | **Pass**, steps 1 to 6 and 8: Allow once, the Rare tier given, its RAM at 2 then 5 after a save, a feature line in the tooltip, a poison added, and Stop put it back. Step 7: the name stayed as last packed, the known limit (a name is a key in the mod's onscreens file, which arrives with the archive); a live name is a later spike (Codeware's localization providers, or REDswap with the onscreens file) |
 
 
 ## H3d Feature lines
