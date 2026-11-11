@@ -19,7 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H4.5 The MCP server](#h45-the-mcp-server) | An MCP client script on the real REDbridge and game, then by hand with Claude Code | H4 | 2026-11-11 | Script: pass, all 33 checks (EDGEhack 0.0.30). Hand test: waiting |
+| [H4.5 The MCP server](#h45-the-mcp-server) | An MCP client script on the real REDbridge and game, then by hand with Claude Code | H4 | 2026-11-11 | Pass: the script's 33 checks, and the hand test's steps 1 to 7 with Claude Code (EDGEhack 0.0.30); step 8, Try Live, left for later |
 | [H4.4 The core outside VS Code](#h44-the-core-outside-vs-code) | Automated: unit tests, the smoke test, and a script on the real REDbridge and game with no VS Code | H4 | 2026-11-11 | Pass: 162 unit tests, 135 smoke checks, all 11 checks of the script |
 | [H4.3 Try Live](#h43-try-live) | By hand, then in the game | H4 | 2026-11-11 | Pass, steps 1 to 6 and 8 (EDGEhack 0.0.29, REDnode 0.62.1, dev PC); step 7, a name written in EDGEhack, shows only after Pack and Play, as the page says |
 | [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | 2026-11-11 | Pass, all 8 steps (EDGEhack 0.0.28, on the dev PC) |
@@ -47,7 +47,7 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- [H4.5 The MCP server](#h45-the-mcp-server), EDGEhack 0.0.30.
+Nothing.
 
 ## H4.5 The MCP server
 
@@ -69,7 +69,7 @@ Before the hand test, by script (the session's scratchpad `h45/mcp-e2e.ts`, bund
 | Run | Result |
 |---|---|
 | 2026-11-11, by Claude, dev PC, game 2.5, EDGEhack 0.0.30's server | **Pass, all 33 checks.** Eight tools, the five that change something with the ask flag and the three reads read-only; the catalog in 12.5 s (85 game quickhacks); Overheat's 6 tiers; 33 poison effects and Contagion's own; a new quickhack in the project with its files in 122 ms, the same name refused in words; four changes in one call (RAM +2 on every tier, a description, Contagion's poison as a1, a feature line), with EDGEhack's notes; a tier that is not there refused, listing the tiers, with nothing saved; a canUse stub, then a whole source with onLand, and the mod's REDnode package; a source without the function refused; a change document for Short Circuit with its cooldown; a Desk quickhack edited with no mod files, its script refused, added to the project, and a second add asking before it replaces; the project packed (the archive and 9 resources); Try Live with no game says "Start the game with REDnode (0.62.0 or later) to try it live." The smoke test passed its 135 checks with the server installed at start |
-| By the owner, with Claude Code | Waiting |
+| 2026-11-11, by the owner, dev PC, EDGEhack 0.0.30 from F5, Claude Code's VS Code extension | **Pass, steps 1 to 7.** The first try at step 2 showed no `edgehack`: Connect Claude Code had not been run in that window, and the log showed VS Code refusing the server for its own agents, since `package.json` did not declare the provider (fixed the same day, with a unit test). After a fresh F5 and Connect Claude Code, a new session listed `edgehack`, and every step went as written. Step 8, Try Live, was left for later: it will come up in use |
 
 ## H4.4 The core outside VS Code
 
