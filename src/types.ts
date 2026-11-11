@@ -76,7 +76,7 @@ export interface BridgeClient {
    */
   importFile(file: string, rawDir: string, archiveDir: string, keep?: boolean, template?: string, texture?: string | Record<string, string | boolean>): Promise<ImportAnswer>;
   /** project.pack: a folder (a project's source/archive) into outDir/modName.archive (REDbridge 0.6.0). For hack_pack (H4.5). */
-  pack(dir: string, outDir: string, modName: string): Promise<{ archive?: string; files?: number }>;
+  pack(dir: string, outDir: string, modName: string): Promise<{ archive: string; bytes: number; files: number; warnings: string[] }>;
 }
 
 /** A WolvenKit project, as REDcode's API gives it, with its folders. */

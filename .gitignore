@@ -26,3 +26,6 @@ cache/
 
 # made from CHANGELOG.md by the Docs site workflow
 docs/changelog.md
+
+# made by the build beside the MCP server
+packages/edgehack-mcp/THIRD-PARTY-NOTICES.txt

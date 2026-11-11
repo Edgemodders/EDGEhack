@@ -14,6 +14,7 @@ import { writeScriptPackage } from "./scripts";
 import { removeTexts } from "./projectFiles";
 import { bridge, redcode } from "./redcode";
 import { clearOpenAIKey, setOpenAIKey } from "./openaiKey";
+import { connectAssistant, installServer, registerWithEditor } from "./mcp";
 import * as path from "node:path";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
@@ -61,10 +62,17 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   };
 
+  // The MCP server for assistants (H4.5): copied where a Claude Code registration finds it, and offered to
+  // the editor's own agents where VS Code has MCP support.
+  installServer(context.extensionPath, (line) => log.appendLine(line));
+  const version = String((context.extension.packageJSON as { version?: string }).version ?? "");
+
   context.subscriptions.push(
     log,
     view,
     deskTree,
+    ...registerWithEditor(version, (line) => log.appendLine(line)),
+    vscode.commands.registerCommand("edgehack.connectAssistant", () => connectAssistant(context, log)),
     // Clone and Modify straight onto the Desk, whether a project is open or not.
     vscode.commands.registerCommand("edgehack.desk.new", async (key?: string, name?: string) => {
       try {

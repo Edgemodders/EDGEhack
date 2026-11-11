@@ -12,6 +12,7 @@ import { stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem } from "./projectDocs";
 import { saveDocFiles } from "./save";
+import { applyToAll } from "./edits";
 import { addFunction, exportsOf, functionStub, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
 import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderLines, renderScripts, type ScriptsState } from "./editorHtml";
 import type { Sales } from "./getit";
@@ -26,8 +27,6 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 export const EditorViewType = "edgehack.quickhack.editor";
-
-const round = (n: number): number => Math.round(n * 10000) / 10000;
 
 export class QuickhackEditor implements vscode.CustomTextEditorProvider {
   private readonly panels = new Map<string, Set<vscode.WebviewPanel>>();
@@ -701,23 +700,6 @@ function ownSrc(docFile: string, id: string, look: IconLook): string | undefined
 
 function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
-}
-
-/** Gives every other tier the selected tier's change in a number: the same difference from its own value. */
-export function applyToAll(fam: Family, doc: QuickhackDoc, tier: string, field: TierField): QuickhackDoc {
-  if (!TIER_FIELDS.includes(field)) return doc;
-  const from = fam.tiers.find((t) => (t.item ?? t.action) === tier);
-  const base = from && gameValue(from, field);
-  const want = doc.tiers[tier]?.[field];
-  if (base === undefined || want === undefined) return doc;
-  const diff = want - base;
-  let next = doc;
-  for (const t of fam.tiers) {
-    const game = gameValue(t, field);
-    if (game === undefined) continue;
-    next = withTierField(next, t.item ?? t.action, field, round(Math.max(0, game + diff)), game);
-  }
-  return next;
 }
 
 async function apply(document: vscode.TextDocument, doc: QuickhackDoc): Promise<void> {

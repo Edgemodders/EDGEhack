@@ -24,6 +24,8 @@ nav:
     url: /
   - title: Design
     url: /design.html
+  - title: Assistants
+    url: /assistants.html
   - title: Tests
     url: /testing.html
   - title: Dev setup

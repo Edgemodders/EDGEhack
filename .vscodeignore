@@ -10,6 +10,7 @@ src/**
 test/**
 
 tools/**
+packages/**
 dist-test/**
 dist/**/*.map
 dist/*.zip

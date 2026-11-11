@@ -10,6 +10,10 @@ How to keep it (the Edgemodders convention):
 
 ## Unreleased
 
+**New**
+
+- **Assistants:** EDGEhack has an MCP server, so an AI assistant such as Claude Code can make and change quickhacks with you: find and read the game's, make new ones, change their costs, texts and effects, write their scripts, pack the mod and try it live in the running game. **EDGEhack: Connect an Assistant (MCP)...** (in the Desk view's **...** menu) registers it with Claude Code; VS Code's own agents see it without that. Claude Code asks you before every change. Docs: https://edgemodders.github.io/EDGEhack/assistants.html
+
 **Fixed**
 
 - When reading the game's list of quickhack icons failed once, the pages showed none of the game's icons until **Refresh**. The next look now reads it again.

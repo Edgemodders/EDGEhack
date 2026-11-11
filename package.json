@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -149,6 +149,11 @@
         "icon": "$(trash)"
       },
       {
+        "command": "edgehack.connectAssistant",
+        "title": "Connect an Assistant (MCP)...",
+        "category": "EDGEhack"
+      },
+      {
         "command": "edgehack.setOpenAIKey",
         "title": "Set the OpenAI Key...",
         "category": "EDGEhack"
@@ -201,6 +206,11 @@
           "command": "edgehack.quickhacks.refresh",
           "when": "view == edgehack.quickhacks",
           "group": "navigation@2"
+        },
+        {
+          "command": "edgehack.connectAssistant",
+          "when": "view == edgehack.desk",
+          "group": "z_assistant@1"
         }
       ],
       "view/item/context": [
@@ -321,12 +331,14 @@
     "smoke": "node tools/smoke/smoke.mjs"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@types/node": "^24.0.0",
     "@types/vscode": "1.90.0",
     "@vscode/vsce": "^4.0.0",
     "esbuild": "^0.28.2",
     "ovsx": "^1.3.0",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "zod": "^4.6.7"
   },
   "extensionDependencies": [
     "edgemodders.redcode-cyberpunk"

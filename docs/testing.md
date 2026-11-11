@@ -12,13 +12,14 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H4 | 2026-11-11 | Pass, 162 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H4 | 2026-11-11 | Pass, 172 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H4.5 The MCP server](#h45-the-mcp-server) | An MCP client script on the real REDbridge and game, then by hand with Claude Code | H4 | 2026-11-11 | Script: pass, all 33 checks (EDGEhack 0.0.30). Hand test: waiting |
 | [H4.4 The core outside VS Code](#h44-the-core-outside-vs-code) | Automated: unit tests, the smoke test, and a script on the real REDbridge and game with no VS Code | H4 | 2026-11-11 | Pass: 162 unit tests, 135 smoke checks, all 11 checks of the script |
 | [H4.3 Try Live](#h43-try-live) | By hand, then in the game | H4 | 2026-11-11 | Pass, steps 1 to 6 and 8 (EDGEhack 0.0.29, REDnode 0.62.1, dev PC); step 7, a name written in EDGEhack, shows only after Pack and Play, as the page says |
 | [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | 2026-11-11 | Pass, all 8 steps (EDGEhack 0.0.28, on the dev PC) |
@@ -46,7 +47,29 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-Nothing.
+- [H4.5 The MCP server](#h45-the-mcp-server), EDGEhack 0.0.30.
+
+## H4.5 The MCP server
+
+EDGEhack 0.0.30, on the dev PC. Claude Code makes and changes a quickhack through EDGEhack's server, in the project EDGEhack_Test1 (`E:\Modding\Cyberpunk 2077\EDGEhack_Test1`). The game can stay closed. Ask Claude Code in your own words; the words below are examples.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In VS Code, F5 (**Run EDGEhack**) or the installed 0.0.30. In the Desk view's **...** menu, **Connect an Assistant (MCP)...**, then **Connect Claude Code** | "EDGEhack is connected to Claude Code" |
+| 2 | In a terminal in `E:\Modding\Cyberpunk 2077\EDGEhack_Test1`, start a new Claude Code session and type `/mcp` | `edgehack` is connected, with 8 tools |
+| 3 | "Find Overheat and tell me its Rare tier's RAM and upload." | It answers without asking you first (the first call takes about 15 s while the game's TweakDB loads) |
+| 4 | "Make a new quickhack from Overheat called Static Bloom, with 2 more RAM on every tier and Contagion's poison added." | Claude Code asks before each change (`hack_new`, then `hack_edit`). `source\raw\edgehack\edgehack_test1_static_bloom.quickhack.json` is in the project; opened in VS Code, EDGEhack's editor shows the RAM and the added poison |
+| 5 | "Give Static Bloom an on-land script: when the target is below half health, 30 more damage." | It asks first (`hack_script`). The script is in `source\resources\red4ext\plugins\REDnode\apps\edgehack_test1\`, and the editor's Scripts section names it |
+| 6 | "Pack the project." | It asks first (`hack_pack`). The project's `packed` folder has the archive and `r6\tweaks` |
+| 7 | In a terminal in any folder with no project, start Claude Code: "Make a quickhack from Short Circuit called Desk Spark." | It goes on EDGEhack's Desk: the Desk view lists Desk Spark |
+| 8 | Optional, with the game and REDnode 0.62.1 running: "Try Static Bloom live and give me its Rare tier." | It asks first (`hack_try`); the game asks you to allow EDGEhack (F10); the Rare tier is in V's backpack. "Stop trying it" puts the game back |
+
+Before the hand test, by script (the session's scratchpad `h45/mcp-e2e.ts`, bundled with esbuild and run with Node): the MCP SDK's own client starts the built server over stdio, with a scratch WolvenKit project and `EDGEHACK_DESK` set to a scratch Desk.
+
+| Run | Result |
+|---|---|
+| 2026-11-11, by Claude, dev PC, game 2.5, EDGEhack 0.0.30's server | **Pass, all 33 checks.** Eight tools, the five that change something with the ask flag and the three reads read-only; the catalog in 12.5 s (85 game quickhacks); Overheat's 6 tiers; 33 poison effects and Contagion's own; a new quickhack in the project with its files in 122 ms, the same name refused in words; four changes in one call (RAM +2 on every tier, a description, Contagion's poison as a1, a feature line), with EDGEhack's notes; a tier that is not there refused, listing the tiers, with nothing saved; a canUse stub, then a whole source with onLand, and the mod's REDnode package; a source without the function refused; a change document for Short Circuit with its cooldown; a Desk quickhack edited with no mod files, its script refused, added to the project, and a second add asking before it replaces; the project packed (the archive and 9 resources); Try Live with no game says "Start the game with REDnode (0.62.0 or later) to try it live." The smoke test passed its 135 checks with the server installed at start |
+| By the owner, with Claude Code | Waiting |
 
 ## H4.4 The core outside VS Code
 

@@ -27,6 +27,10 @@
 #                                               node ../EDGErepo/tools/nexus/nexus.mjs release on the
 #                                               dev PC with the release's zip: it skips what is
 #                                               already done
+#   ... with "Make a release", the npm job      after the release job, publishes EDGEhack's MCP server
+#                                               @edgemodders/edgehack-mcp at EDGEhack's version, with
+#                                               provenance (NPM_TOKEN); skipped when that version is
+#                                               already on npm
 #
 # One .vsix for every platform: EDGEhack has no native parts. The tokens are Edgemodders
 # organisation secrets, shared with REDnode's, REDcode's, EDGEdeck's and EDGEwave's workflows; if
@@ -186,3 +190,37 @@ jobs:
         env:
           NEXUS_KEY: ${{ secrets.NEXUS_KEY }}
         run: node "$RUNNER_TEMP/EDGErepo/tools/nexus/nexus.mjs" release --version "${VERSION}" --zip "dist/EDGEhack-${VERSION}-nexus.zip" --notes "${RUNNER_TEMP}/nexus-notes.txt"
+
+  # EDGEhack's MCP server on npm (H4.5), built from this commit, with provenance. After the release job,
+  # so a release that failed publishes nothing here; a re-run skips a version npm already has.
+  npm:
+    needs: release
+    if: inputs.release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+
+      # The server, its third-party notices and its license beside it.
+      - run: npm run build
+
+      - name: npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          version=$(node -p "require('./packages/edgehack-mcp/package.json').version")
+          if npm view "@edgemodders/edgehack-mcp@${version}" version >/dev/null 2>&1; then
+            echo "@edgemodders/edgehack-mcp ${version} is already on npm"
+            exit 0
+          fi
+          npm publish ./packages/edgehack-mcp --provenance --access public
