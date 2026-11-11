@@ -847,7 +847,7 @@ Settled here, as the design left open: `hack_pack` packs through REDbridge itsel
 
 ### H5 Library: plan
 
-Written on 2026-11-11 after H4 passed, for the owner to agree. The Library is the EDGE platform's shared warehouse of finished work (EDGEbuilder's [shared rules](https://edgemodders.github.io/EDGEbuilder/library.html#shared-rules)): a modder keeps quickhacks there, organised in folders of their own, and takes them into any project. It is never required: a modder without one works on the Desk and in projects as now.
+Written on 2026-11-11 after H4 passed. **Agreed with the owner on 2026-11-11**, with every recommendation below. The Library is the EDGE platform's shared warehouse of finished work (EDGEbuilder's [shared rules](https://edgemodders.github.io/EDGEbuilder/library.html#shared-rules)): a modder keeps quickhacks there, organised in folders of their own, and takes them into any project. It is never required: a modder without one works on the Desk and in projects as now.
 
 What the rules already settle for quickhacks:
 
@@ -865,7 +865,7 @@ The steps:
 | Step | Delivers | Ends with |
 |---|---|---|
 | **H5.0 Two fixes from H4** | Try Live's note on a quickhack never packed says it shows its text key (`LocKey#...`) as its name until Pack and Play and a restart, in the editor and in `hack_try`'s answer (it said "as last packed"). REDagent's briefing: all of one request's changes in one `hack_edit` call (H4.6 saw four calls, each asking, for one sentence; REDagent 0.4.3) | Unit tests; checked in the next game run |
-| **H5.1 The kind** | A `request` issue on EDGEbuilder for the `quickhack` kind, in `docs/library.md`'s items table and the wiki's Library page. Building does not wait for it: the shape is the Desk's, which the rules allow | The issue filed, with the owner's agreement |
+| **H5.1 The kind** | [EDGEbuilder #5](https://github.com/Edgemodders/EDGEbuilder/issues/5), filed 2026-11-11, for the `quickhack` kind, in `docs/library.md`'s items table and the wiki's Library page. Building does not wait for it: the shape is the Desk's, which the rules allow | The issue filed, with the owner's agreement |
 | **H5.2 Add to Library** | On a Desk quickhack (inline and in its menu) and on a project's quickhack: the root asked the first time, then the folder picker with the last folder first, then a copy of the item. A project's document is made project-free on the way, as a Desk document is (its id from its name alone). Adding the same quickhack again finds it by its `id` and asks before replacing the Library's copy, raising its version | `src/library.ts` (no VS Code: the root, folders, items, the came-from note), unit tests |
 | **H5.3 The Library view** | The Library's folders, with only the folders that hold quickhacks and the way to them, each quickhack with its family's icon. **Open** (the editor; a save raises the item's version, as on the Desk), **Add to Project** (the project's names, its mod files written, the came-from note), **Copy to the Desk**, **Reveal in File Explorer**, **Remove from Library** (to the Recycle Bin, after asking). With no root: a welcome text saying Add to Library sets it up | Unit tests, the smoke test, a hand test |
 | **H5.4 Refresh from Library** | In a project, the Project group marks a quickhack whose Library item has a newer version than the came-from note says, found by `id`; **Refresh from Library** copies it over after asking (the project's own changes to it are lost) and writes its mod files | The hand test |
@@ -873,7 +873,7 @@ The steps:
 
 The hand test: a Desk quickhack added to a new Library (the root asked, a folder made by the modder in the picker), then opened, changed and saved there; added to EDGEhack_Test1, the came-from note written; changed again in the Library and refreshed into the project; a project quickhack added to the Library; Copy to the Desk; Remove from Library. In the game: the refreshed quickhack after Pack and Play.
 
-**Decision points, with a recommendation each:**
+**Decision points** (the owner agreed every recommendation, 2026-11-11):
 
 | Question | Recommended |
 |---|---|
