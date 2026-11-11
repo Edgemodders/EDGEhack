@@ -122,7 +122,7 @@ test("the package is written from the quickhacks with a script, and taken away w
   addFunction(path.join(dir, doc.scripts!.file), "canUse", "Zap");
   r = writeScriptPackage(project, await scriptEntries(project, async () => fam, { doc, fam }));
   assert.equal(r.dir, dir);
-  const manifest = JSON.parse(fs.readFileSync(path.join(dir, "rednode-app.json"), "utf8"));
+  const manifest = JSON.parse(fs.readFileSync(path.join(dir, "rednode-app.json"), "utf8")) as { id: string; requires: { rednode: string } };
   assert.deepEqual(manifest, manifestOf("My Mod"));
   assert.equal(manifest.id, "my-mod");
   assert.equal(manifest.requires.rednode, REDNODE_NEEDED);

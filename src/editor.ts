@@ -10,7 +10,7 @@ import { decodePng } from "./png";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
-import { addFunction, exportsOf, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
+import { addFunction, exportsOf, functionStub, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
 import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderScripts, type ScriptsState } from "./editorHtml";
 import type { Sales } from "./getit";
 import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
@@ -409,15 +409,29 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
             const doc = current();
             const file = path.join(packageDir(project), doc.scripts?.file ?? scriptFileName(doc));
             const fn = (m.scriptAdd ?? m.scriptOpen) as ScriptFunction;
+            const uri = vscode.Uri.file(file);
+            const open = vscode.workspace.textDocuments.find((d) => d.uri.fsPath === uri.fsPath);
             if (m.scriptAdd) {
-              const did = addFunction(file, fn, doc.name || fam.name);
+              // Open with changes not saved: the function goes into the editor, not under it on disk.
+              let did: "created" | "added" | "there";
+              if (open?.isDirty) {
+                did = exportsOf(open.getText()).includes(fn) ? "there" : "added";
+                if (did === "added") {
+                  const edit = new vscode.WorkspaceEdit();
+                  edit.insert(uri, open.positionAt(open.getText().length), `\n${functionStub(fn, doc.name || fam.name)}`);
+                  await vscode.workspace.applyEdit(edit);
+                }
+              } else did = addFunction(file, fn, doc.name || fam.name);
               if (!doc.scripts) await apply(document, withScripts(doc, { file: path.basename(file) }));
               if (did === "created") announceCreated(project.dir, [file]);
               this.hub.log.appendLine(`Script of ${doc.id}: ${fn} ${did} in ${file}`);
               await w.postMessage({ status: `${fn} is in ${path.relative(project.dir, file)}. Save the quickhack to write the mod's REDnode package.` });
             }
-            const line = lineOf(fs.readFileSync(file, "utf8"), fn) ?? 0;
-            await vscode.window.showTextDocument(vscode.Uri.file(file), { viewColumn: vscode.ViewColumn.Beside, selection: new vscode.Range(line, 0, line, 0) });
+            const text = open?.isDirty ? open.getText() : fs.readFileSync(file, "utf8");
+            const line = lineOf(text, fn) ?? 0;
+            // In the tab the script already has, if it has one; beside the page the first time.
+            const tab = vscode.window.tabGroups.all.find((g) => g.tabs.some((t) => (t.input as { uri?: vscode.Uri } | undefined)?.uri?.fsPath === uri.fsPath));
+            await vscode.window.showTextDocument(uri, { viewColumn: tab?.viewColumn ?? vscode.ViewColumn.Beside, selection: new vscode.Range(line, 0, line, 0) });
             await w.postMessage({ scriptsHtml: renderScripts(await this.scriptsState(document, current())) });
           }
           if (m.scriptText !== undefined) {

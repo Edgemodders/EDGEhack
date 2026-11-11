@@ -19,7 +19,8 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | | Waiting |
+| [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | | Waiting |
+| [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.26, on the laptop), with two fixes in 0.0.27 |
 | [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification) | By hand, in VS Code | H3b | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.0.25, on the laptop) |
 | [H3b.3 Generate](#h3b3-generate) | By hand, then in the game | H3b | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.24, on the laptop) |
 | [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 6 steps (EDGEhack 0.0.20) |
@@ -41,7 +42,46 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- [H3c.3 Scripts](#h3c3-scripts).
+- [H3c.4 Together](#h3c4-together).
+
+## H3c.4 Together
+
+EDGEhack 0.0.27 and REDnode 0.61.1 (the update zip from REDnode's quickhack test), in VS Code, then in the game. Gen Test gets both functions: disabled on anything but a person, and extra damage when it lands on someone below half health. This also settles whether Pack and Play installs the mod's REDnode package. Steps 1 to 3 check 0.0.27's two fixes from H3c.3.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.27.vsix` and reload (or F5 at 0.0.27). Open **Gen Test**. If its Scripts section shows a file from H3c.3, **Open** it; otherwise **Add** on Scan check | The script opens in one tab beside the page |
+| 2 | **Add** on On land (or **Open** if it is there) | The same tab shows `onLand`: no second tab |
+| 3 | Make the file read as below, save it. Type `People only` in **A disabled hack says**, then Ctrl+S on the page | The page shows **Open** on both rows. The status line ends "…, and the mod's REDnode package." |
+| 4 | With the game closed, **Pack and Play** | The game folder has `red4ext\plugins\REDnode\apps\edgehack_test1\` with `main.mjs`, `rednode-app.json`, `quickhacks.d.ts` and the script. If not, say what is there |
+| 5 | Start the game and load a save. In REDnode's launcher (F10), find **edgehack_test1 quickhacks** in the Mod Manager and switch it on; switch on **Console** too. Run Gen Test's **Get it** line for the Epic tier in the Console, and put Gen Test in the cyberdeck | The Mod log has no error from edgehack_test1 quickhacks |
+| 6 | F10 to close the overlay, scan a person | Gen Test shows "Checking..." for about a second, then usable |
+| 7 | Scan a drone, a robot or a turret, if one is handy | Gen Test disabled, with "People only" |
+| 8 | Upload Gen Test on a person at full health | It works as Overheat does. The Mod log says "Gen Test landed on a person at 100% health (tier 4)" |
+| 9 | Upload it on a person below half health (shoot them first) | The Mod log adds "Extra damage: below half health", and they take a big extra hit or die |
+
+The script for step 3:
+
+```js
+export function canUse(target, hack) {
+  return target.isHuman;
+}
+
+export async function onLand(target, hack) {
+  console.log(`Gen Test landed on a person at ${Math.round(target.healthPercent)}% health (tier ${hack.tier})`);
+  if (target.healthPercent < 50) {
+    await target.damage(50 * hack.tier);
+    console.log("Extra damage: below half health");
+  }
+}
+```
+
+Keep the JSDoc lines above each function if you like; they give the completion.
+
+Then quit the game and say what differed. I read REDnode's logs.
+
+| Run | Result |
+|---|---|
 
 ## H3c.3 Scripts
 
@@ -63,6 +103,7 @@ Then say what differed, and anything on the page you would change.
 
 | Run | Result |
 |---|---|
+| 2026-11-11, by the owner, on the laptop, EDGEhack 0.0.26 | Pass, all 9 steps. Two fixes in 0.0.27: after **Remove** the section did not redraw until the page was left and come back to (the page skipped redraws while anything in the section had focus, and the button keeps it; now only the text box stops it, and the smoke test focuses the button and checks the redraw); **Add** on On land opened a second tab of the script beside the first (now the tab the script has is used, and with unsaved changes there the function goes into that editor rather than under it on disk). Both checked again in H3c.4's steps 1 and 2 |
 
 
 ## H3b.3 Generate: progress notification

@@ -420,8 +420,10 @@ check(/Items\.OverheatProgram", "Items\.OverheatLvl1Program/.test(mainText) && /
 const manifestFile = path.join(pkgDir, "rednode-app.json");
 const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, "utf8")) : {};
 check(manifest.id === "smokemod" && manifest.main === "main.mjs" && manifest.requires?.rednode === ">=0.61.1", `and the package's manifest: ${JSON.stringify(manifest)}`);
-await run(editor, `document.querySelector("[data-script-remove]").click();`);
-await sleep(600);
+await run(editor, `const b = document.querySelector("[data-script-remove]"); b.focus(); b.click();`);
+for (let i = 0; i < 20 && /data-script-remove/.test(await scriptsHtml()); i++) await sleep(150);
+check(!/data-script-remove/.test(await scriptsHtml()), "Remove redraws the section at once, with the button still focused");
+await sleep(300);
 fs.rmSync(path.join(T, "packed.json"), { force: true });
 await run(editor, `document.querySelector("[data-pack]").click();`);
 for (let i = 0; i < 40 && fs.existsSync(mainFile); i++) await sleep(250);

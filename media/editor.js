@@ -461,7 +461,8 @@
       for (const el of all("[data-getit-components]")) mark(el);
       pick(selected);
     }
-    if (typeof m.scriptsHtml === "string" && !document.activeElement?.closest?.("[data-scripts]")) {
+    // Not while the disabled text is being typed; a button keeps the focus after its click, so not that.
+    if (typeof m.scriptsHtml === "string" && !document.activeElement?.matches?.("[data-script-text]")) {
       q("[data-scripts]").innerHTML = m.scriptsHtml;
     }
     if (typeof m.effectsHtml === "string") {
