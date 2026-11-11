@@ -2,6 +2,7 @@
 // them, and below them the read-only panels of what the game has. Each input names what it sets; the
 // page's script (media/editor.js) sends the changes to the host, which edits the document.
 import type { IconLook, QuickhackDoc, TierField } from "./document";
+import { DEFAULT_DISABLED_TEXT, ScriptFunction } from "./scripts";
 import { LOOKS } from "./ownIcons";
 import { PROMPTS, WORDS } from "./iconPrompts";
 import { ADDED_FIELDS, DAMAGE_TYPES, type AddedField } from "./document";
@@ -260,7 +261,45 @@ export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undef
 }
 
 /** The editor's page. `desk`: the document is on the Desk (H3.7), so it has no mod files and offers Add to Project. */
-export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales, desk = false): string {
+/** What the Scripts section shows (H3c.3): worked out by the editor from the document and the file. */
+export interface ScriptsState {
+  /** The document is in a project, so its script has a package to go in. */
+  inProject: boolean;
+  /** The script file, relative to the project, when the document names one. */
+  file?: string;
+  /** The file is there. */
+  exists: boolean;
+  /** The functions the file exports. */
+  functions: ScriptFunction[];
+  disabledText?: string;
+}
+
+const SCRIPT_ROWS: { fn: ScriptFunction; label: string; what: string }[] = [
+  { fn: "canUse", label: "Scan check", what: "Decides, each time V scans a person, whether it shows usable or disabled on them" },
+  { fn: "onLand", label: "On land", what: "Runs when it lands on a person: more damage, a status effect, anything worked out from the target" },
+];
+
+/** The Scripts section's content: a row per function with Add or Open, the disabled text, and Remove. */
+export function renderScripts(s: ScriptsState): string {
+  if (!s.inProject) {
+    return `<p class="foot">On the Desk: add it to a project first. Its script goes in the mod's REDnode package there.</p>`;
+  }
+  const rows = SCRIPT_ROWS.map((r) => {
+    const has = s.exists && s.functions.includes(r.fn);
+    return `<tr><th scope="row">${r.label} <code>${r.fn}</code></th><td>${esc(r.what)}</td><td>${
+      has ? `<button data-script-open="${r.fn}">Open</button>` : `<button data-script-add="${r.fn}" title="Writes the function into the script file, making the file if there is none">Add</button>`
+    }</td></tr>`;
+  }).join("");
+  const file = s.file
+    ? `<p class="family">Script: <code>${esc(s.file)}</code>${s.exists ? "" : ' <span class="bad">is not there: Add a function to make it again</span>'} <button data-script-remove title="Takes the script off this quickhack. The file stays">Remove</button></p>`
+    : "";
+  const text = s.functions.includes("canUse") || s.disabledText
+    ? `<p class="family"><label>A disabled hack says: <input type="text" maxlength="80" data-script-text placeholder="${esc(DEFAULT_DISABLED_TEXT)}" value="${esc(s.disabledText ?? "")}"></label></p>`
+    : "";
+  return `${file}<table class="scripts"><tbody>${rows}</tbody></table>${text}`;
+}
+
+export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales, desk = false, scripts?: ScriptsState): string {
   const tiers = fam.tiers;
   const top = tiers[tiers.length - 1];
   const head = tiers.map((t, i) => `<th data-tier="${i}"><button data-pick="${i}" data-tier="${i}" data-key="${esc(tierKey(t))}">${esc(t.quality ?? `Tier ${i + 1}`)}</button></th>`).join("");
@@ -346,6 +385,10 @@ ${rows}
 <p class="foot">An added effect uses the game's record until you change a number on a tier: that tier then gets a copy of its own, which changes nothing else in the game. A poison or bleed is always a copy, to keep its damage off machines, and so are chemical and physical damage that EDGEhack builds. The cooldown, the RAM cost and the "was quickhacked" mark always stay.${doc.newHack ? "" : ` It also goes on ${esc(fam.name)}'s versions for bosses.`}</p>
 </section>
 ${getIt}
+<section><h2>Scripts</h2>
+<div data-scripts>${renderScripts(scripts ?? { inProject: !desk, exists: false, functions: [] })}</div>
+<p class="foot">Its own logic, in JavaScript that REDnode runs in the game: needs REDnode 0.61.1 or later there. The script file is yours, in the mod's REDnode package, and Pack and Play installs it with the mod. A scan check shows the hack as "Checking..." for a second the first time V scans a person.</p>
+</section>
 <h2 class="game">What the game has for this tier</h2>
 ${panels}
 </main>`;

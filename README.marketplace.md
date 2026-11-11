@@ -8,6 +8,7 @@ A quickhack editor for Cyberpunk 2077, in the EDGE family of modding tools.
 - **Change it:** texts, icons, costs and numbers, for one tier or the whole family.
 - **Make new ones** from a game quickhack, adding buffs, debuffs and attack features from other quickhacks or the game's status effects.
 - **Icons of your own:** upload pictures, or have OpenAI's GPT Image draw them from your words (your own OpenAI key).
+- **Scripts:** a quickhack's own logic in JavaScript, run in the game by REDnode.
 - **A mod you can read:** TweakXL and ArchiveXL files in your REDcode project.
 
 Needs Windows, Cyberpunk 2077, and REDcode. The mods it makes need TweakXL and ArchiveXL.

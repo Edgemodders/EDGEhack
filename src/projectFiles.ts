@@ -19,6 +19,10 @@ export interface ProjectResult {
   script?: string;
   /** The files this write added to the project: they did not exist before. */
   created: string[];
+  /** The mod's REDnode package, when a quickhack of the project has a script (H3c.3). */
+  scripts?: string;
+  /** Quickhacks whose script file is missing, so main.mjs left them out. */
+  missingScripts?: string[];
 }
 
 /** True when a file is inside a folder. */

@@ -330,6 +330,8 @@
       vscode.postMessage({ set: { field: el.dataset.set, value: el.value === "" ? undefined : text ? el.value : Number(el.value), game: text ? el.dataset.game : Number(el.dataset.game) } });
     } else if (el.dataset.field) {
       vscode.postMessage({ setTier: { tier: el.dataset.tierKey, field: el.dataset.field, value: el.value === "" ? undefined : Number(el.value), game: Number(el.dataset.game) } });
+    } else if (el.matches("[data-script-text]")) {
+      vscode.postMessage({ scriptText: el.value });
     } else if (el.matches("[data-getit-sell]")) {
       vscode.postMessage({ getIt: { tier: el.dataset.tierKey, field: "sell", value: el.checked } });
     } else if (el.matches("[data-getit-components]")) {
@@ -429,6 +431,11 @@
       q("[data-picker]").hidden = true;
     }
     if (ev.target.closest("[data-picker-close]")) q("[data-picker]").hidden = true;
+    const scriptAdd = ev.target.closest("[data-script-add]");
+    if (scriptAdd) vscode.postMessage({ scriptAdd: scriptAdd.dataset.scriptAdd });
+    const scriptOpen = ev.target.closest("[data-script-open]");
+    if (scriptOpen) vscode.postMessage({ scriptOpen: scriptOpen.dataset.scriptOpen });
+    if (ev.target.closest("[data-script-remove]")) vscode.postMessage({ scriptRemove: true });
     if (ev.target.closest("[data-pack]")) vscode.postMessage({ pack: true });
     if (ev.target.closest("[data-add-to-project]")) vscode.postMessage({ addToProject: true });
   });
@@ -453,6 +460,9 @@
       q("[data-getit]").innerHTML = m.getItHtml;
       for (const el of all("[data-getit-components]")) mark(el);
       pick(selected);
+    }
+    if (typeof m.scriptsHtml === "string" && !document.activeElement?.closest?.("[data-scripts]")) {
+      q("[data-scripts]").innerHTML = m.scriptsHtml;
     }
     if (typeof m.effectsHtml === "string") {
       // The card's input keeps the keyboard's place across the redraw.

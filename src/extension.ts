@@ -9,7 +9,8 @@ import { recordOfArg } from "./quickhack";
 import { QuickhackEditor } from "./editor";
 import { DeskView } from "./deskView";
 import { copyName, deskRoot, duplicateDeskItem, deskNewHackProblem } from "./desk";
-import { projectFilesOf } from "./projectDocs";
+import { projectFilesOf, scriptEntries } from "./projectDocs";
+import { writeScriptPackage } from "./scripts";
 import { removeTexts } from "./projectFiles";
 import { bridge, redcode } from "./redcode";
 import { clearOpenAIKey, setOpenAIKey } from "./openaiKey";
@@ -154,7 +155,7 @@ export function activate(context: vscode.ExtensionContext): void {
           const list = files.map((f) => path.relative(project.dir, f).split(path.sep).join("/"));
           const choice = await vscode.window.showWarningMessage(
             `Remove ${shown} from ${project.name}?`,
-            { modal: true, detail: `These go to the Recycle Bin:\n${list.join("\n")}\n\nIts texts are taken out of the project's onscreens file. A copy on the Desk stays.` },
+            { modal: true, detail: `These go to the Recycle Bin:\n${list.join("\n")}\n\nIts texts are taken out of the project's onscreens file${entry.doc?.scripts ? ", and it out of the mod's REDnode package; its script file stays" : ""}. A copy on the Desk stays.` },
             "Remove from Project",
           );
           if (choice !== "Remove from Project") return false;
@@ -168,6 +169,12 @@ export function activate(context: vscode.ExtensionContext): void {
           await removeTexts(project, await bridge(), id);
         } catch (err) {
           void vscode.window.showWarningMessage(`EDGEhack removed ${shown}, but not its texts from the onscreens file: ${err instanceof Error ? err.message : String(err)}`);
+        }
+        // The mod's REDnode package without it (H3c.3). Its script file is the modder's and stays.
+        try {
+          writeScriptPackage(project, await scriptEntries(project, (key) => hub.family(key), undefined, id));
+        } catch (err) {
+          void vscode.window.showWarningMessage(`EDGEhack removed ${shown}, but could not write the mod's REDnode package again: ${err instanceof Error ? err.message : String(err)}`);
         }
         hub.log.appendLine(`Removed ${id} from ${project.name}: ${files.join(", ")}`);
         desk.refresh();

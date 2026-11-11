@@ -3,14 +3,15 @@
 // REDcode's project (docs/design.md, "H2: plan").
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
-import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt, IconLook, withOwnIcon } from "./document";
+import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt, IconLook, withOwnIcon, withScripts } from "./document";
 import { Family, iconOf, IconRef, mainEffect } from "./read";
 import { iconFile, IconWriter, LOOKS } from "./ownIcons";
 import { decodePng } from "./png";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
-import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt } from "./editorHtml";
+import { addFunction, exportsOf, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
+import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderScripts, type ScriptsState } from "./editorHtml";
 import type { Sales } from "./getit";
 import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
@@ -91,7 +92,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     this.hub.log.appendLine(`Made ${doc.id} from ${key}: ${file}`);
     try {
       const fam = await this.hub.family(key);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, [], await this.salesFor(fam), await iconWriter());
+      const result = await writeDocFiles(project, await bridge(), fam, doc, [], await this.salesFor(fam), await iconWriter(), (key) => this.hub.family(key));
       this.hub.log.appendLine(`Wrote ${doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -158,7 +159,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     try {
       const fam = await this.hub.family(place.doc.family);
       const sales = place.doc.newHack ? await this.salesFor(fam) : undefined;
-      const result = await writeDocFiles(project, await bridge(), fam, place.doc, await this.hub.added(place.doc, fam), sales, await iconWriter());
+      const result = await writeDocFiles(project, await bridge(), fam, place.doc, await this.hub.added(place.doc, fam), sales, await iconWriter(), (key) => this.hub.family(key));
       this.hub.log.appendLine(`Wrote ${place.doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -197,7 +198,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const icons = await this.icons(w, fam, doc, document.fileName);
       iconSet = icons.all;
       await this.addIcons(w, iconSet, added);
-      w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added, undefined, desk));
+      w.html = this.shell(w, renderEditor(fam, doc, icons, fam.tiers.length - 1, added, undefined, desk, await this.scriptsState(document, doc)));
       if (doc.newHack) {
         void this.salesFor(fam).then((got) => {
           sales = got;
@@ -225,15 +226,27 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         warnings: writeTweaks(fam, doc, added, sales).warnings,
         notes: addedNotes(fam, added),
         effectsHtml: renderAddedEffects(fam, added, iconSet),
+        scriptsHtml: renderScripts(await this.scriptsState(document, doc)),
         ...(doc.newHack ? { getItHtml: renderGetIt(fam, doc, sales, desk) } : {}),
       });
     };
+    // The script file is the modder's: when it is saved, or the page comes back, show what it exports now.
+    const scriptsAgain = (): void => {
+      void this.scriptsState(document, parseDoc(document.getText()))
+        .then((s) => w.postMessage({ scriptsHtml: renderScripts(s) }))
+        .catch(() => undefined);
+    };
+    const scriptSaved = vscode.workspace.onDidSaveTextDocument((d) => {
+      if (/\.m?js$/.test(d.fileName)) scriptsAgain();
+    });
+    panel.onDidChangeViewState(() => panel.visible && scriptsAgain());
     const changed = vscode.workspace.onDidChangeTextDocument((e) => {
       if (e.document.uri.toString() !== document.uri.toString() || !e.contentChanges.length) return;
       show().catch((err: unknown) => void w.postMessage({ status: message(err), bad: true }));
     });
     panel.onDidDispose(() => {
       changed.dispose();
+      scriptSaved.dispose();
       shown.delete(panel);
     });
     void w.postMessage({ warnings: writeTweaks(fam, doc, added, sales).warnings, notes: addedNotes(fam, added) });
@@ -334,6 +347,10 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         addedValue?: { id: string; tier: string; field: AddedField; value?: number; game?: number };
         addedAll?: { id: string; tier: string; field: AddedField };
         getIt?: { tier: string; field: keyof GetIt; value?: boolean | number; game?: number };
+        scriptAdd?: ScriptFunction;
+        scriptOpen?: ScriptFunction;
+        scriptText?: string;
+        scriptRemove?: boolean;
         open?: string;
         pack?: boolean;
         addToProject?: boolean;
@@ -386,6 +403,34 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.addedValue) await apply(document, withAddedValue(current(), m.addedValue.id, m.addedValue.tier, m.addedValue.field, m.addedValue.value, m.addedValue.game));
           if (m.addedAll) await apply(document, applyAddedToAll(current(), await this.hub.added(current(), fam), m.addedAll.id, m.addedAll.tier, m.addedAll.field));
           if (m.getIt) await apply(document, withGetIt(current(), m.getIt.tier, m.getIt.field, m.getIt.value, m.getIt.game));
+          if (m.scriptAdd || m.scriptOpen) {
+            const project = (await redcode()).project();
+            if (!project || onDesk(document.fileName) || !isInside(document.fileName, project.dir)) throw new Error("Its script goes in a project's REDnode package: add the quickhack to a project first.");
+            const doc = current();
+            const file = path.join(packageDir(project), doc.scripts?.file ?? scriptFileName(doc));
+            const fn = (m.scriptAdd ?? m.scriptOpen) as ScriptFunction;
+            if (m.scriptAdd) {
+              const did = addFunction(file, fn, doc.name || fam.name);
+              if (!doc.scripts) await apply(document, withScripts(doc, { file: path.basename(file) }));
+              if (did === "created") announceCreated(project.dir, [file]);
+              this.hub.log.appendLine(`Script of ${doc.id}: ${fn} ${did} in ${file}`);
+              await w.postMessage({ status: `${fn} is in ${path.relative(project.dir, file)}. Save the quickhack to write the mod's REDnode package.` });
+            }
+            const line = lineOf(fs.readFileSync(file, "utf8"), fn) ?? 0;
+            await vscode.window.showTextDocument(vscode.Uri.file(file), { viewColumn: vscode.ViewColumn.Beside, selection: new vscode.Range(line, 0, line, 0) });
+            await w.postMessage({ scriptsHtml: renderScripts(await this.scriptsState(document, current())) });
+          }
+          if (m.scriptText !== undefined) {
+            const doc = current();
+            if (doc.scripts) await apply(document, withScripts(doc, { ...doc.scripts, disabledText: m.scriptText }));
+          }
+          if (m.scriptRemove) {
+            const doc = current();
+            const project = (await redcode()).project();
+            const where = doc.scripts && project ? path.relative(project.dir, path.join(packageDir(project), doc.scripts.file)) : doc.scripts?.file;
+            await apply(document, withScripts(doc, undefined));
+            await w.postMessage({ status: `The script is off this quickhack. Its file stays: ${where}. Save to take it out of the mod's REDnode package.` });
+          }
           if (m.addToProject) {
             await document.save();
             await this.addToProject(document.fileName);
@@ -425,14 +470,34 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const fam = await this.hub.family(doc.family);
       const sales = doc.newHack ? await this.salesFor(fam) : undefined;
       if (doc.newHack && !sales) say("Saved, but where the game sells it could not be read, so Get it was left out this time. Save again to try once more.", true);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam), sales, await iconWriter());
-      this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}`);
+      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam), sales, await iconWriter(), (key) => this.hub.family(key));
+      this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}${result.scripts ? `, scripts in ${result.scripts}` : ""}`);
       announceCreated(project.dir, result.created);
-      say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
+      if (result.missingScripts?.length) {
+        say(`Saved, but the script file of ${result.missingScripts.join(", ")} is not there, so the mod's REDnode package leaves ${result.missingScripts.length === 1 ? "it" : "them"} out. Add a function on ${result.missingScripts.length === 1 ? "its" : "their"} page to make it again.`, true);
+        return;
+      }
+      say(result.yaml ? `Saved: ${path.relative(project.dir, result.yaml)}${result.texts ? ", and its texts" : ""}${result.scripts ? ", and the mod's REDnode package" : ""}.` : "Saved. It changes nothing yet, so there are no mod files.");
     } catch (e) {
       this.hub.log.appendLine(`Saving ${document.fileName} failed: ${message(e)}`);
       say(message(e), true);
     }
+  }
+
+  /** What the Scripts section shows for a document (H3c.3): its file in the project's REDnode package, and what it exports. */
+  private async scriptsState(document: vscode.TextDocument, doc: QuickhackDoc): Promise<ScriptsState> {
+    const project = onDesk(document.fileName) ? undefined : (await redcode()).project();
+    if (!project || !isInside(document.fileName, project.dir)) return { inProject: false, exists: false, functions: [] };
+    if (!doc.scripts) return { inProject: true, exists: false, functions: [] };
+    const file = path.join(packageDir(project), doc.scripts.file);
+    const exists = fs.existsSync(file);
+    return {
+      inProject: true,
+      file: path.relative(project.dir, file).split(path.sep).join("/"),
+      exists,
+      functions: exists ? exportsOf(fs.readFileSync(file, "utf8")) : [],
+      disabledText: doc.scripts.disabledText,
+    };
   }
 
   /** How the game hands out a family's tiers, or undefined (logged) when it could not be read. */

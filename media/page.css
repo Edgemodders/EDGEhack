@@ -26,6 +26,12 @@ table.numbers th, table.numbers td { border-bottom: 1px solid var(--line); paddi
 table.numbers thead th { color: var(--dim); font-weight: normal; }
 table.numbers td.on, table.numbers th.on { color: var(--yellow); }
 table.numbers tbody th { font-weight: normal; color: var(--dim); white-space: nowrap; }
+/* The Scripts section (H3c.3): a row per function, with Add or Open. */
+table.scripts { border-collapse: collapse; margin: 6px 0; }
+table.scripts th, table.scripts td { border-bottom: 1px solid var(--line); padding: 6px 14px 6px 0; text-align: left; vertical-align: middle; }
+table.scripts th { font-weight: normal; white-space: nowrap; }
+table.scripts td:nth-child(2) { color: var(--dim); }
+[data-scripts] .bad { color: var(--vscode-errorForeground); }
 .scaled { border-bottom: 1px dotted var(--dim); cursor: help; }
 .scaled sup, .foot sup { color: var(--cyan); }
 .foot { color: var(--dim); font-size: .85em; }

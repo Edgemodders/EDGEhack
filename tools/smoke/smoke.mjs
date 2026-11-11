@@ -393,6 +393,40 @@ await step({ command: "workbench.action.files.save" });
 for (let i = 0; i < 20 && fs.existsSync(atlasFile); i++) await sleep(250);
 check(docOf().ownIcons === undefined && !fs.existsSync(atlasFile), "Original on each takes the generated icons out again");
 
+// Scripts (H3c.3): Add writes the function into the modder's file and names it in the document; a save
+// (here through Pack and Play) writes the mod's REDnode package; Remove takes the script off, and the
+// next save takes EDGEhack's files away while the modder's file stays.
+const pkgDir = path.join(T, "proj", "source", "resources", "red4ext", "plugins", "REDnode", "apps", "smokemod");
+const scriptFile = path.join(pkgDir, "smokemod_overheat.mjs");
+const scriptsHtml = () => run(editor, `return document.querySelector("[data-scripts]").innerHTML;`);
+check(/data-script-add="canUse"/.test(await scriptsHtml()) && /data-script-add="onLand"/.test(await scriptsHtml()), "the Scripts section offers Add for both functions");
+await run(editor, `document.querySelector('[data-script-add="canUse"]').click();`);
+for (let i = 0; i < 30 && !fs.existsSync(scriptFile); i++) await sleep(200);
+check(fs.existsSync(scriptFile) && /export function canUse/.test(fs.readFileSync(scriptFile, "utf8")), "Add makes the script file with canUse");
+for (let i = 0; i < 20 && !/data-script-open="canUse"/.test(await scriptsHtml()); i++) await sleep(250);
+check(/data-script-open="canUse"/.test(await scriptsHtml()) && /data-script-text/.test(await scriptsHtml()), "then the scan check has Open, and the disabled text shows");
+await run(
+  editor,
+  `const t = document.querySelector("[data-script-text]"); t.value = "People only"; t.dispatchEvent(new Event("change", { bubbles: true }));`,
+);
+await sleep(600);
+fs.rmSync(path.join(T, "packed.json"), { force: true });
+await run(editor, `document.querySelector("[data-pack]").click();`);
+const mainFile = path.join(pkgDir, "main.mjs");
+for (let i = 0; i < 40 && !fs.existsSync(mainFile); i++) await sleep(250);
+check(docOf().scripts?.file === "smokemod_overheat.mjs" && docOf().scripts?.disabledText === "People only", `the document names its script and text: ${JSON.stringify(docOf().scripts)}`);
+const mainText = fs.existsSync(mainFile) ? fs.readFileSync(mainFile, "utf8") : "";
+check(/Items\.OverheatProgram", "Items\.OverheatLvl1Program/.test(mainText) && /\.\/smokemod_overheat\.mjs/.test(mainText) && /People only/.test(mainText), "a save writes main.mjs with Overheat's items, lowest tier first");
+const manifestFile = path.join(pkgDir, "rednode-app.json");
+const manifest = fs.existsSync(manifestFile) ? JSON.parse(fs.readFileSync(manifestFile, "utf8")) : {};
+check(manifest.id === "smokemod" && manifest.main === "main.mjs" && manifest.requires?.rednode === ">=0.61.1", `and the package's manifest: ${JSON.stringify(manifest)}`);
+await run(editor, `document.querySelector("[data-script-remove]").click();`);
+await sleep(600);
+fs.rmSync(path.join(T, "packed.json"), { force: true });
+await run(editor, `document.querySelector("[data-pack]").click();`);
+for (let i = 0; i < 40 && fs.existsSync(mainFile); i++) await sleep(250);
+check(docOf().scripts === undefined && !fs.existsSync(mainFile) && !fs.existsSync(manifestFile) && fs.existsSync(scriptFile), "Remove takes the script off: EDGEhack's files go, the script file stays");
+
 // Back to the game's value: no change, no modifier.
 await setInput(editor, RAM, "6");
 await sleep(400);

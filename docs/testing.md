@@ -12,13 +12,14 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-11 | Pass, 120 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-11 | Pass, 129 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | | Waiting |
 | [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification) | By hand, in VS Code | H3b | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.0.25, on the laptop) |
 | [H3b.3 Generate](#h3b3-generate) | By hand, then in the game | H3b | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.24, on the laptop) |
 | [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 6 steps (EDGEhack 0.0.20) |
@@ -40,7 +41,29 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-Nothing.
+- [H3c.3 Scripts](#h3c3-scripts).
+
+## H3c.3 Scripts
+
+EDGEhack 0.0.26, in VS Code (the game comes in H3c.4). The Scripts section gives a quickhack its own logic: a scan check (`canUse`) and an on-land function (`onLand`), in a JavaScript file of yours that REDnode 0.61.1 or later runs in the game ([REDnode's Quickhack functions](https://edgemodders.github.io/REDnode/quickhacks.html)). Use the Gen Test quickhack from H3b.3, or any quickhack in EDGEhack_Test1.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.26.vsix` and reload (or F5 in the repo at 0.0.26). Open **Gen Test** in EDGEhack_Test1, scroll to **Scripts** | Two rows, **Scan check** `canUse` and **On land** `onLand`, each with **Add**, and a note that it needs REDnode 0.61.1 in the game |
+| 2 | **Add** on Scan check | A file opens beside the page, `source/resources/red4ext/plugins/REDnode/apps/edgehack_test1/<the quickhack's id>.mjs`, with a header saying it is yours and `canUse` returning true. The row now says **Open**, and **A disabled hack says** shows under the rows |
+| 3 | Back on the quickhack's page, Ctrl+S | The status line ends "…, and the mod's REDnode package." The same folder now has `main.mjs`, `rednode-app.json` and `quickhacks.d.ts`. `main.mjs` names Gen Test's own items (`Items.EDGEhack_…`), lowest tier first |
+| 4 | In the script, type `target.` inside `canUse` | Completion lists `isHuman`, `healthPercent`, `damage` and the rest, with their notes |
+| 5 | Change `return true;` to `return target.isHuman;`, save the script. Then **Add** on On land | `onLand` is added at the end of the same file; your change to `canUse` is still there |
+| 6 | Type `People only` into **A disabled hack says**, click away, Ctrl+S on the page | `main.mjs` has `disabledText: "People only"` |
+| 7 | In the script, delete the whole `canUse` function and save the script | The page's Scan check row shows **Add** again |
+| 8 | **Remove** (beside the file name), then Ctrl+S on the page | The status line says the file stays. `main.mjs`, `rednode-app.json` and `quickhacks.d.ts` are gone; the script file is still there |
+| 9 | Open a quickhack on the Desk, scroll to Scripts | "On the Desk: add it to a project first." and no buttons |
+
+Then say what differed, and anything on the page you would change.
+
+| Run | Result |
+|---|---|
+
 
 ## H3b.3 Generate: progress notification
 

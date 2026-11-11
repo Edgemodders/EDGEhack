@@ -711,6 +711,19 @@ A mod needs REDnode only if it has a script. EDGEhack's own requirement doesn't 
 
 **H3c.2's result (2026-11-11, REDnode 0.61.1): passed** (REDnode's docs/quickhacks.md): `quickhacks.define(items, { canUse, onLand, disabledText, hold })`, `target.damage` and `target.addEffect` from V (a status effect from a function works; a kill by `damage` looked normal), the functions gone when the package stops and set again after a load. Spread was not run, and Boss and Chimera versions were not tried: both unverified. A define finds an item's hacks from their ids, so EDGEhack's TweakXL records work the same way.
 
+
+**H3c.3 built (2026-11-11), EDGEhack 0.0.26:**
+
+| Part | Where | What |
+|---|---|---|
+| The package | `src/scripts.ts` (no VS Code) | The mod's REDnode package in the project, `source/resources/red4ext/plugins/REDnode/apps/<package>/` (the mod's name in REDnode's id letters, `packageId`), so Pack and Play installs it with the rest. A script file per quickhack, `<id>.mjs`, is the modder's: **Add** makes it, or appends the function it lacks, and never changes what is there (`addFunction`). EDGEhack's own files, written again at each save and taken away with the last script (`writeScriptPackage`): `main.mjs` (every quickhack of the project with a script, `quickhacks.define(items, { canUse, onLand, disabledText })` with the functions its file exports, each define's failure logged on its own), `rednode-app.json` (`requires: { rednode: ">=0.61.1" }`) and `quickhacks.d.ts` (the types the files' JSDoc names). A `main.mjs` or manifest EDGEhack did not make is left alone, with an error |
+| The items | `itemsOf` | The family's items lowest tier first: the game's for a change to a family, the mod's own (`Items.EDGEhack_<id>_<tier>`) for a new quickhack, so `hack.tier` is the tier from 1 |
+| The document | `src/document.ts` | `scripts: { file, disabledText? }`, `withScripts` |
+| The save | `src/projectDocs.ts` | `writeDocFiles` writes the package from every document of the project (`scriptEntries`, with the one being saved in place of its saved copy) when given `familyOf`, as the editor's three saves are; Remove from Project writes it again without the document. A document whose script file is missing is left out, and the save says so |
+| The page | `src/editorHtml.ts` (`renderScripts`), `media/editor.js`, `src/editor.ts` | The Scripts section: a row per function with **Add** or **Open** (at the function's line, beside the page), the file's name with **Remove** (the file stays), and **A disabled hack says** once there is a scan check. It reads the file's exports again when a script is saved or the page comes back. On the Desk it asks for a project first |
+
+Checked: 129 unit tests (9 new in `test/scripts.test.ts`, one of them importing a written `main.mjs` against a stand-in `rednode` package); the smoke test adds a scan check, sets the text, saves through Pack and Play, reads `main.mjs` and the manifest, and removes the script (6 checks). Unverified until H3c.4: that Pack and Play installs the package into the game, and REDnode running it there.
+
 **Still open for H3c.2 (before its run):** a status effect from a function (built, not run); whose kill a function's damage counts as (V is at the level cap, so experience could not show it); spread, not run yet, since nothing V has spread Overheat in that test (a way to spread: the Spillover perk with Overclock active, Copy-Paste, or a cyberdeck's ability); Boss and Chimera actions.
 
 **Agreed with the owner on 2026-11-05:**

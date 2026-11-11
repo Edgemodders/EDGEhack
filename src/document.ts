@@ -117,6 +117,32 @@ export interface QuickhackDoc {
   effects?: AddedEffect[];
   /** A new quickhack's Get it, by the tier's item. Missing: every tier is got the way the family's is. */
   getIt?: Record<string, GetIt>;
+  /**
+   * Its script (H3c.3, scripts.ts): a file of the modder's in the mod's REDnode package, whose `canUse`
+   * and `onLand` REDnode runs in the game. `disabledText` is what a disabled hack says on the wheel.
+   */
+  scripts?: QuickhackScripts;
+}
+
+export interface QuickhackScripts {
+  /** The script file's name in the mod's REDnode package, such as "static_skull.mjs". */
+  file: string;
+  disabledText?: string;
+}
+
+/** A document with its script set, changed or taken away. */
+export function withScripts(doc: QuickhackDoc, scripts: QuickhackScripts | undefined): QuickhackDoc {
+  const { scripts: _old, ...rest } = doc;
+  if (!scripts) return rest;
+  const text = scripts.disabledText?.replace(/\s+/g, " ").trim().slice(0, 80);
+  return { ...rest, scripts: { file: scripts.file, ...(text ? { disabledText: text } : {}) } };
+}
+
+function scriptsOf(v: unknown): QuickhackScripts | undefined {
+  if (v === undefined || v === null) return undefined;
+  const o = v as Record<string, unknown>;
+  if (typeof o !== "object" || typeof o.file !== "string" || !/^[A-Za-z0-9_.-]+\.m?js$/.test(o.file)) throw new Error("The script needs a file name ending in .mjs or .js.");
+  return { file: o.file, ...(typeof o.disabledText === "string" && o.disabledText.trim() ? { disabledText: o.disabledText } : {}) };
 }
 
 /** The three looks of a quickhack's icons (H3b): the item card, the wheel glyph, the target's status icon. */
@@ -289,6 +315,7 @@ export function parseDoc(source: string): QuickhackDoc {
     tiers,
     effects: addedEffects(o.effects),
     getIt: getItOf(o.getIt),
+    scripts: scriptsOf(o.scripts),
   };
 }
 
