@@ -8,7 +8,7 @@ import { writeTweaks } from "../src/tweaks";
 import { newHackDoc, parseDoc, printDoc, QuickhackDoc, withGetIt } from "../src/document";
 import { gateWords, SaleIndex, saleIndexOf, Sales, tierSales, vendorCount } from "../src/getit";
 import { renderGetIt } from "../src/editorHtml";
-import type { TweakRecord, TweakRecordFull, TweakValue } from "../src/redcode";
+import type { TweakRecord, TweakRecordFull, TweakValue } from "../src/types";
 import { fetchRecord, fetchText } from "./fixture";
 
 const rec = (path: string, flats: Record<string, TweakValue>): TweakRecord => ({ id: path, path, type: "", flats });

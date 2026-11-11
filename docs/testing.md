@@ -12,13 +12,14 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-11 | Pass, 140 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H4 | 2026-11-11 | Pass, 162 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H4.4 The core outside VS Code](#h44-the-core-outside-vs-code) | Automated: unit tests, the smoke test, and a script on the real REDbridge and game with no VS Code | H4 | 2026-11-11 | Pass: 162 unit tests, 135 smoke checks, all 11 checks of the script |
 | [H4.3 Try Live](#h43-try-live) | By hand, then in the game | H4 | 2026-11-11 | Pass, steps 1 to 6 and 8 (EDGEhack 0.0.29, REDnode 0.62.1, dev PC); step 7, a name written in EDGEhack, shows only after Pack and Play, as the page says |
 | [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | 2026-11-11 | Pass, all 8 steps (EDGEhack 0.0.28, on the dev PC) |
 | [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | 2026-11-11 | Pass, in two runs (REDnode 0.61.1, then 0.61.2 for names): every change shows live, a quickhack made live works, all of it undone when the spike stops |
@@ -46,6 +47,18 @@ Last updated 2026-11-11.
 ## Waiting for a hand test
 
 Nothing.
+
+## H4.4 The core outside VS Code
+
+No hand test: H4.4 changes nothing a modder sees (design, "H4.4 built"). Three checks:
+
+1. `npm test`: the core over the fixture's records (read once, again after Refresh, a missing family tried again), the save path into a scratch project, EDGEhack's REDbridge client against a stand-in bridge run by Node (frames split across reads, text beyond ASCII, calls at once, a bridge that ends, one that is not there), REDnode's shared bridge against a stand-in server, finding REDbridge, .NET and the game in scratch folders, and a walk of every import from the core's files, which must reach no `vscode`.
+2. `npm run smoke`, with `EH_BRIDGE` naming REDbridge 0.12.0 or later: the extension in real VS Code, now over the core.
+3. A script outside VS Code (the session's scratchpad `h44/e2e.ts`, bundled with esbuild and run with Node): the core over EDGEhack's own REDbridge on the real game, with no REDcode. It finds REDbridge and the game itself, reads the catalog and Overheat, lists and cuts an icon, and saves a RAM change into a scratch project.
+
+| Run | Result |
+|---|---|
+| 2026-11-11, by Claude, dev PC, game 2.5 | **Pass.** 162 unit tests (22 new). The smoke test: every one of its 135 checks. The script: REDbridge 0.12.1 found from REDcode's setting, the game from REDcode's setting, the machine's .NET; the catalog in 14.4 s (TweakDB's first load: 18 families, 63 device and 4 vehicle hacks), Overheat's 6 tiers in 124 ms, 27 item icons and one cut to a PNG, and the change saved as `source\resources\r6\tweaks\E2E\e2e_overheat.yaml` with its name in the onscreens file |
 
 ## H4 live names spike
 

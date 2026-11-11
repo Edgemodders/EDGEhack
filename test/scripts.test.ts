@@ -11,7 +11,7 @@ import { newDoc, newHackDoc, parseDoc, printDoc, withScripts } from "../src/docu
 import { docFile, scriptEntries } from "../src/projectDocs";
 import { addFunction, exportsOf, itemsOf, lineOf, mainSource, manifestOf, packageDir, packageId, REDNODE_NEEDED, scriptFileName, writeScriptPackage } from "../src/scripts";
 import { renderScripts } from "../src/editorHtml";
-import type { ProjectRef } from "../src/redcode";
+import type { ProjectRef } from "../src/types";
 import { fetchRecord, fetchText } from "./fixture";
 
 function scratchProject(): ProjectRef {

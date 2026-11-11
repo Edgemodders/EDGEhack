@@ -1,7 +1,7 @@
 // Names of the game's quickhack records, pure (no VS Code, no REDbridge), so the views and the
 // editor agree on what a family and a tier are. Checked against game 2.5's 92 quickhack items
 // (docs/design.md, "Tiers, families and variants").
-import type { TweakViewNode } from "./redcode";
+import type { TweakViewNode } from "./types";
 
 /** A quickhack's tier, as the game names its items. */
 export interface Tier {

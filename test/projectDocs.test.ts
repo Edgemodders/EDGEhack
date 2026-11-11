@@ -10,7 +10,7 @@ import { renderEditor } from "../src/editorHtml";
 import { newDoc, newHackDoc, printDoc } from "../src/document";
 import { docFile, makeNewHackDoc, newHackProblem, projectDocs, projectFilesOf } from "../src/projectDocs";
 import { removeTexts, yamlFile } from "../src/projectFiles";
-import type { BridgeClient, ProjectRef } from "../src/redcode";
+import type { BridgeClient, ProjectRef } from "../src/types";
 import { fetchRecord, fetchText } from "./fixture";
 
 function scratchProject(): ProjectRef {

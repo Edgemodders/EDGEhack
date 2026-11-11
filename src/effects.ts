@@ -4,7 +4,7 @@
 import { AddedEffect, AddedField, BuiltEffect, DamageTypeName, QuickhackDoc, withAddedValue } from "./document";
 import { Effect, Family, isShared, readStatus, Tier, tierKey } from "./read";
 import { isLocKey, Records, words } from "./records";
-import type { BridgeClient, TweakRecord, TweakValue } from "./redcode";
+import type { BridgeClient, TweakRecord, TweakValue } from "./types";
 
 /** Who a status effect is for. Only `enemy` shows unless the modder asks for all. */
 export type PoolKind = "enemy" | "v" | "boss" | "other";

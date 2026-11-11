@@ -13,7 +13,7 @@
 // No VS Code, so the MCP server (H4) can use it too.
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { ProjectRef } from "./redcode";
+import type { ProjectRef } from "./types";
 import type { QuickhackDoc } from "./document";
 import type { Family } from "./read";
 import { newItemPath } from "./tweaks";

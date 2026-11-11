@@ -1,7 +1,7 @@
 // Made-up TweakDB records in the game's shape, for the tests: a quickhack family "Zap" with two
 // tiers, a shared effect, a cooldown, a damage-over-time status effect and a device hack. No game
 // data: every name and number here is invented.
-import type { TweakRecord, TweakRecordFull, TweakValue } from "../src/redcode";
+import type { TweakRecord, TweakRecordFull, TweakValue } from "../src/types";
 
 type Flats = Record<string, TweakValue>;
 const db = new Map<string, { type: string; flats: Flats }>();

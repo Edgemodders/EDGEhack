@@ -10,7 +10,8 @@ import { decodePng } from "./png";
 import { newItemPath, writeTweaks } from "./tweaks";
 import { stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { isInside } from "./projectFiles";
-import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
+import { makeNewHackDoc, newHackProblem } from "./projectDocs";
+import { saveDocFiles } from "./save";
 import { addFunction, exportsOf, functionStub, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
 import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderLines, renderScripts, type ScriptsState } from "./editorHtml";
 import type { Sales } from "./getit";
@@ -92,8 +93,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     const { file, doc } = makeNewHackDoc(project, keys, key, name);
     this.hub.log.appendLine(`Made ${doc.id} from ${key}: ${file}`);
     try {
-      const fam = await this.hub.family(key);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, [], await this.salesFor(fam), await iconWriter(), (key) => this.hub.family(key));
+      const result = await saveDocFiles(this.hub, project, doc, await iconWriter());
       this.hub.log.appendLine(`Wrote ${doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -158,9 +158,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     writeToProject(place, { file, id: doc.id });
     this.hub.log.appendLine(`Added ${shown} from the Desk to ${project.name}: ${place.file}`);
     try {
-      const fam = await this.hub.family(place.doc.family);
-      const sales = place.doc.newHack ? await this.salesFor(fam) : undefined;
-      const result = await writeDocFiles(project, await bridge(), fam, place.doc, await this.hub.added(place.doc, fam), sales, await iconWriter(), (key) => this.hub.family(key));
+      const result = await saveDocFiles(this.hub, project, place.doc, await iconWriter());
       this.hub.log.appendLine(`Wrote ${place.doc.id}: ${result.yaml ?? "no YAML"}`);
       announceCreated(project.dir, result.created);
     } catch (e) {
@@ -553,10 +551,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         say("Saved, but this document is not in the project open in REDcode, so no mod files were written.", true);
         return;
       }
-      const fam = await this.hub.family(doc.family);
-      const sales = doc.newHack ? await this.salesFor(fam) : undefined;
-      if (doc.newHack && !sales) say("Saved, but where the game sells it could not be read, so Get it was left out this time. Save again to try once more.", true);
-      const result = await writeDocFiles(project, await bridge(), fam, doc, await this.hub.added(doc, fam), sales, await iconWriter(), (key) => this.hub.family(key));
+      const result = await saveDocFiles(this.hub, project, doc, await iconWriter(), () =>
+        say("Saved, but where the game sells it could not be read, so Get it was left out this time. Save again to try once more.", true),
+      );
       this.hub.log.appendLine(`Saved ${doc.id}: ${result.yaml ?? "no YAML, nothing changed"}${result.texts ? `, texts in ${result.texts}` : ""}${result.scripts ? `, scripts in ${result.scripts}` : ""}`);
       announceCreated(project.dir, result.created);
       if (result.missingScripts?.length) {
@@ -587,13 +584,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
   }
 
   /** How the game hands out a family's tiers, or undefined (logged) when it could not be read. */
-  private async salesFor(fam: Family): Promise<Sales | undefined> {
-    try {
-      return await this.hub.sales(fam);
-    } catch (e) {
-      this.hub.log.appendLine(`Get it: reading where the game sells ${fam.name} failed: ${message(e)}`);
-      return undefined;
-    }
+  private salesFor(fam: Family): Promise<Sales | undefined> {
+    return this.hub.salesOrNone(fam);
   }
 
   private async icons(w: vscode.Webview, fam: Family, doc: QuickhackDoc, docFile: string): Promise<{ all: Map<string, string>; item?: string; wheel?: string; status?: string }> {

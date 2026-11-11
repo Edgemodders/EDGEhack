@@ -3,7 +3,7 @@
 // by REDbridge when the project has none). No VS Code: the editor passes the project and the bridge.
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { BridgeClient, ProjectRef } from "./redcode";
+import type { BridgeClient, ProjectRef } from "./types";
 import type { QuickhackDoc } from "./document";
 import type { TextEntry, WrittenTweaks } from "./tweaks";
 import { NEW_HACK_SCRIPT_PATH } from "./newHackScript";

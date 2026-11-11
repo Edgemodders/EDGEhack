@@ -4,7 +4,7 @@
 // its item's CraftingData. Read from the game once (readSaleIndex), then per family (tierSales). Pure
 // apart from readSaleIndex, which asks REDbridge, so the tests feed made-up records. No VS Code.
 // docs/design.md, "H3.6 Get it: plan" and its spike's results.
-import type { BridgeClient, TweakRecord } from "./redcode";
+import type { BridgeClient, TweakRecord } from "./types";
 import { list, num, Records, str, words } from "./records";
 import { Family, tierKey } from "./read";
 

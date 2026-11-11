@@ -10,6 +10,10 @@ How to keep it (the Edgemodders convention):
 
 ## Unreleased
 
+**Fixed**
+
+- When reading the game's list of quickhack icons failed once, the pages showed none of the game's icons until **Refresh**. The next look now reads it again.
+
 **New**
 
 - **Try Live:** a quickhack's changes in the running game, with no packing. The page's **Try Live** sends them through REDnode (0.62.0 or later, after you allow EDGEhack in the game) and puts a new quickhack's selected tier in V's backpack; each save sends them again, and **Stop** puts the game back. Names and descriptions you write, and your own icons, show after Pack and Play.

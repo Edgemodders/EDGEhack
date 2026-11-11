@@ -2,7 +2,7 @@
 // document's mod files. No VS Code, so the MCP server (H4) can use it too (docs/design.md, "MCP tools").
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { BridgeClient, ProjectRef } from "./redcode";
+import type { BridgeClient, ProjectRef } from "./types";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId } from "./document";
 import type { Family } from "./read";
 import { writeTweaks } from "./tweaks";

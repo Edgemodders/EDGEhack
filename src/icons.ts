@@ -5,7 +5,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { createHash } from "node:crypto";
-import type { BridgeClient } from "./redcode";
+import type { BridgeClient } from "./types";
 import type { IconRef } from "./read";
 import { crop, decodePng, encodePng, Image, UvRect } from "./png";
 

@@ -7,7 +7,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId, withField, withTierField } from "../src/document";
-import type { BridgeClient, ProjectRef } from "../src/redcode";
+import type { BridgeClient, ProjectRef } from "../src/types";
 import { gameValue, renderEditor } from "../src/editorHtml";
 import { isInside, mergeEntries, writeProject } from "../src/projectFiles";
 import { fetchRecord, fetchText } from "./fixture";

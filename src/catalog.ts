@@ -1,7 +1,7 @@
 // The game's quickhacks, for the Quickhacks view: the families of quickhack items (people), and the
 // device and vehicle hacks, which are actions with no item. Read with two tweakdb.records calls;
 // the grouping is pure (catalogOf), so the tests feed it made-up records.
-import type { BridgeClient, TweakRecord, TweakValue } from "./redcode";
+import type { BridgeClient, TweakRecord, TweakValue } from "./types";
 import { isLocKey, words } from "./records";
 import { parseItem } from "./quickhack";
 import { ownAction } from "./read";

@@ -11,7 +11,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { newDoc, newHackDoc, parseDoc, printDoc, QuickhackDoc, safeId } from "./document";
-import type { ProjectRef } from "./redcode";
+import type { ProjectRef } from "./types";
 import { docFile, newHackProblem } from "./projectDocs";
 import { copyOwnIcons } from "./ownIcons";
 

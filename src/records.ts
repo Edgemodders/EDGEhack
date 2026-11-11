@@ -1,7 +1,7 @@
 // TweakDB records as EDGEhack reads them: one record at a time, by path, with LocKeys' texts, kept
 // in memory so a quickhack's chain (which shares many records between tiers) is read once. Pure: the
 // reader is given a function that fetches a record, so the tests can feed made-up records.
-import type { TweakLocKey, TweakRecordFull, TweakValue } from "./redcode";
+import type { TweakLocKey, TweakRecordFull, TweakValue } from "./types";
 
 /** A record with its flats by name. */
 export interface Rec {

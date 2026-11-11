@@ -7,7 +7,8 @@ import * as vscode from "vscode";
 import type { Hub } from "./hub";
 import { DeskItem, deskItems, deskRoot } from "./desk";
 import { ProjectDoc, projectDocs } from "./projectDocs";
-import { ProjectRef, redcode } from "./redcode";
+import { redcode } from "./redcode";
+import type { ProjectRef } from "./types";
 import { docTreeItem } from "./quickhacksView";
 
 type Node = { kind: "desk"; item: DeskItem } | { kind: "project"; name: string; docs: ProjectDoc[] } | { kind: "doc"; entry: ProjectDoc };

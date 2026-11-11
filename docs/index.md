@@ -11,17 +11,18 @@ EDGEhack is a VS Code extension that edits Cyberpunk 2077's quickhacks. Open any
 
 ## Roadmap status
 
-As of 2026-11-06. Each phase ends with a hand test by the owner, and an in-game test where it changes the game.
+As of 2026-11-11. Each phase ends with a hand test by the owner, and an in-game test where it changes the game.
 
 | Phase | Status |
 |---|---|
 | H0 Scaffold | Built 2026-11-04: the repo, the release workflow, the brand, the docs site, an empty extension with its three views, and the design (draft 1), agreed by the owner the same day |
 | H1 Read | Done 2026-11-04: the Quickhacks view, the read-only quickhack page and Open in EDGEhack from REDcode passed the hand test (EDGEhack 0.0.3) |
 | H2 Edit | Done 2026-11-05: editing a game quickhack's texts, icons and numbers passed the hand test and the in-game test (EDGEhack 0.0.4). The player's line (H2d) tried and dropped by the owner |
-| H3 New and Effects | Under way: plan agreed 2026-11-05, and its spike H3.1 passed in the game the same day. H3.2 Writer built, checked against all 18 of the game's families. H3.3 New passed in the game on 2026-11-06 (EDGEhack 0.0.5). H3.4 Add Effect passed in the game on 2026-11-07 (EDGEhack 0.0.6). H3.4b Machines (poison and bleed kept off machines) passed in the game on 2026-11-07 (EDGEhack 0.0.9). Next: H3.5 Attack features |
-| H3b Own icons | Not started: pick, upload or generate each icon (asked for by the owner on 2026-11-04) |
-| H3c Scripts | Plan agreed 2026-11-05: two REDnode functions on a quickhack, a scan check per enemy and on land. Comes after H3b; its spike, H3c.1, passed in the game the same day |
-| H4 Try Live and MCP | Not started. Its MCP server was planned further on 2026-11-06: it runs without VS Code, and reaches Claude Code through EDGEchat and REDagent through REDnode |
+| H3 New and Effects | Done 2026-11-10: Clone and Modify (H3.3), Add Effect and Machines (H3.4, H3.4b), Build one (H3.5), Get it (H3.6) and the Desk (H3.7) all passed their tests, in the game where they change it |
+| H3b Own icons | Done 2026-11-11: Upload (H3b.2) and Generate with OpenAI (H3b.3) passed, in the game too (EDGEhack 0.0.25) |
+| H3c Scripts | Done 2026-11-11: REDnode's quickhack functions (REDnode 0.61.1), the Scripts section (H3c.3) and Pack and Play with the mod's REDnode package (H3c.4) passed in the game (EDGEhack 0.0.27) |
+| H3d Feature lines | Done 2026-11-11: bullets of the modder's own in the item's tooltip passed in the game (EDGEhack 0.0.28) |
+| H4 Try Live and MCP | Under way: Try Live (H4.1 to H4.3) passed in the game on 2026-11-11 (EDGEhack 0.0.29, REDnode 0.62.1); live names parked. H4.4, the core outside VS Code, built and checked on 2026-11-11. Next: H4.5, the MCP server, then H4.6, REDagent in the game |
 | H5 Library | Not started |
 | H6 First release | Not started |
 

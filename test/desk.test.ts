@@ -18,7 +18,7 @@ import {
 } from "../src/desk";
 import { newHackDoc, printDoc } from "../src/document";
 import { docFile, projectDocs } from "../src/projectDocs";
-import type { ProjectRef } from "../src/redcode";
+import type { ProjectRef } from "../src/types";
 import { Records } from "../src/records";
 import { readFamily } from "../src/read";
 import { renderEditor, renderGetIt } from "../src/editorHtml";
