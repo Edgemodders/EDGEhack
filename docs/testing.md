@@ -19,7 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | | Waiting |
+| [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | 2026-11-11 | Pass, all 8 steps (EDGEhack 0.0.28, on the dev PC) |
 | [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | 2026-11-11 | Pass, in two runs (REDnode 0.61.1, then 0.61.2 for names): every change shows live, a quickhack made live works, all of it undone when the spike stops |
 | [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.27, REDnode 0.61.1, on the laptop): Pack and Play installs the mod's REDnode package, and REDnode runs its script |
 | [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.26, on the laptop), with two fixes in 0.0.27 |
@@ -44,7 +44,7 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- [H3d Feature lines](#h3d-feature-lines).
+Nothing.
 
 ## H3d Feature lines
 
@@ -65,6 +65,7 @@ Then say what differed, and how the lines look beside the game's.
 
 | Run | Result |
 |---|---|
+| 2026-11-11, by the owner, on the dev PC, EDGEhack 0.0.28 with REDnode 0.61.2 deployed, project EDGEhack_Test1 | **Pass**, all 8 steps: the lines showed after the game's on the Legendary++ tier, only the Common-and-up line on the Common tier, and a removed line was gone after the next Pack and Play |
 
 
 ## H4.1 Try Live spike

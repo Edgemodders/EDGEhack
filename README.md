@@ -17,7 +17,7 @@ A quickhack editor for Cyberpunk 2077, as a VS Code extension in the EDGE family
 - **Make new ones:** start from a game quickhack and add buffs, debuffs and attack features, taken from other quickhacks or from the game's status effects that work on enemies.
 - **Icons of your own:** upload a picture for the item, the wheel and the status effect, or have OpenAI's GPT Image draw them from your words, with your own OpenAI key.
 - **Scripts:** give a quickhack its own logic in JavaScript, which REDnode runs in the game: on whom it can be used, and what more it does when it lands.
-- **Feature lines:** bullets of your own in the item's tooltip, to say what it does.
+- **Feature lines:** bullets of your own in the item's tooltip, to say what it does (passed in the game).
 - **A mod you can read:** EDGEhack writes TweakXL and ArchiveXL files into your REDcode project, and REDcode packs and plays it.
 
 **[Docs](https://edgemodders.github.io/EDGEhack/)** &middot; [Design](docs/design.md) &middot; [Changelog](CHANGELOG.md) &middot; [Tests](docs/testing.md)
