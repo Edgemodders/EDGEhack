@@ -344,7 +344,7 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
 </section>`
     : "";
   const status = desk ? "On the Desk: it writes no mod files until you add it to a project." : "Each save writes the mod's files into the project.";
-  const action = desk ? `<button data-add-to-project>Add to Project</button>` : `<button data-pack>Pack and Play</button>`;
+  const action = `${desk ? `<button data-add-to-project>Add to Project</button>` : `<button data-pack>Pack and Play</button>`} <button data-try-live title="Sends its changes to the running game through REDnode (0.62.0 or later), with no packing; a new quickhack's selected tier goes in V's backpack. Saving sends them again">Try Live</button> <button data-try-stop hidden title="Puts the game's records back as they were">Stop</button>`;
   return `<main data-start="${start}" class="edit"${doc.newHack ? " data-new-hack" : ""}${desk ? " data-desk" : ""}>
 <header class="hack">
   ${icons.item ? `<img class="icon big" src="${esc(icons.item)}" alt="">` : img(icons.all, top.icons.item ?? top.icons.wheel, "icon big", fam.name)}

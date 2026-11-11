@@ -800,6 +800,16 @@ Written on 2026-11-11 after H3c passed, for the owner to agree. H4 has two halve
 
 So Try Live writes the document's records through REDnode (`tweakdb.clone` and `set`), undone when it stops, and refreshes V's list after a change to the actions' effects: the first decision below is settled that way.
 
+**H4.3 built (2026-11-11), EDGEhack 0.0.29**, on REDnode 0.62.1:
+
+| Part | Where | What |
+|---|---|---|
+| The ops | `src/tryLive.ts` (no VS Code) | `yamlToOps`: the YAML `writeTweaks` makes, the same Pack and Play installs, read as the editor channel's ops: a `$type` record a create and a set per field, a `$base` record a clone and its sets, a value a set, `!append` lists an append. Only EDGEhack's own shapes; anything else throws |
+| The calls | `src/tryLive.ts` | `editorCall` reads REDnode's `editor.json` (`EDGEHACK_REDNODE_EDITOR` for the tests) and says in words when there is no game or an older REDnode; `tryLive` puts the last try back, applies, refreshes V's quickhacks and gives a new quickhack's item; `stopTrying` |
+| The page | `src/editorHtml.ts`, `media/editor.js`, `src/editor.ts` | **Try Live** beside Pack and Play (on the Desk too: the records come from the document, not the project), then **Try Again** and **Stop**. A new quickhack's selected tier is given to V. One try at a time, outside the message queue, since the first waits for the player's Allow. A save while it is on sends the records again; closing the page stops it. Texts written in EDGEhack and own icons show as last packed, and the page says so |
+
+REDnode 0.62.1 keeps a record an earlier try made (TweakDB cannot remove one) and sets its flats again, so a try can be sent again in one session. Checked: 140 unit tests (5 new in `test/tryLive.test.ts`, the real YAML of a change and of a new quickhack among them, every record made before its flats are set); the smoke test drives Try Live, a save while live and Stop against a stand-in editor channel (5 checks).
+
 **Decided by the owner on 2026-11-11** (the recommendation, first in each row, in all four):
 
 | Question | Options |

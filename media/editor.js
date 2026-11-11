@@ -443,6 +443,8 @@
     if (ev.target.closest("[data-line-add]")) vscode.postMessage({ lineAdd: true });
     const lineRemove = ev.target.closest("[data-line-remove]");
     if (lineRemove) vscode.postMessage({ lineRemove: Number(lineRemove.dataset.lineRemove) });
+    if (ev.target.closest("[data-try-live]")) vscode.postMessage({ tryLive: { tier: q(`[data-pick="${selected}"]`)?.dataset.key } });
+    if (ev.target.closest("[data-try-stop]")) vscode.postMessage({ tryStop: true });
     if (ev.target.closest("[data-pack]")) vscode.postMessage({ pack: true });
     if (ev.target.closest("[data-add-to-project]")) vscode.postMessage({ addToProject: true });
   });
@@ -469,6 +471,19 @@
       pick(selected);
     }
     // Not while the disabled text is being typed; a button keeps the focus after its click, so not that.
+    // Try Live (H4.3): sending, on (Try Again and Stop) or off.
+    if (typeof m.live === "string") {
+      const go = q("[data-try-live]");
+      const stop = q("[data-try-stop]");
+      if (go) {
+        go.disabled = m.live === "sending";
+        go.textContent = m.live === "off" ? "Try Live" : "Try Again";
+      }
+      if (stop) {
+        stop.hidden = m.live === "off";
+        stop.disabled = m.live === "sending";
+      }
+    }
     // Not while a line is being typed; a new line's box takes the focus.
     if (typeof m.linesHtml === "string" && !document.activeElement?.matches?.("[data-line-text]")) {
       const box = q("[data-lines]");

@@ -74,6 +74,23 @@ const openai = http.createServer((req, res) => {
 });
 await new Promise((r) => openai.listen(0, "127.0.0.1", r));
 
+// A stand-in REDnode editor channel for Try Live (H4.3): every call answered ok, and recorded.
+const liveSeen = [];
+const rednodeChannel = http.createServer((req, res) => {
+  const parts = [];
+  req.on("data", (c) => parts.push(c));
+  req.on("end", () => {
+    const call = (req.url ?? "").replace("/editor/", "");
+    const body = JSON.parse(Buffer.concat(parts).toString() || "{}");
+    liveSeen.push({ call, body });
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(call === "tweakdb.apply" ? { ok: true, applied: body.ops?.length ?? 0 } : call === "tweakdb.reset" ? { ok: true, restored: 3 } : { ok: true }));
+  });
+});
+await new Promise((r) => rednodeChannel.listen(0, "127.0.0.1", r));
+fs.mkdirSync(T, { recursive: true });
+fs.writeFileSync(path.join(T, "rednode-editor.json"), JSON.stringify({ port: rednodeChannel.address().port, token: "smoke" }));
+
 const env = {
   ...process.env,
   EH_SMOKE: T,
@@ -83,6 +100,7 @@ const env = {
   EDGEHACK_OPENAI_BASE: `http://127.0.0.1:${openai.address().port}`,
   OPENAI_API_KEY: "sk-smoke-test",
   EDGEMODDERS_KEYS_DIR: path.join(T, "keys"),
+  EDGEHACK_REDNODE_EDITOR: path.join(T, "rednode-editor.json"),
 };
 // Started from a VS Code terminal, these would attach it to that VS Code, or run it as Node.
 for (const k of Object.keys(env)) if (/^(VSCODE_|ELECTRON_)/.test(k)) delete env[k];
@@ -97,6 +115,7 @@ const finish = (msg) => {
   log(failed ? `FAILED: ${failed} check(s)` : "PASS", msg ?? "");
   code.kill();
   openai.close();
+  rednodeChannel.close();
   process.exit(failed ? 1 : 0);
 };
 setTimeout(() => {
@@ -428,6 +447,26 @@ fs.rmSync(path.join(T, "packed.json"), { force: true });
 await run(editor, `document.querySelector("[data-pack]").click();`);
 for (let i = 0; i < 40 && fs.existsSync(mainFile); i++) await sleep(250);
 check(docOf().scripts === undefined && !fs.existsSync(mainFile) && !fs.existsSync(manifestFile) && fs.existsSync(scriptFile), "Remove takes the script off: EDGEhack's files go, the script file stays");
+
+// Try Live (H4.3): the button sends the mod's records to the stand-in REDnode, after putting the last
+// try back, then refreshes; a save while live sends them again; Stop puts them back.
+await run(editor, `document.querySelector("[data-try-live]").click();`);
+for (let i = 0; i < 40 && !liveSeen.some((c) => c.call === "quickhacks.refresh"); i++) await sleep(250);
+const firstTry = liveSeen.map((c) => c.call).join(" ");
+const sent = liveSeen.find((c) => c.call === "tweakdb.apply");
+check(firstTry === "tweakdb.reset tweakdb.apply quickhacks.refresh" && sent?.body.editor === "EDGEhack", `Try Live: reset, apply, refresh, as EDGEhack: ${firstTry}`);
+check(sent?.body.ops?.length > 0 && sent.body.ops.every((o) => o.clone || o.create || o.set || o.append), `with the mod's records as ops: ${sent?.body.ops?.length}`);
+for (let i = 0; i < 20 && (await run(editor, `return document.querySelector("[data-try-stop]").hidden;`)); i++) await sleep(150);
+check(!(await run(editor, `return document.querySelector("[data-try-stop]").hidden;`)) && /Try Again/.test(await run(editor, `return document.querySelector("[data-try-live]").textContent;`)), "the page shows Stop, and Try Again");
+liveSeen.length = 0;
+await step({ command: "workbench.action.files.save" });
+for (let i = 0; i < 40 && !liveSeen.some((c) => c.call === "tweakdb.apply"); i++) await sleep(250);
+check(liveSeen.some((c) => c.call === "tweakdb.apply") && !liveSeen.some((c) => c.call === "player.give"), "a save while live sends the records again (no item given for a change to a game quickhack)");
+liveSeen.length = 0;
+await run(editor, `document.querySelector("[data-try-stop]").click();`);
+for (let i = 0; i < 40 && !liveSeen.some((c) => c.call === "tweakdb.reset"); i++) await sleep(250);
+for (let i = 0; i < 20 && !(await run(editor, `return document.querySelector("[data-try-stop]").hidden;`)); i++) await sleep(150);
+check(liveSeen[0]?.call === "tweakdb.reset" && (await run(editor, `return document.querySelector("[data-try-stop]").hidden;`)), "Stop puts the records back, and hides itself");
 
 // Feature lines (H3d): Add a line gives a focused box; its text and tier go into the document; a save writes
 // the line's records and appends it to the items from its tier up; Remove takes it away.

@@ -7,7 +7,8 @@ import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackD
 import { Family, iconOf, IconRef, mainEffect, tierKey } from "./read";
 import { iconFile, IconWriter, LOOKS } from "./ownIcons";
 import { decodePng } from "./png";
-import { writeTweaks } from "./tweaks";
+import { newItemPath, writeTweaks } from "./tweaks";
+import { stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
 import { addFunction, exportsOf, functionStub, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
@@ -260,6 +261,43 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     let generating: AbortController | undefined;
     let itemPicture: Buffer | undefined;
     panel.onDidDispose(() => generating?.abort());
+
+    // Try Live (H4.3, tryLive.ts): the records the mod's YAML holds, sent to the running game through
+    // REDnode's editor channel, one try at a time outside the message queue, since the first waits for
+    // the player's Allow in the game. A save while it is on sends them again; Stop, or closing the page,
+    // puts the game back.
+    let live = false;
+    let trying: Promise<void> = Promise.resolve();
+    const sendLive = async (giveTier?: string): Promise<void> => {
+      const doc = current();
+      const written = writeTweaks(fam, doc, await this.hub.added(doc, fam), sales);
+      if (!written.yaml) throw new Error("It changes nothing yet, so there is nothing to try.");
+      const ops = yamlToOps(written.yaml);
+      const tier = giveTier === undefined ? undefined : fam.tiers.find((t) => tierKey(t) === giveTier);
+      const give = doc.newHack && tier?.item ? newItemPath(doc, tier) : undefined;
+      await w.postMessage({ status: `Sending ${ops.length} changes to the game… If it asks, allow EDGEhack in its Editor request window (F10).`, live: "sending" });
+      const r = await tryLive(ops, doc.name || fam.name, give);
+      live = true;
+      this.hub.log.appendLine(`Try Live ${doc.id}: ${r.applied} changes${give ? `, gave ${give}` : ""}`);
+      const later = [doc.name || doc.description || doc.wheelText ? "your texts" : "", doc.ownIcons ? "your own icons" : ""].filter(Boolean);
+      await w.postMessage({
+        status: `Trying it live: ${r.applied} changes in the game${give ? `, and the ${tier?.quality ?? "selected"} tier in V's backpack (put it in the cyberdeck)` : ""}. Saving sends them again; Stop puts the game back.${later.length ? ` ${later.join(" and ")} show as last packed, until Pack and Play.` : ""}`,
+        live: "on",
+      });
+    };
+    const runLive = (job: () => Promise<void>): void => {
+      trying = trying.then(job).catch(async (e: unknown) => {
+        this.hub.log.appendLine(`Try Live failed: ${message(e)}`);
+        await w.postMessage({ status: message(e), bad: true, live: live ? "on" : "off" });
+      });
+    };
+    const liveSaved = vscode.workspace.onDidSaveTextDocument((d) => {
+      if (live && d.uri.toString() === document.uri.toString()) runLive(() => sendLive());
+    });
+    panel.onDidDispose(() => {
+      liveSaved.dispose();
+      if (live) void stopTrying().catch(() => undefined);
+    });
     const generate = async (g: { which: IconLook | "all"; words: string; fromItem?: boolean }): Promise<void> => {
       if (generating) return void w.postMessage({ status: "A Generate is already running on this page. Wait for it, or Cancel it.", bad: true });
       const words = cleanWords(g.words ?? "");
@@ -329,6 +367,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       (m: {
         generate?: { which: IconLook | "all"; words: string; fromItem?: boolean };
         generateCancel?: boolean;
+        tryLive?: { tier?: string };
+        tryStop?: boolean;
         set?: { field: keyof QuickhackDoc; value?: string | number; game?: string | number };
         setTier?: { tier: string; field: TierField; value?: number; game?: number };
         applyAll?: { field: TierField; tier?: string };
@@ -361,6 +401,14 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         addToProject?: boolean;
       }) => {
         if (m.generate) return void generate(m.generate);
+        if (m.tryLive) return void runLive(() => sendLive(m.tryLive?.tier));
+        if (m.tryStop) {
+          return void runLive(async () => {
+            const restored = await stopTrying();
+            live = false;
+            await w.postMessage({ status: `Stopped: ${restored} records back as the game has them.`, live: "off" });
+          });
+        }
         if (m.generateCancel) return void generating?.abort();
         queue = queue.then(async () => {
         try {
