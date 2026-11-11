@@ -3,7 +3,7 @@ import { test } from "node:test";
 import * as assert from "node:assert/strict";
 import * as http from "node:http";
 import type { AddressInfo } from "node:net";
-import { cleanWords, PROMPTS, promptFor } from "../src/iconPrompts";
+import { cleanWords, GLYPH_COLOR, PROMPTS, promptFor } from "../src/iconPrompts";
 import { editImage, generateImage, listModels } from "../src/imageService";
 import { generateLook } from "../src/generate";
 
@@ -50,16 +50,20 @@ test("every look's prompt holds the words, says no text, and keeps them to one l
   }
   assert.ok(promptFor("wheel", "x").includes("pure black background"));
   assert.ok(promptFor("status", "x").includes("silhouette"));
-  assert.ok(promptFor("item", "x").includes("gold pins"));
+  assert.ok(promptFor("item", "x").includes("no frame, no border, no card"));
+  assert.ok(promptFor("item", "x").includes("no lighting, no shading"));
+  assert.ok(promptFor("item", "x").includes("#50cdd2"));
 });
 
 test("the Wheel and Status from the Item say to draw the same glyph alone; the Item has no such prompt", () => {
   assert.ok(promptFor("wheel", "a skull", true).includes("same glyph"));
   assert.ok(promptFor("status", "a skull", true).includes("same glyph"));
   assert.equal(promptFor("item", "a skull", true), promptFor("item", "a skull"));
-  assert.equal(PROMPTS.item.size, "1024x1536");
-  assert.equal(PROMPTS.item.fit, "cover");
+  assert.equal(PROMPTS.item.size, "1024x1024");
+  assert.equal(PROMPTS.item.color, GLYPH_COLOR);
+  assert.equal(PROMPTS.item.frame?.file, "quickhack.png");
   assert.equal(PROMPTS.wheel.black, true);
+  assert.equal(PROMPTS.wheel.frame, undefined);
 });
 
 test("no words: no prompt, and at most 300 characters of them", () => {
@@ -86,7 +90,7 @@ test("Generate posts the model, prompt and size, and gives back the PNG", async 
     assert.equal(s.seen[0].path, "/v1/images/generations");
     const body = JSON.parse(s.seen[0].body.toString());
     assert.equal(body.model, "gpt-image-1");
-    assert.equal(body.size, "1024x1536");
+    assert.equal(body.size, "1024x1024");
     assert.equal(body.quality, "medium");
     assert.equal(body.output_format, "png");
     assert.equal(body.prompt, got.prompt);

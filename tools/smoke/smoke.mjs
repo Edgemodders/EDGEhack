@@ -352,10 +352,18 @@ check(results === 3, `Generate All shows three results: ${results}`);
 const gens = openaiSeen.filter((r) => r.path === "/v1/images/generations");
 const edits = openaiSeen.filter((r) => r.path === "/v1/images/edits");
 check(openaiSeen.some((r) => r.path === "/v1/models") && openaiSeen.every((r) => r.auth === "Bearer sk-smoke-test"), "it read the account's models, with the key");
-check(gens.length === 1 && /a skull made of static/.test(JSON.parse(gens[0].body.toString()).prompt) && JSON.parse(gens[0].body.toString()).size === "1024x1536", "the Item was drawn from words, portrait");
+check(gens.length === 1 && /a skull made of static/.test(JSON.parse(gens[0].body.toString()).prompt) && JSON.parse(gens[0].body.toString()).size === "1024x1024" && /no frame, no border/.test(JSON.parse(gens[0].body.toString()).prompt), "the Item's glyph alone was drawn from words");
 check(edits.length === 2 && edits.every((e) => e.body.includes(SQUARE.subarray(0, 64)) && /same glyph/.test(e.body.toString("latin1"))), "the Wheel and Status were edits of the Item's picture");
 const sizes = await run(editor, `return [...document.querySelectorAll("[data-result]")].map((f) => { const i = f.querySelectorAll("img.real"); const g = i[i.length - 1]; return f.dataset.result + ":" + g.naturalWidth + "x" + g.naturalHeight; }).join(" ");`);
 check(sizes === "item:99x128 wheel:64x64 status:64x64", `each result is fitted to its look: ${sizes}`);
+// The Item: the glyph flat in the game's cyan on the frame from images/quickhack.png, clipped to its screen.
+const itemPixels = await run(
+  editor,
+  `const i = [...document.querySelectorAll('[data-result="item"] img.real')].pop(); const c = document.createElement("canvas"); c.width = 99; c.height = 128;
+   const g = c.getContext("2d"); g.drawImage(i, 0, 0); const at = (x, y) => [...g.getImageData(x, y, 1, 1).data].slice(0, 3).map((n) => n.toString(16).padStart(2, "0")).join("");
+   return [at(50, 59), at(14, 64), at(50, 2), at(30, 59)].join(" ");`,
+);
+check(/^50cdd2 57dbdb [0-9a-f]{6} 182222$/.test(itemPixels), `the Item is the glyph in #50cdd2 on the frame, its border and screen kept: ${itemPixels}`);
 check(wheelTime() === wheelBefore, "nothing is kept before Keep");
 await run(editor, `document.querySelector('[data-generate-keep="wheel"]').click();`);
 for (let i = 0; i < 30 && wheelTime() === wheelBefore; i++) await sleep(200);

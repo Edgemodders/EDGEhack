@@ -11,8 +11,11 @@
   /**
    * A picture (a file, or an image element) fitted to the look's size, centred, on nothing; as PNG data.
    * `u.fit` "cover" fills the size and cuts what is over at the edges; otherwise it fits inside it.
+   * `u.color` paints what is lit in that one flat colour, and `u.frame` (a generated Item glyph) fits the
+   * picture into the frame's box and draws it over the frame instead.
    */
   async function fitted(source, u) {
+    if (u.frame) return framed(source, u);
     const bitmap = await createImageBitmap(source);
     const c = document.createElement("canvas");
     c.width = u.width;
@@ -23,7 +26,8 @@
     const w = Math.max(1, Math.round(bitmap.width * scale));
     const h = Math.max(1, Math.round(bitmap.height * scale));
     g.drawImage(bitmap, Math.floor((u.width - w) / 2), Math.floor((u.height - h) / 2), w, h);
-    if (u.black) {
+    if (u.black && u.color) flat(g, u.width, u.height, u.color);
+    else if (u.black) {
       // White on black: the brightness becomes the opacity, and the colour is what is left at full strength.
       const d = g.getImageData(0, 0, u.width, u.height);
       const p = d.data;
@@ -40,6 +44,81 @@
       g.putImageData(d, 0, 0);
     }
     return c.toDataURL("image/png");
+  }
+
+  /**
+   * One flat colour on nothing, from a glyph on black: each pixel's brightness, against the brightest in
+   * the picture, becomes its opacity, and its colour is `color` whatever shade came back. So the glyph has
+   * no lighting or shading of its own, and its soft edges stay soft.
+   */
+  function flat(g, width, height, color) {
+    const d = g.getImageData(0, 0, width, height);
+    const p = d.data;
+    const rgb = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+    let peak = 0;
+    for (let i = 0; i < p.length; i += 4) peak = Math.max(peak, (Math.max(p[i], p[i + 1], p[i + 2]) * p[i + 3]) / 255);
+    for (let i = 0; i < p.length; i += 4) {
+      const m = (Math.max(p[i], p[i + 1], p[i + 2]) * p[i + 3]) / 255;
+      p[i] = rgb[0];
+      p[i + 1] = rgb[1];
+      p[i + 2] = rgb[2];
+      p[i + 3] = peak > 0 ? Math.round(Math.min(1, m / peak) * 255) : 0;
+    }
+    g.putImageData(d, 0, 0);
+  }
+
+  /**
+   * A glyph fitted into the frame's box, flat in its colour, drawn over the frame (`images/<file>`) and
+   * clipped to the frame's screen, so it never covers the border; as PNG data.
+   */
+  async function framed(source, u) {
+    const f = u.frame;
+    const glyph = await fitted(source, { width: f.width, height: f.height, fit: "contain", black: true, color: u.color });
+    const load = async (src) => {
+      const i = new Image();
+      i.src = src;
+      await i.decode();
+      return i;
+    };
+    const [frame, mark] = await Promise.all([load(`${document.body.dataset.images}/${f.file}`), load(glyph)]);
+    const canvas = () => {
+      const c = document.createElement("canvas");
+      c.width = u.width;
+      c.height = u.height;
+      return [c, c.getContext("2d")];
+    };
+    const [c, g] = canvas();
+    g.drawImage(frame, 0, 0, u.width, u.height);
+    const [gc, gg] = canvas();
+    gg.drawImage(mark, f.x, f.y);
+    const mask = screenOf(g.getImageData(0, 0, u.width, u.height), Math.round(f.x + f.width / 2), Math.round(f.y + f.height / 2));
+    const d = gg.getImageData(0, 0, u.width, u.height);
+    for (let i = 0; i < mask.length; i++) if (!mask[i]) d.data[i * 4 + 3] = 0;
+    gg.putImageData(d, 0, 0);
+    g.drawImage(gc, 0, 0);
+    return c.toDataURL("image/png");
+  }
+
+  /**
+   * The frame's screen: the dark pixels joined to the box's centre, stopping at the lit border. A flood
+   * fill rather than a rectangle, so any frame shape works, cut corners too.
+   */
+  function screenOf(d, cx, cy) {
+    const { width, height, data } = d;
+    const dark = (i) => Math.max(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]) <= 0x40;
+    const seen = new Uint8Array(width * height);
+    const todo = [cy * width + cx];
+    while (todo.length) {
+      const i = todo.pop();
+      if (seen[i] || !dark(i)) continue;
+      seen[i] = 1;
+      const x = i % width;
+      if (x > 0) todo.push(i - 1);
+      if (x < width - 1) todo.push(i + 1);
+      if (i >= width) todo.push(i - width);
+      if (i < width * (height - 1)) todo.push(i + width);
+    }
+    return seen;
   }
 
   q("[data-icon-file]")?.addEventListener("change", async (ev) => {
@@ -110,7 +189,7 @@
     const img = new Image();
     img.src = m.image;
     await img.decode();
-    const png = await fitted(img, { width: look.width, height: look.height, fit: look.fit, black: look.black });
+    const png = await fitted(img, { width: look.width, height: look.height, fit: look.fit, black: look.black, color: look.color, frame: look.frame });
     results[m.which] = png;
     const box = q("[data-generate-results]");
     box.querySelector(`[data-result="${m.which}"]`)?.remove();

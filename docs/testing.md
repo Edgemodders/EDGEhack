@@ -43,7 +43,7 @@ Last updated 2026-11-10.
 
 ## H3b.3 Generate
 
-EDGEhack 0.0.21 (0.0.22 only renames the icons' **Game's** button to **Original**) with REDcode 0.10.8 (released on 2026-11-10; REDcode's test build from H3b.2 works too). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
+EDGEhack 0.0.23 (0.0.22 renamed the icons' **Game's** button to **Original**; 0.0.23 draws the Item as a flat cyan glyph on the frame in `images/quickhack.png`) with REDcode 0.10.8 (released on 2026-11-10; REDcode's test build from H3b.2 works too). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
 
 | Step | Do | Expect |
 |---|---|---|
@@ -52,7 +52,7 @@ EDGEhack 0.0.21 (0.0.22 only renames the icons' **Game's** button to **Original*
 | 3 | Press **Generate** | With no OpenAI key in the EDGE tools' shared store, VS Code asks for it once in a password box (it is then in REDnode's Keys too). Within about a minute a result shows: **Shown now** (the game's wheel icon) beside **Generated**, both at 64 x 64, the glyph white on nothing |
 | 4 | **Try Again** | Another picture replaces it |
 | 5 | **Keep** | The Wheel icon shows it; the status line says "Wheel icon kept. Save to write it into the mod." |
-| 6 | **Generate All...**, type words of your own, **Generate** | The Item comes first, then the Wheel and Status, each beside the icon shown now. The Wheel and Status show the same glyph as the Item card's screen |
+| 6 | **Generate All...**, type words of your own, **Generate** | The Item comes first, then the Wheel and Status, each beside the icon shown now. The Item is your frame with the glyph on its screen, flat in one cyan (`#50cdd2`), with no lighting or shading, and nothing over the border. The Wheel and Status show the same glyph |
 | 7 | Look at each at its real size against the game's | Say what is off in each look (the card, the line art, the silhouette), with a screenshot: this tunes the prompts |
 | 8 | **Keep All**, then Ctrl+S | The three icons show the generated pictures; the save names the texture and atlas as in H3b.2, no error |
 | 9 | Item: **Generate...**, **Generate**, then **Cancel** while it runs | The status line says "Cancelled." and no result shows |

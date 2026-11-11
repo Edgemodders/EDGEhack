@@ -174,7 +174,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       // The storage folder as a file: URI: the context gives it with the vscode-userdata scheme, which
       // never matches the file: URIs of the icons, and each image would get a 401.
-      localResourceRoots: [vscode.Uri.file(this.hub.storage.fsPath), vscode.Uri.joinPath(this.hub.extensionUri, "media")],
+      // `images` holds the quickhack frame a generated Item glyph goes on (H3b.3).
+      localResourceRoots: [vscode.Uri.file(this.hub.storage.fsPath), vscode.Uri.joinPath(this.hub.extensionUri, "media"), vscode.Uri.joinPath(this.hub.extensionUri, "images")],
     };
     const shown = this.panels.get(document.uri.toString()) ?? new Set();
     shown.add(panel);
@@ -483,10 +484,11 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
   private shell(w: vscode.Webview, body: string): string {
     const css = w.asWebviewUri(vscode.Uri.joinPath(this.hub.extensionUri, "media", "page.css"));
     const js = w.asWebviewUri(vscode.Uri.joinPath(this.hub.extensionUri, "media", "editor.js"));
+    const images = w.asWebviewUri(vscode.Uri.joinPath(this.hub.extensionUri, "images"));
     return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${w.cspSource} data:; style-src ${w.cspSource}; script-src ${w.cspSource};">
 <meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="${css}"></head>
-<body>${body}${body.includes("<main") ? `<script src="${js}"></script>` : ""}</body></html>`;
+<body data-images="${images}">${body}${body.includes("<main") ? `<script src="${js}"></script>` : ""}</body></html>`;
   }
 }
 
