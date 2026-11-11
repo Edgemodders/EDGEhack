@@ -60,7 +60,7 @@ export interface EditorIcons {
 }
 
 /**
- * One icon's figure: what it shows, Change (the game's icons; not for Status), Upload (H3b), and Game's.
+ * One icon's figure: what it shows, Change (the game's icons; not for Status), Upload (H3b), and Original.
  * Wheel and Status take a switch that makes black see-through, for a white-on-black picture.
  */
 function iconChoice(which: IconLook, label: string, src: string | undefined, changed: boolean): string {
@@ -69,7 +69,7 @@ function iconChoice(which: IconLook, label: string, src: string | undefined, cha
   const change = which === "status" ? "" : `<button data-icon="${which}">Change...</button> `;
   const black = which === "item" ? "" : `<label class="black" title="For a white picture on black: the black becomes see-through, as the game's ${esc(label.toLowerCase())} icons are"><input type="checkbox" data-icon-black="${which}"> Black is see-through</label>`;
   return `<figure data-icon-figure="${which}"${changed ? ' class="changed"' : ""}>${shown}<figcaption>${esc(label)} <small>${look.width} x ${look.height}</small><br>
-${change}<button data-icon-upload="${which}" data-width="${look.width}" data-height="${look.height}" title="A PNG or JPG, fitted to ${look.width} x ${look.height}">Upload...</button> <button data-icon-generate="${which}" title="Drawn by OpenAI's GPT Image from your words: one paid image on your account">Generate...</button> <button data-icon-reset="${which}"${changed ? "" : " hidden"}>Game's</button>${black ? `<br>${black}` : ""}</figcaption></figure>`;
+${change}<button data-icon-upload="${which}" data-width="${look.width}" data-height="${look.height}" title="A PNG or JPG, fitted to ${look.width} x ${look.height}">Upload...</button> <button data-icon-generate="${which}" title="Drawn by OpenAI's GPT Image from your words: one paid image on your account">Generate...</button> <button data-icon-reset="${which}"${changed ? "" : " hidden"}>Original</button>${black ? `<br>${black}` : ""}</figcaption></figure>`;
 }
 
 /**

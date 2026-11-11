@@ -313,7 +313,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.applyAll?.tier) await apply(document, applyToAll(fam, current(), m.applyAll.tier, m.applyAll.field));
           if (m.chooseIcon) await this.choose(w, m.chooseIcon);
           if (m.setIcon) {
-            // A game icon picked, or Game's: either way the own picture (if any) stops being used. Its
+            // A game icon picked, or Original: either way the own picture (if any) stops being used. Its
             // file stays, so VS Code's undo brings it back.
             const which = m.setIcon.which;
             let next = withOwnIcon(current(), which, false);

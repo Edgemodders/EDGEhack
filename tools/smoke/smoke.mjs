@@ -321,12 +321,12 @@ yaml = fs.readFileSync(yamlFile, "utf8");
 check(/UIIcon\.edgehack_smokemod_overheat_wheel:\n {2}\$type: UIIcon\n {2}atlasResourcePath: edgehack\\icons\\smokemod_overheat\.inkatlas/.test(yaml), "the YAML names the own icon's atlas part");
 check(/ChoiceCaptionParts\.OverheatIcon\.texturePartID: UIIcon\.edgehack_smokemod_overheat_wheel/.test(yaml), "the wheel uses the own icon, over the picked one");
 await shot("own-icon.png");
-// Game's: back to the picked icon; the texture and atlas go at the next save.
+// Original: back to the picked icon; the texture and atlas go at the next save.
 await run(editor, `document.querySelector('[data-icon-reset="wheel"]').click();`);
 await sleep(600);
 await step({ command: "workbench.action.files.save" });
 for (let i = 0; i < 20 && fs.existsSync(atlasFile); i++) await sleep(250);
-check(docOf().ownIcons === undefined && docOf().wheelIcon === undefined, "Game's clears the own icon and the picked one");
+check(docOf().ownIcons === undefined && docOf().wheelIcon === undefined, "Original clears the own icon and the picked one");
 check(!fs.existsSync(atlasFile), "with no own icons, a save removes the atlas");
 
 // Generate (H3b.3): Generate All against the stand-in OpenAI, the Item first, then the Wheel and Status
@@ -339,7 +339,7 @@ await run(
 const shownPrompt = await run(editor, `return document.querySelector("[data-generate-prompt]").textContent;`);
 check(/a skull made of static/.test(shownPrompt) && /Item:/.test(shownPrompt) && /Wheel:/.test(shownPrompt) && /Status:/.test(shownPrompt), "Show the Prompt holds the three prompts with the words");
 check(/Three paid images/.test(await run(editor, `return document.querySelector("[data-generate-cost]").textContent;`)), "Generate All says it is three paid images");
-// An earlier upload's file stays after Game's (for undo): Keep must write it anew.
+// An earlier upload's file stays after Original (for undo): Keep must write it anew.
 const wheelTime = () => (fs.existsSync(ownWheel) ? fs.statSync(ownWheel).mtimeMs : 0);
 const wheelBefore = wheelTime();
 await run(editor, `document.querySelector("[data-generate-go]").click();`);
@@ -379,7 +379,7 @@ await run(editor, `document.querySelector("[data-generate-close]").click(); for 
 await sleep(800);
 await step({ command: "workbench.action.files.save" });
 for (let i = 0; i < 20 && fs.existsSync(atlasFile); i++) await sleep(250);
-check(docOf().ownIcons === undefined && !fs.existsSync(atlasFile), "Game's on each takes the generated icons out again");
+check(docOf().ownIcons === undefined && !fs.existsSync(atlasFile), "Original on each takes the generated icons out again");
 
 // Back to the game's value: no change, no modifier.
 await setInput(editor, RAM, "6");

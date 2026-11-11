@@ -43,7 +43,7 @@ Last updated 2026-11-10.
 
 ## H3b.3 Generate
 
-EDGEhack 0.0.21 with REDcode 0.10.8 (released on 2026-11-10; REDcode's test build from H3b.2 works too). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
+EDGEhack 0.0.21 (0.0.22 only renames the icons' **Game's** button to **Original**) with REDcode 0.10.8 (released on 2026-11-10; REDcode's test build from H3b.2 works too). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
 
 | Step | Do | Expect |
 |---|---|---|
@@ -97,7 +97,7 @@ EDGEhack 0.0.19 with REDcode 0.10.8 (a build from REDcode's main until it is rel
 | 6 | Pack and Play, start the game, load a save. Switch on **Console** in REDnode's launcher and run the line **Get it** shows on Icon Test's page for the Epic tier (`await game.player.addItem("Items.EDGEhack_...")`) | V has Icon Test |
 | 7 | Hover Icon Test in the inventory's quickhacks, then find it in the crafting menu | Your item picture on its card, at the game's size |
 | 8 | Scan an enemy, upload Icon Test | Your wheel symbol on its wheel entry; your status symbol on the enemy where the game shows Overheat's burning icon. Overheat itself, if V has it, keeps the game's icons |
-| 9 | Quit. Back in VS Code, press **Game's** under Status, then Ctrl+S | The status icon goes back to the game's; the texture keeps the other two |
+| 9 | Quit. Back in VS Code, press **Original** under Status, then Ctrl+S | The status icon goes back to the game's; the texture keeps the other two |
 | 10 | In the EDGEhack side bar, hover the **Desk** view's title and press its **+** (**Clone and Modify on the Desk...**). Pick a quickhack and give it a name. On its page, upload an item picture and press Ctrl+S. Then right-click it in the Desk view, **Duplicate...**, and on the original's page press **Add to Project** | The copy and the project's document both show the same item picture |
 
 Then say what differed, with a screenshot of any icon that looks wrong.
@@ -550,7 +550,7 @@ EDGEhack 0.0.4: editing a game quickhack, writing the mod, and playing it. The s
 | 3 | Name: `Test Heat`. Rare's RAM: `8`. Rare's Upload: `1`. Rare's Duration: `11`. Rare's Damage a hit: `65` | Each changed field turns yellow. The title follows the name. The tab shows it is unsaved |
 | 4 | Press **Ctrl+Z**, then **Ctrl+Y** | The last change goes and comes back |
 | 5 | Legendary's RAM: `6` | Yellow: lower than the game's 9 |
-| 6 | Under Icons, Item: **Change...**, and pick Short Circuit's. Wheel: **Change...**, and pick Short Circuit's | The picker shows the game's icons. A pick shows at once, with a **Game's** button to undo it |
+| 6 | Under Icons, Item: **Change...**, and pick Short Circuit's. Wheel: **Change...**, and pick Short Circuit's | The picker shows the game's icons. A pick shows at once, with a **Original** button to undo it |
 | 7 | Click **Rare** in the table, then **All tiers** under Upload. Then **Ctrl+Z** | Every tier's upload drops by 1, then back. Tiers keep their own curve: it adds the change, not the number |
 | 8 | **Ctrl+S** | The line under the title says what it saved. In the Project view: the YAML under `source/resources/r6/tweaks/<your mod>/`, an `.xl` under `source/resources`, and the texts under `source/archive/<your mod>/localization` |
 | 9 | Open the YAML | "Made by EDGEhack" at the top; only what you changed; RAM `value: 2` on Rare and `value: -3` on Legendary |

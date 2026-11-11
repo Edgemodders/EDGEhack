@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -169,7 +169,12 @@
         },
         "edgehack.generate.quality": {
           "type": "string",
-          "enum": ["low", "medium", "high", "auto"],
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "auto"
+          ],
           "default": "medium",
           "markdownDescription": "The quality Generate asks OpenAI for. Higher costs more per image."
         }
