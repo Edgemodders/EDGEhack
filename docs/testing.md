@@ -19,6 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | | Waiting |
 | [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.27, REDnode 0.61.1, on the laptop): Pack and Play installs the mod's REDnode package, and REDnode runs its script |
 | [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.26, on the laptop), with two fixes in 0.0.27 |
 | [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification) | By hand, in VS Code | H3b | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.0.25, on the laptop) |
@@ -42,7 +43,30 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-Nothing.
+- [H4.1 Try Live spike](#h41-try-live-spike).
+
+## H4.1 Try Live spike
+
+REDnode 0.61.1 and TweakXL in the game, no EDGEhack change. The app **EDGEhack Try Live spike** changes the game's Overheat (Rare) in the running game and tries the ways to make it show ([design, "H4 Try Live and MCP: plan"](design.html#h4-try-live-and-mcp-plan)). Its source is in `E:\Modding\Cyberpunk 2077\Projects\EDGEhack_H4_spike`; unzip the spike's zip over the game folder (it adds `red4ext\plugins\REDnode\apps\edgehack-try-spike`). **Use a save you can lose, and do not save after step 8**: the new quickhack's records exist only until the game closes.
+
+| Step | Do | Expect, and what to note |
+|---|---|---|
+| 1 | Load a save. In REDnode's launcher (F10), switch on **Console** and **EDGEhack Try Live spike**. If V has no Overheat (Rare), in the Console `await game.player.addItem("Items.OverheatLvl2Program")`, and put it in the cyberdeck. F10, scan an enemy | The spike's window opens. **Note Overheat's RAM cost on the wheel** |
+| 2 | **RAM +**. F10, scan a new enemy | Note: is Overheat's RAM cost higher now (it should be by two tier increases)? |
+| 3 | If not: **Refresh list**, scan again | Note: higher now? |
+| 4 | If still not: take Overheat out of the cyberdeck and put it back, scan again | Note: higher now? |
+| 5 | **Poison**, then **Refresh list**. Upload Overheat on an enemy | Note: burning and poisoned (Contagion's green poison), or only burning? |
+| 6 | **Name**, then open the inventory | Note: is Overheat (Rare) called Short Circuit now? |
+| 7 | **TweakXL reload** | The spike's log says what TweakXL answered, or why it failed: read it out |
+| 8 | **New**, then **Give it**. Open the backpack, put the new "Short Circuit" (Rare) in the cyberdeck, scan an enemy, upload it | Note: is it in the backpack, does it go in the deck, does its hack show on the wheel (likely called Overheat, with a lower RAM cost), and does it burn? |
+| 9 | **Read** | A log line with the costs, effects and name as TweakDB has them |
+| 10 | In the launcher, switch **EDGEhack Try Live spike** off. Take Overheat (Rare) out of the cyberdeck and put it back, scan an enemy, open the inventory | Note: RAM cost back to step 1's, name back to Overheat? |
+
+Then quit the game without saving and say what you noted. I read REDnode's logs.
+
+| Run | Result |
+|---|---|
+
 
 ## H3c.4 Together
 

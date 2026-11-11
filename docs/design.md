@@ -737,6 +737,38 @@ Checked: 129 unit tests (9 new in `test/scripts.test.ts`, one of them importing 
 
 A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
 
+### H4 Try Live and MCP: plan
+
+Written on 2026-11-11 after H3c passed, for the owner to agree. H4 has two halves: **Try Live** (change a quickhack and see it in the running game, without packing) and the **MCP server** (assistants make and change quickhacks). Try Live goes first, since the server's `hack_try` is Try Live.
+
+**What the game's scripts say (2.5).** V's quickhacks are a list of action records cached on a blackboard (`PlayerQuickHackData.CachedQuickHackList`, `PlayerPuppet.GetCachedQuickHackList`), built from the cyberdeck's items when empty (`RPGManager`), and emptied by `PlayerPuppet.ChacheQuickHackListCleanup(player)`: the game runs it when a cyberdeck is equipped, a program is put in or taken out, and at each load. It is a static script function, so REDnode's `api` can call it: the refresh may need no REDnode change. REDnode's `tweakdb.set` already applies a changed record (TweakXL's update) and undoes a package's changes when it stops. TweakXL's `Reload` (the CET console's `TweakXL.Reload()`) is not declared to scripts (`TweakXL.Global.reds` has only `Require` and `Version`); whether REDnode's `rtti.call` reaches it is unverified.
+
+| Step | What | Test |
+|---|---|---|
+| **H4.1 Try Live spike** | A REDnode app, **EDGEhack Try Live spike** (`Projects/EDGEhack_H4_spike`), on the game's Overheat (Rare) through REDnode's existing calls: more RAM, Contagion's poison added, the item renamed, V's cached list cleared, TweakXL's reload tried, and a new quickhack made live (a cloned item and action) and given. It answers the questions below | In the game, by the owner |
+| **H4.2 REDnode's Try Live** | A `request` issue on REDnode, filed with the spike's answers: TweakDB writes on the editor channel (`POST /editor/tweakdb.apply` with a batch, `/editor/tweakdb.reset`, undone when the editor goes away), the refresh of V's list, giving an item, and an in-game **Allow** for an editor, as planned for archives | REDnode's own in-game test |
+| **H4.3 EDGEhack's Try Live** | **Try Live** on the quickhack's page: its records sent to the running game, V given the quickhack (the tier picked), the list refreshed; **Stop** undoes it. Own icons by an archive swap (REDswap); new texts are unverified (the `onscreens` file is in the archive) | Hand test, and in the game: a change shows on the wheel without packing |
+| **H4.4 The core outside VS Code** | `hub.ts`'s family cache and the save path into code free of VS Code; `redcode.ts`'s types in a file of their own; a REDbridge client of EDGEhack's own for the server | Unit and smoke tests: nothing changes for the modder |
+| **H4.5 The MCP server** | `@edgemodders/edgehack-mcp` on npm, running without VS Code: `hack_find`, `hack_describe`, `hack_effects`, `hack_new`, `hack_edit`, `hack_script`, `hack_pack`, `hack_try` (see [MCP tools](#mcp-tools)); **Connect an Assistant**; EDGEchat's plugin lists it (a `request` issue on EDGEchat) | Hand test with Claude Code |
+| **H4.6 REDagent in the game** | REDnode starts the server for in-game assistants, as it does EDGEmat's (a `request` issue on REDnode); REDagent's briefing learns the tools | In the game: REDagent makes a quickhack and tries it live |
+
+**What the spike answers:**
+
+- Does a change to an equipped hack's action (its RAM cost, its effects) show on the next scan with nothing else, after **Refresh list** (the game's own clear), only after taking it out of the cyberdeck and back, or only after a load?
+- Does an item's changed name show in the inventory at once?
+- Can REDnode call TweakXL's reload?
+- Does a quickhack made in the running game (a cloned item and action) reach the backpack and the cyberdeck, and work?
+- Is everything back after the spike stops (REDnode's undo), once the list is refreshed?
+
+**For the owner to decide (recommended first):**
+
+| Question | Options |
+|---|---|
+| How Try Live writes the records | **Settle it from the spike.** Leaning towards REDnode writing the records the document makes, undone when Try Live stops, since TweakXL's reload re-reads every mod's tweaks and cannot take a record away |
+| `hack_pack` | **REDbridge's packing, called by the server itself**, since the server runs without VS Code; or wrap REDcode's (only with VS Code open) |
+| A quickhack REDagent makes in the game | **It lives on the Desk and is tried live; the player adds it to a project in VS Code to pack** (Add to Project exists); or the server packs Desk quickhacks into a project of their own |
+| The order | **H4.1 to H4.3 (Try Live), then H4.4 to H4.6 (MCP)**; or the MCP server first, with `hack_try` later |
+
 ## In-game add-on: the Netrunner bench (proposed)
 
 The owner's idea of 2026-11-10: quickhack crafting in the game, on the crafting screen's quickhack tab, whose middle panel is empty but for a placeholder picture. A REDnode app, released on its own, that reuses EDGEhack's parts. Not scheduled; its place in the order is to be agreed.
