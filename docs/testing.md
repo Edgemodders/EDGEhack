@@ -19,7 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | | Waiting |
+| [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | 2026-11-11 | Pass, in two runs (REDnode 0.61.1, then 0.61.2 for names): every change shows live, a quickhack made live works, all of it undone when the spike stops |
 | [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.27, REDnode 0.61.1, on the laptop): Pack and Play installs the mod's REDnode package, and REDnode runs its script |
 | [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.26, on the laptop), with two fixes in 0.0.27 |
 | [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification) | By hand, in VS Code | H3b | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.0.25, on the laptop) |
@@ -43,7 +43,7 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- [H4.1 Try Live spike](#h41-try-live-spike).
+Nothing.
 
 ## H4.1 Try Live spike
 
@@ -68,6 +68,7 @@ Then quit the game without saving and say what you noted. I read REDnode's logs.
 | Run | Result |
 |---|---|
 | 2026-11-11, by the owner, on the laptop, REDnode 0.61.1 | **Partly run, steps 1 to 8.** Step 2: the RAM cost went up on the next scan with nothing else, so a change to an equipped hack's action shows at once. Step 5: burning and poisoned (after **Refresh list**), so an added effect works live. Step 7: TweakXL's reload is callable through REDnode, answered nothing (it returns nothing) in 1.9 s (whether it re-read the tweaks is unverified). Steps 6 and 8 failed: REDnode's `tweakdb.set` could not write a text key (`displayName`, a `gamedataLocKeyWrapper`: "cannot be set from JSON yet"), so the name stayed Overheat and New stopped after its clones. **REDnode 0.61.2 takes text keys**; steps 6, 6b and 8 to 10 again with it |
+| 2026-11-11, by the owner, on the laptop, REDnode 0.61.2, a new session | **Pass**, steps 6, 6b and 8 to 10. The rename showed in the inventory at once (Short Circuit). **Line**: the bullet line of our own showed in Overheat (Rare)'s tooltip, from plain text with no LocKey (whether it had an icon was not reported). **New** and **Give it**: the quickhack made live was in the backpack, went in the cyberdeck, showed on the wheel with the lower RAM cost and burned. **Read**: costs 2, completion effects 6, name "LocKey#27968" (13 ms): the new session had none of the first run's changes, as TweakDB is rebuilt each start. After the spike was switched off, the made items disassembled and Overheat (Rare) put back, its RAM and name were the game's again |
 
 
 ## H3c.4 Together

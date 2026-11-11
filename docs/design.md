@@ -776,6 +776,19 @@ Written on 2026-11-11 after H3c passed, for the owner to agree. H4 has two halve
 - Does a quickhack made in the running game (a cloned item and action) reach the backpack and the cyberdeck, and work?
 - Is everything back after the spike stops (REDnode's undo), once the list is refreshed?
 
+**H4.1's result (2026-11-11, REDnode 0.61.1 and 0.61.2, laptop): passed.** Everything Try Live needs works in the running game through REDnode's existing calls:
+
+| Question | Answer |
+|---|---|
+| A change to an equipped hack's action | Its RAM cost showed on the next scan with nothing else. An added completion effect (Contagion's poison) worked after **Refresh list** (the game's `ChacheQuickHackListCleanup`) |
+| An item's name | Showed in the inventory at once. It needed REDnode 0.61.2: `tweakdb.set` could not write a text key (`gamedataLocKeyWrapper`) before |
+| A line of our own in the item's tooltip | Showed, from plain text with no LocKey: a UI-only package (copied from the family's line) with its UI data, appended to `OnAttach` ([H3d](#h3d-feature-lines-proposed)) |
+| TweakXL's reload | Callable through REDnode's `rtti.call` (answered nothing in 1.9 s); not needed |
+| A quickhack made live | A cloned item and action, given with `game.player.addItem`: in the backpack, in the cyberdeck, on the wheel with its own RAM cost, and working |
+| Undo | REDnode's journal put every flat back when the spike stopped; records made with `clone` stay until the game closes, harmless once nothing names them |
+
+So Try Live writes the document's records through REDnode (`tweakdb.clone` and `set`), undone when it stops, and refreshes V's list after a change to the actions' effects: the first decision below is settled that way.
+
 **Decided by the owner on 2026-11-11** (the recommendation, first in each row, in all four):
 
 | Question | Options |
