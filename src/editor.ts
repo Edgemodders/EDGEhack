@@ -240,7 +240,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
 
     // Generate (H3b.3): one run at a time on this page, outside the message queue, since an image can
     // take a minute and the page stays editable meanwhile. The Item's last picture is kept for the
-    // Wheel and Status drawn from it.
+    // Wheel and Status drawn from it. A run also shows in a progress notification with Cancel, so a
+    // modder who goes to another tab sees it end or stops it there; when it ends with the page out of
+    // sight, a notification says so, with Show.
     let generating: AbortController | undefined;
     let itemPicture: Buffer | undefined;
     panel.onDidDispose(() => generating?.abort());
@@ -251,22 +253,55 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const looks: IconLook[] = g.which === "all" ? ["item", "wheel", "status"] : [g.which];
       const run = new AbortController();
       generating = run;
+      const name = current().name || fam.name;
+      const what = g.which === "all" ? "icons" : `${LOOKS[g.which].label} icon`;
+      // The page out of sight when the run ends: tell the modder, with a way back to it.
+      const tell = (text: string, bad = false): void => {
+        if (panel.visible) return;
+        const show = "Show";
+        void (bad ? vscode.window.showWarningMessage(text, show) : vscode.window.showInformationMessage(text, show)).then((pick) => pick === show && panel.reveal());
+      };
       try {
         const key = await openaiKey(true);
         if (!key) return void w.postMessage({ generateDone: { error: "Generate needs an OpenAI key. Run EDGEhack: Set the OpenAI Key, or press Generate again." } });
         const model = await openaiModel(key);
-        for (const look of looks) {
-          const reference = look !== "item" && (g.which === "all" || g.fromItem) ? itemPicture : undefined;
-          await w.postMessage({ status: `Generating the ${LOOKS[look].label} icon with ${model}${reference ? ", from the Item's picture" : ""}: one paid image, up to a minute…` });
-          const got = await generateLook(look, words, { key, model, base: openaiBase(), quality: openaiQuality(), signal: run.signal }, reference);
-          if (look === "item") itemPicture = got.png;
-          this.hub.log.appendLine(`Generated the ${look} icon of ${document.fileName} with ${model}: ${got.png.length} bytes.`);
-          await w.postMessage({ generated: { which: look, image: `data:image/png;base64,${got.png.toString("base64")}`, prompt: got.prompt, model } });
-        }
+        await vscode.window.withProgress(
+          { location: vscode.ProgressLocation.Notification, title: `EDGEhack: generating ${name}'s ${what}`, cancellable: true },
+          async (progress, token) => {
+            token.onCancellationRequested(() => run.abort());
+            // GPT Image says nothing until the picture is done, so the bar moves on the clock: each image
+            // has an equal share, filled to nine tenths over about a minute, and the rest when it comes.
+            const share = 100 / looks.length;
+            for (const [i, look] of looks.entries()) {
+              const reference = look !== "item" && (g.which === "all" || g.fromItem) ? itemPicture : undefined;
+              const step = looks.length > 1 ? ` (${i + 1} of ${looks.length})` : "";
+              progress.report({ message: `${LOOKS[look].label}${step}: one paid image, up to a minute…` });
+              await w.postMessage({ status: `Generating the ${LOOKS[look].label} icon with ${model}${reference ? ", from the Item's picture" : ""}: one paid image, up to a minute…` });
+              let moved = 0;
+              const clock = setInterval(() => {
+                const more = Math.min(share / 30, share * 0.9 - moved);
+                if (more <= 0) return;
+                moved += more;
+                progress.report({ increment: more });
+              }, 2000);
+              try {
+                const got = await generateLook(look, words, { key, model, base: openaiBase(), quality: openaiQuality(), signal: run.signal }, reference);
+                if (look === "item") itemPicture = got.png;
+                this.hub.log.appendLine(`Generated the ${look} icon of ${document.fileName} with ${model}: ${got.png.length} bytes.`);
+                await w.postMessage({ generated: { which: look, image: `data:image/png;base64,${got.png.toString("base64")}`, prompt: got.prompt, model } });
+              } finally {
+                clearInterval(clock);
+              }
+              progress.report({ increment: share - moved });
+            }
+          },
+        );
         await w.postMessage({ generateDone: {}, status: "Keep the ones you like. Nothing goes into the mod until Keep, then Save." });
+        tell(`EDGEhack: ${name}'s ${what} ${g.which === "all" ? "are" : "is"} ready. Keep the ones you like.`);
       } catch (e) {
         this.hub.log.appendLine(`Generate failed: ${message(e)}`);
         await w.postMessage({ generateDone: { error: message(e) } });
+        if (!run.signal.aborted) tell(`EDGEhack: generating ${name}'s ${what} failed: ${message(e)}`, true);
       } finally {
         generating = undefined;
       }

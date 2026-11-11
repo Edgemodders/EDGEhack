@@ -6,20 +6,21 @@ title: Tests
 
 Every test run on EDGEhack: how to run it again, what to expect, and what it showed. Each phase ends with a hand test by the owner ([design, "Phases"](design.html#phases)); new tests are added here when they are first run, and their later runs' results too.
 
-Last updated 2026-11-10.
+Last updated 2026-11-11.
 
 ## At a glance
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 117 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-11 | Pass, 120 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3b.3 Generate](#h3b3-generate) | By hand, then in the game | H3b | | Waiting |
+| [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification) | By hand, in VS Code | H3b | | Waiting |
+| [H3b.3 Generate](#h3b3-generate) | By hand, then in the game | H3b | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.24, on the laptop) |
 | [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 6 steps (EDGEhack 0.0.20) |
 | [H3b.2 Upload](#h3b2-upload) | By hand, then in the game | H3b | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.19, with REDcode's test build from main e9b5e7b) |
 | [H3b.1 Own icons spike](#h3b1-own-icons-spike) | By hand, in the game | H3b | 2026-11-10 | Pass, steps 1 to 6: our item card, wheel glyph and status symbol all showed |
@@ -39,7 +40,23 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-- [H3b.3 Generate](#h3b3-generate).
+- [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification).
+
+## H3b.3 Generate: progress notification
+
+EDGEhack 0.0.25, asked for by the owner after H3b.3's run (2026-11-11): a generation shows in a progress notification with **Cancel**, so a modder who goes to another tab sees it end or stops it there. Two paid images in all (step 1 and step 4); steps 2 and 3 cancel before an image is charged only if OpenAI has not finished it.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.25.vsix` and reload (or F5 in the repo at 0.0.25). Open **Gen Test**, **Generate All...**, type any words, **Generate** | A notification at the bottom right: "EDGEhack: generating Gen Test's icons", with "Item (1 of 3): one paid image, up to a minute…", a bar that moves, and **Cancel**. The message moves on to Wheel (2 of 3) and Status (3 of 3), and the notification closes when the three results show |
+| 2 | Item: **Generate...**, **Generate**, then click another file's tab so the page is out of sight. Press **Cancel** on the notification | The notification closes. Back on the page, the status line says "Cancelled." and no result shows |
+| 3 | Item: **Generate...**, **Generate**, then **Cancel** on the page itself | The notification closes too |
+| 4 | Item: **Generate...**, **Generate**, then click another file's tab and wait | When the picture is ready, a notification says "EDGEhack: Gen Test's Item icon is ready. Keep the ones you like." with **Show**. **Show** brings the page back, with the result there |
+
+Then say what differed.
+
+| Run | Result |
+|---|---|
 
 ## H3b.3 Generate
 
@@ -62,6 +79,7 @@ Then say what differed, with screenshots of the generated icons you would change
 
 | Run | Result |
 |---|---|
+| 2026-11-11, by the owner, on the laptop (F5 from the repo), EDGEhack 0.0.24 | Pass, all 10 steps. During the run: the button **Game's** became **Original** (0.0.22); the Item became a flat `#50cdd2` glyph on a frame (0.0.23); the owner's frame (`images/quickhack.png`) was narrower than the game's card (76 against 90 pixels wide, measured from a screenshot), so 0.0.24 draws the glyph on the game's own card read from the player's game, emptied of its glyph, and the frame image left the repo. Asked for after the run: a progress notification with Cancel (0.0.25, its own test above) |
 
 
 ## H3.7c Remove from Project
