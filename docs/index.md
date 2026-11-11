@@ -23,7 +23,7 @@ As of 2026-11-11. Each phase ends with a hand test by the owner, and an in-game 
 | H3b Own icons | Done 2026-11-11: Upload (H3b.2) and Generate with OpenAI (H3b.3) passed, in the game too (EDGEhack 0.0.25) |
 | H3c Scripts | Done 2026-11-11: REDnode's quickhack functions (REDnode 0.61.1), the Scripts section (H3c.3) and Pack and Play with the mod's REDnode package (H3c.4) passed in the game (EDGEhack 0.0.27) |
 | H3d Feature lines | Done 2026-11-11: bullets of the modder's own in the item's tooltip passed in the game (EDGEhack 0.0.28) |
-| H4 Try Live and MCP | Under way: Try Live (H4.1 to H4.3) passed in the game on 2026-11-11 (EDGEhack 0.0.29, REDnode 0.62.1); live names parked. H4.4, the core outside VS Code, built and checked on 2026-11-11. H4.5, the MCP server and Connect an Assistant, passed its hand test with Claude Code on 2026-11-11 (EDGEhack 0.0.30). H4.6, REDagent in the game (REDnode 0.63.0, REDagent 0.4.2), built on 2026-11-11, awaiting its in-game test |
+| H4 Try Live and MCP | Under way: Try Live (H4.1 to H4.3) passed in the game on 2026-11-11 (EDGEhack 0.0.29, REDnode 0.62.1); live names parked. H4.4, the core outside VS Code, built and checked on 2026-11-11. H4.5, the MCP server and Connect an Assistant, passed its hand test with Claude Code on 2026-11-11 (EDGEhack 0.0.30). H4.6, REDagent in the game (REDnode 0.63.0, REDagent 0.4.2), passed in the game on 2026-11-11. **H4 is done** |
 | H5 Library | Not started |
 | H6 First release | Not started |
 
