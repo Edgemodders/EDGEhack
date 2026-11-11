@@ -11,8 +11,8 @@
   /**
    * A picture (a file, or an image element) fitted to the look's size, centred, on nothing; as PNG data.
    * `u.fit` "cover" fills the size and cuts what is over at the edges; otherwise it fits inside it.
-   * `u.color` paints what is lit in that one flat colour, and `u.frame` (a generated Item glyph) fits the
-   * picture into the frame's box and draws it over the frame instead.
+   * `u.color` paints what is lit in that one flat colour, and `u.frame` (a generated Item glyph) draws
+   * the picture on the game's emptied item card instead (`framed`).
    */
   async function fitted(source, u) {
     if (u.frame) return framed(source, u);
@@ -68,57 +68,40 @@
   }
 
   /**
-   * A glyph fitted into the frame's box, flat in its colour, drawn over the frame (`images/<file>`) and
-   * clipped to the frame's screen, so it never covers the border; as PNG data.
+   * A glyph on the game's own item card: the card of the quickhack this one comes from, read from the
+   * player's game (`data-frame` on Generate's panel), emptied of its glyph by `edgehackCard.emptyCard`
+   * (media/card.js). The glyph, flat in its colour, is fitted into the card's screen and clipped to it, so
+   * it never covers the border; as PNG data.
    */
   async function framed(source, u) {
-    const f = u.frame;
-    const glyph = await fitted(source, { width: f.width, height: f.height, fit: "contain", black: true, color: u.color });
     const load = async (src) => {
       const i = new Image();
       i.src = src;
       await i.decode();
       return i;
     };
-    const [frame, mark] = await Promise.all([load(`${document.body.dataset.images}/${f.file}`), load(glyph)]);
     const canvas = () => {
       const c = document.createElement("canvas");
       c.width = u.width;
       c.height = u.height;
       return [c, c.getContext("2d")];
     };
+    const frameSrc = q("[data-generate]")?.dataset.frame;
+    if (!frameSrc) throw new Error("the game's item card for this quickhack could not be read, so there is no frame to draw the glyph on");
     const [c, g] = canvas();
-    g.drawImage(frame, 0, 0, u.width, u.height);
+    g.drawImage(await load(frameSrc), 0, 0, u.width, u.height);
+    const card = window.edgehackCard.emptyCard(g.getImageData(0, 0, u.width, u.height).data, u.width, u.height);
+    if (!card) throw new Error("the game's item card has no screen EDGEhack can find");
+    g.putImageData(new ImageData(card.data, u.width, u.height), 0, 0);
+    const b = card.box;
+    const mark = await load(await fitted(source, { width: b.width, height: b.height, fit: "contain", black: true, color: u.color }));
     const [gc, gg] = canvas();
-    gg.drawImage(mark, f.x, f.y);
-    const mask = screenOf(g.getImageData(0, 0, u.width, u.height), Math.round(f.x + f.width / 2), Math.round(f.y + f.height / 2));
+    gg.drawImage(mark, b.x, b.y);
     const d = gg.getImageData(0, 0, u.width, u.height);
-    for (let i = 0; i < mask.length; i++) if (!mask[i]) d.data[i * 4 + 3] = 0;
+    for (let i = 0; i < card.screen.length; i++) if (!card.screen[i]) d.data[i * 4 + 3] = 0;
     gg.putImageData(d, 0, 0);
     g.drawImage(gc, 0, 0);
     return c.toDataURL("image/png");
-  }
-
-  /**
-   * The frame's screen: the dark pixels joined to the box's centre, stopping at the lit border. A flood
-   * fill rather than a rectangle, so any frame shape works, cut corners too.
-   */
-  function screenOf(d, cx, cy) {
-    const { width, height, data } = d;
-    const dark = (i) => Math.max(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]) <= 0x40;
-    const seen = new Uint8Array(width * height);
-    const todo = [cy * width + cx];
-    while (todo.length) {
-      const i = todo.pop();
-      if (seen[i] || !dark(i)) continue;
-      seen[i] = 1;
-      const x = i % width;
-      if (x > 0) todo.push(i - 1);
-      if (x < width - 1) todo.push(i + 1);
-      if (i >= width) todo.push(i - width);
-      if (i < width * (height - 1)) todo.push(i + width);
-    }
-    return seen;
   }
 
   q("[data-icon-file]")?.addEventListener("change", async (ev) => {

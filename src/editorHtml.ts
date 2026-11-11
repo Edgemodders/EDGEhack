@@ -77,11 +77,11 @@ ${change}<button data-icon-upload="${which}" data-width="${look.width}" data-hei
  * now, each with Keep and Try Again. The looks' prompts, sizes and fits ride along as data, so the
  * page shows the whole prompt as the modder types and fits each result as the look wants.
  */
-function generatePanel(): string {
+function generatePanel(frame?: string): string {
   const looks = Object.fromEntries(
     (Object.keys(PROMPTS) as IconLook[]).map((k) => [k, { ...PROMPTS[k], width: LOOKS[k].width, height: LOOKS[k].height, label: LOOKS[k].label, words: WORDS }]),
   );
-  return `<div class="generate" data-generate data-looks="${esc(JSON.stringify(looks))}" hidden>
+  return `<div class="generate" data-generate data-looks="${esc(JSON.stringify(looks))}"${frame ? ` data-frame="${esc(frame)}"` : ""} hidden>
 <p class="generate-title" data-generate-title></p>
 <label class="words">What the icon shows <input type="text" maxlength="300" data-generate-words placeholder="a skull made of static"></label>
 <p><button class="primary" data-generate-go>Generate</button> <button data-generate-cancel hidden>Cancel</button> <button data-generate-close>Close</button></p>
@@ -311,7 +311,7 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
 <div class="icons">${iconChoice("item", "Item", icons.item ?? (top.icons.item && icons.all.get(`${top.icons.item.atlas}|${top.icons.item.part}`)), !!doc.itemIcon || !!doc.ownIcons?.item)}${iconChoice("wheel", "Wheel", icons.wheel ?? (top.icons.wheel && icons.all.get(`${top.icons.wheel.atlas}|${top.icons.wheel.part}`)), !!doc.wheelIcon || !!doc.ownIcons?.wheel)}${iconChoice("status", "Status", icons.status, !!doc.ownIcons?.status)}</div>
 <input type="file" accept="image/png,image/jpeg" data-icon-file hidden>
 <p><button data-icon-generate="all" title="Three paid images on your OpenAI account: the Item, then the Wheel and Status drawn from it, so all three show the same glyph">Generate All...</button></p>
-${generatePanel()}
+${generatePanel(top.icons.item && icons.all.get(`${top.icons.item.atlas}|${top.icons.item.part}`))}
 <p class="foot">Upload puts a picture of your own in the mod, fitted to the icon's size; Generate has OpenAI draw one from your words. Status is the icon on the hacked enemy.</p>
 <div class="picker" data-picker hidden><p data-picker-title></p><div class="grid" data-picker-grid></div><button data-picker-close>Close</button></div>
 </div></section>

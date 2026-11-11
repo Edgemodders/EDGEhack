@@ -1,7 +1,7 @@
 // Generate's fixed prompts (H3b.3; design, "Own icons (H3b)"): one per look, saying the look, the
 // colours, the framing and "no text"; the modder's words are only what the glyph shows. The Item is
-// only its glyph, flat in the game's cyan, which the page puts on the quickhack frame in
-// `images/quickhack.png`. Generate All draws the Item first, then the Wheel and Status from its glyph
+// only its glyph, flat in the game's cyan, which the page puts on the game's own item card of the
+// quickhack it comes from, emptied of its glyph (media/card.js). Generate All draws the Item first, then the Wheel and Status from its glyph
 // as a reference picture, so they show the same glyph. The prompts are tuned by the owner's eye in the hand test. No VS Code.
 import type { IconLook } from "./document";
 import type { ImageSize } from "./imageService";
@@ -23,11 +23,12 @@ export interface PromptLook {
   /** The one flat colour the glyph is painted in, whatever shade came back: its brightness becomes the opacity. */
   color?: string;
   /**
-   * The frame the glyph goes on (the Item): a picture in the extension's `images` folder at the look's
-   * size, and the box the glyph is fitted into, a little larger than the screen: the page clips the glyph
-   * to the screen, so what reaches past it is cut by the border. OpenAI draws only the glyph.
+   * The glyph goes on the game's own item card (the Item): the card of the quickhack this one comes
+   * from, read from the player's game and emptied of its glyph by the page, which fits the glyph into
+   * the card's screen and clips it there, so it never covers the border. OpenAI draws only the glyph,
+   * and no game art ships with EDGEhack.
    */
-  frame?: { file: string; x: number; y: number; width: number; height: number };
+  frame?: boolean;
 }
 
 /** The Item glyph's colour, the game's quickhack cyan. */
@@ -45,7 +46,7 @@ export const PROMPTS: Record<IconLook, PromptLook> = {
     fit: "contain",
     black: true,
     color: GLYPH_COLOR,
-    frame: { file: "quickhack.png", x: 12, y: 21, width: 76, height: 76 },
+    frame: true,
   },
   wheel: {
     alone:

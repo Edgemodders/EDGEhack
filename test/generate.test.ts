@@ -61,7 +61,7 @@ test("the Wheel and Status from the Item say to draw the same glyph alone; the I
   assert.equal(promptFor("item", "a skull", true), promptFor("item", "a skull"));
   assert.equal(PROMPTS.item.size, "1024x1024");
   assert.equal(PROMPTS.item.color, GLYPH_COLOR);
-  assert.equal(PROMPTS.item.frame?.file, "quickhack.png");
+  assert.equal(PROMPTS.item.frame, true);
   assert.equal(PROMPTS.wheel.black, true);
   assert.equal(PROMPTS.wheel.frame, undefined);
 });

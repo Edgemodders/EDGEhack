@@ -356,14 +356,18 @@ check(gens.length === 1 && /a skull made of static/.test(JSON.parse(gens[0].body
 check(edits.length === 2 && edits.every((e) => e.body.includes(SQUARE.subarray(0, 64)) && /same glyph/.test(e.body.toString("latin1"))), "the Wheel and Status were edits of the Item's picture");
 const sizes = await run(editor, `return [...document.querySelectorAll("[data-result]")].map((f) => { const i = f.querySelectorAll("img.real"); const g = i[i.length - 1]; return f.dataset.result + ":" + g.naturalWidth + "x" + g.naturalHeight; }).join(" ");`);
 check(sizes === "item:99x128 wheel:64x64 status:64x64", `each result is fitted to its look: ${sizes}`);
-// The Item: the glyph flat in the game's cyan on the frame from images/quickhack.png, clipped to its screen.
+// The Item: the glyph flat in the game's cyan on the game's own card, emptied of its glyph. The stand-in
+// glyph is a square in the middle of the screen; elsewhere on the screen (below the cut corner's lit
+// diagonal) nothing is lit, so the game's glyph is gone, while the card's left border is still lit.
 const itemPixels = await run(
   editor,
   `const i = [...document.querySelectorAll('[data-result="item"] img.real')].pop(); const c = document.createElement("canvas"); c.width = 99; c.height = 128;
-   const g = c.getContext("2d"); g.drawImage(i, 0, 0); const at = (x, y) => [...g.getImageData(x, y, 1, 1).data].slice(0, 3).map((n) => n.toString(16).padStart(2, "0")).join("");
-   return [at(50, 59), at(14, 64), at(50, 2), at(30, 59)].join(" ");`,
+   const g = c.getContext("2d"); g.drawImage(i, 0, 0); const d = g.getImageData(0, 0, 99, 128).data; const px = (x, y) => [...d.slice((y * 99 + x) * 4, (y * 99 + x) * 4 + 3)];
+   const hex = (x, y) => px(x, y).map((n) => n.toString(16).padStart(2, "0")).join(""); const lit = (x, y) => px(x, y)[1] > 150 && px(x, y)[2] > 150;
+   const where = []; let left = 0; for (let y = 36; y < 106; y++) for (let x = 12; x < 94; x++) if (lit(x, y) && !(x >= 32 && x <= 74 && y >= 44 && y <= 86)) { left++; if (left <= 8) where.push(x + "," + y + ":" + hex(x, y)); }
+   return hex(52, 64) + " " + (lit(8, 64) || lit(9, 64)) + " " + left + (where.length ? " at " + where.join(" ") : "");`,
 );
-check(/^50cdd2 57dbdb [0-9a-f]{6} 182222$/.test(itemPixels), `the Item is the glyph in #50cdd2 on the frame, its border and screen kept: ${itemPixels}`);
+check(itemPixels === "50cdd2 true 0", `the Item is the glyph in #50cdd2 on the game's card, its border kept and its own glyph gone: ${itemPixels}`);
 check(wheelTime() === wheelBefore, "nothing is kept before Keep");
 await run(editor, `document.querySelector('[data-generate-keep="wheel"]').click();`);
 for (let i = 0; i < 30 && wheelTime() === wheelBefore; i++) await sleep(200);
