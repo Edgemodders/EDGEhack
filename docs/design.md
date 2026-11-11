@@ -628,7 +628,7 @@ Each of the three icons has **Pick from the game**, **Upload** and **Generate**.
 
 Checked: 107 unit tests (7 new, `test/ownIcons.test.ts`); the smoke test uploads a white square on black to the wheel through the page's file input, and checks the fitted 64 x 64 picture, the `.xbm` (imported with the UI setup through REDbridge 0.12.1, in the stand-in REDcode), the atlas, the YAML, and Game's removing them. **H3b.2 passed its hand test and in the game on 2026-11-10** (EDGEhack 0.0.19, with REDcode's test build from main): the uploaded item, wheel and status icons showed on a new quickhack, the game's Overheat kept its own, and Duplicate and Add to Project carried the pictures.
 
-**Remove from Project (2026-11-10, EDGEhack 0.0.20, asked for by the owner):** the Desk view's Project rows get a trash can (`edgehack.project.remove`, inline and in the menu). After a modal that lists them, the document, its `.icons` folder, its YAML and its icons' texture and atlas go to the Recycle Bin (`projectFilesOf` in `src/projectDocs.ts`), and its texts leave the onscreens file (`removeTexts` in `src/projectFiles.ts`). The shared script stays, since other documents may need it.
+**Remove from Project (2026-11-10, EDGEhack 0.0.20, asked for by the owner):** the Desk view's Project rows get a trash can (`edgehack.project.remove`, inline and in the menu). After a modal that lists them, the document, its `.icons` folder, its YAML and its icons' texture and atlas go to the Recycle Bin (`projectFilesOf` in `src/projectDocs.ts`), and its texts leave the onscreens file (`removeTexts` in `src/projectFiles.ts`). The shared script stays, since other documents may need it. Passed its hand test on 2026-11-10.
 
 ### H3c Scripts: plan
 

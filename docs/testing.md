@@ -19,7 +19,7 @@ Last updated 2026-11-10.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | | Waiting |
+| [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 6 steps (EDGEhack 0.0.20) |
 | [H3b.2 Upload](#h3b2-upload) | By hand, then in the game | H3b | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.19, with REDcode's test build from main e9b5e7b) |
 | [H3b.1 Own icons spike](#h3b1-own-icons-spike) | By hand, in the game | H3b | 2026-11-10 | Pass, steps 1 to 6: our item card, wheel glyph and status symbol all showed |
 | [H3.7b Desk icons](#h37b-desk-icons) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 5 steps (EDGEhack 0.0.18) |
@@ -38,7 +38,7 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-- [H3.7c Remove from Project](#h37c-remove-from-project).
+Nothing.
 
 ## H3.7c Remove from Project
 
@@ -57,7 +57,7 @@ Then say what differed.
 
 | Run | Result |
 |---|---|
-
+| 2026-11-10, EDGEhack 0.0.20, dev PC | **Pass**, all 6 steps |
 
 ## H3b.2 Upload
 
