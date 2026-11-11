@@ -57,6 +57,7 @@ REDnode 0.61.1 and TweakXL in the game, no EDGEhack change. The app **EDGEhack T
 | 4 | If still not: take Overheat out of the cyberdeck and put it back, scan again | Note: higher now? |
 | 5 | **Poison**, then **Refresh list**. Upload Overheat on an enemy | Note: burning and poisoned (Contagion's green poison), or only burning? |
 | 6 | **Name**, then open the inventory | Note: is Overheat (Rare) called Short Circuit now? |
+| 6b | **Line**, then look at Overheat (Rare)'s tooltip in the inventory | Note: is there a new bullet line, "Spike line: a bullet of our own, from EDGEhack"? With an icon? (For H3d, the feature lines you proposed) |
 | 7 | **TweakXL reload** | The spike's log says what TweakXL answered, or why it failed: read it out |
 | 8 | **New**, then **Give it**. Open the backpack, put the new "Short Circuit" (Rare) in the cyberdeck, scan an enemy, upload it | Note: is it in the backpack, does it go in the deck, does its hack show on the wheel (likely called Overheat, with a lower RAM cost), and does it burn? |
 | 9 | **Read** | A log line with the costs, effects and name as TweakDB has them |

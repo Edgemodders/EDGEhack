@@ -248,6 +248,7 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H3 New and Effects** | Make a new quickhack from a family; Add Effect from other quickhacks and status effects (the sorted pool); attack features; Get it (crafting spec, vendor); the Desk | Hand test, and in the game: a new quickhack crafted or bought, with two added effects working on an enemy |
 | **H3b Own icons** | Each icon can be picked from the game, uploaded, or generated from a text prompt (see [Own icons](#own-icons-h3b)); the image goes into an atlas the mod ships | Hand test, and in the game: a new quickhack with its own icons in the inventory, on the wheel and on the target |
 | **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
+| **H3d Feature lines** | Proposed by the owner on 2026-11-11: bulleted lines of the modder's own in the item's tooltip, beside the game's, so a quickhack with a script can say what it does (see [H3d Feature lines: proposed](#h3d-feature-lines-proposed)) | Hand test, and in the game: the lines in the inventory's tooltip |
 | **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server, running without VS Code, and Connect an Assistant, with tools for scripts and packing; EDGEchat's plugin and REDnode's attached servers as its two routes (see [MCP tools](#mcp-tools)) | Hand test and in-game test, with REDagent making a quickhack in the game |
 | **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
 | **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page. The owner chose on 2026-11-08 to release only after every phase above, as planned | The release gate: every hand test passed |
@@ -737,6 +738,20 @@ Checked: 129 unit tests (9 new in `test/scripts.test.ts`, one of them importing 
 
 A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
 
+### H3d Feature lines: proposed
+
+Proposed by the owner on 2026-11-11: "When a modder adds a custom script, they would want to share those details through the quickhack's popup description card, where there is usually a short bulleted list of the main features of the quickhack." To agree, after H4.1's spike answers the open point.
+
+**How the game makes those lines (2.5).** Each line of a quickhack item's tooltip is a UI-only gameplay package on the item's `OnAttach` (`EquipmentGLP.OverheatProgramLvl2`: no effectors, stats or stat pools), whose `UIData` (`EquipmentGLP.OverheatProgramLvl2_inline0`, a `GameplayLogicPackageUIData`) holds the text in `localizedDescription` (a String, here `LocKey#51323`), an `iconPath` (`ability_offensive`) and `floatValues` for the text's `{float_0}` placeholders. A tier's item lists the lines of the tiers below it too, so the lines build up tier by tier. EDGEhack reads them today (the read-only panel's **Tooltip**) and leaves them as they are.
+
+| Part | What |
+|---|---|
+| The page | A **Feature lines** list in the Texts section: each line a text, and the tier it starts from (Common by default), with Add and Remove. The game's own lines shown above it, read-only. The Scripts section offers **Add a line** once a function is there |
+| The records | Per line, a package and its UI data, copies of the family's own first line's records (so the icon matches), with the text; appended to the `OnAttach` of the items from its tier up. For a change to a game quickhack, on the game's items; for a new one, on its own |
+| The text | A key in the mod's `onscreens` file, as the other texts are; or plain text, if the spike shows it works without a LocKey |
+
+Unverified, for the spike and the test: a line from a plain text; whether a line shows in the scanner's **Hacking** tab too (that list comes from elsewhere, see [The player's line](#the-players-line-h2d-dropped)).
+
 ### H4 Try Live and MCP: plan
 
 Written on 2026-11-11 after H3c passed, for the owner to agree. H4 has two halves: **Try Live** (change a quickhack and see it in the running game, without packing) and the **MCP server** (assistants make and change quickhacks). Try Live goes first, since the server's `hack_try` is Try Live.
@@ -754,6 +769,7 @@ Written on 2026-11-11 after H3c passed, for the owner to agree. H4 has two halve
 
 **What the spike answers:**
 
+- Does a line of our own show in the item's tooltip, from a plain text with no LocKey (for [H3d](#h3d-feature-lines-proposed))?
 - Does a change to an equipped hack's action (its RAM cost, its effects) show on the next scan with nothing else, after **Refresh list** (the game's own clear), only after taking it out of the cyberdeck and back, or only after a load?
 - Does an item's changed name show in the inventory at once?
 - Can REDnode call TweakXL's reload?
