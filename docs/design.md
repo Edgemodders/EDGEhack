@@ -776,7 +776,7 @@ Written on 2026-11-11 after H3c passed, for the owner to agree. H4 has two halve
 - Does a quickhack made in the running game (a cloned item and action) reach the backpack and the cyberdeck, and work?
 - Is everything back after the spike stops (REDnode's undo), once the list is refreshed?
 
-**For the owner to decide (recommended first):**
+**Decided by the owner on 2026-11-11** (the recommendation, first in each row, in all four):
 
 | Question | Options |
 |---|---|

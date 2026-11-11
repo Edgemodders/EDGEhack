@@ -51,7 +51,7 @@ REDnode 0.61.1 and TweakXL in the game, no EDGEhack change. The app **EDGEhack T
 
 | Step | Do | Expect, and what to note |
 |---|---|---|
-| 1 | Load a save. In REDnode's launcher (F10), switch on **Console** and **EDGEhack Try Live spike**. If V has no Overheat (Rare), in the Console `await game.player.addItem("Items.OverheatLvl2Program")`, and put it in the cyberdeck. F10, scan an enemy | The spike's window opens. **Note Overheat's RAM cost on the wheel** |
+| 1 | Load a save. In REDnode's launcher (F10), switch on **Console** and **EDGEhack Try Live spike**, and switch **Quickhack test** off (its scan check is on Overheat). The spike uses the game's own Overheat (Rare), not a mod's quickhack. If V has no Overheat (Rare), in the Console `await game.player.addItem("Items.OverheatLvl2Program")`, and put it in the cyberdeck. F10, scan an enemy | The spike's window opens. **Note Overheat's RAM cost on the wheel** |
 | 2 | **RAM +**. F10, scan a new enemy | Note: is Overheat's RAM cost higher now (it should be by two tier increases)? |
 | 3 | If not: **Refresh list**, scan again | Note: higher now? |
 | 4 | If still not: take Overheat out of the cyberdeck and put it back, scan again | Note: higher now? |
