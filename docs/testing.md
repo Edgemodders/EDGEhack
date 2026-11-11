@@ -19,7 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | | Waiting |
+| [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.27, REDnode 0.61.1, on the laptop): Pack and Play installs the mod's REDnode package, and REDnode runs its script |
 | [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.26, on the laptop), with two fixes in 0.0.27 |
 | [H3b.3 Generate: progress notification](#h3b3-generate-progress-notification) | By hand, in VS Code | H3b | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.0.25, on the laptop) |
 | [H3b.3 Generate](#h3b3-generate) | By hand, then in the game | H3b | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.24, on the laptop) |
@@ -42,7 +42,7 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- [H3c.4 Together](#h3c4-together).
+Nothing.
 
 ## H3c.4 Together
 
@@ -82,6 +82,7 @@ Then quit the game and say what differed. I read REDnode's logs.
 
 | Run | Result |
 |---|---|
+| 2026-11-11, by the owner, on the laptop, EDGEhack 0.0.27 with REDnode 0.61.1, project EDGEhack_Tests, its new quickhack Spike Prime (Legendary++) in place of Gen Test | **Pass**, all steps. Pack and Play installed the package (`edgehack_tests`), REDnode ran it: "landed on a person at 49% health (tier 6)", then "Extra damage: below half health" in the Mod log (the line says Gen Test because the step's script names it). Tier 6 is right for Legendary++, so a new quickhack's tiers come through. REDnode's own Quickhack test was on beside it, defining the game's Overheat: no clash, since a new quickhack has hacks of its own. Open, seen during the run: the quickhack's tab kept its dirty dot after Ctrl+S (the save itself was logged); being looked into |
 
 ## H3c.3 Scripts
 
