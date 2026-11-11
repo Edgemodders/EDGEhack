@@ -117,7 +117,9 @@ export interface Tier {
   cooldown?: Value & { record: string; group?: string; groupMods?: string[]; prereq?: string };
   effects: Effect[];
   /** The record lists a new quickhack copies and changes. */
-  lists: { objectActions: string[]; startEffects: string[]; completionEffects: string[]; instigatorPrereqs: string[]; costs: string[]; activationTime: string[] };
+  lists: { objectActions: string[]; startEffects: string[]; completionEffects: string[]; instigatorPrereqs: string[]; costs: string[]; activationTime: string[]; onAttach: string[] };
+  /** The tier's first tooltip line's records (a UI-only package and its UI data): what a feature line of the modder's copies (H3d). */
+  lineBase?: { glp: string; ui: string };
   /** Why it cannot be used on a target, as the game says it. */
   notWhen: string[];
   spread: boolean;
@@ -416,9 +418,12 @@ export async function readTier(r: Records, itemPath: string | undefined, actionP
     if (t && !notWhen.includes(t)) notWhen.push(t);
   }
   const tooltip: string[] = [];
+  let lineBase: { glp: string; ui: string } | undefined;
   for (const glp of await rd.all(item?.flats.get("OnAttach"))) {
-    const t = await r.text(await rd.get(str(glp, "UIData")), "localizedDescription");
+    const uiPath = str(glp, "UIData");
+    const t = await r.text(await rd.get(uiPath), "localizedDescription");
     if (t) tooltip.push(t);
+    if (!lineBase && uiPath) lineBase = { glp: glp.path, ui: uiPath };
   }
   const passives = [];
   for (const glp of await rd.all(item?.flats.get("OnEquip"))) {
@@ -482,7 +487,9 @@ export async function readTier(r: Records, itemPath: string | undefined, actionP
       instigatorPrereqs: list(action, "instigatorPrereqs"),
       costs: list(action, "costs"),
       activationTime: list(action, "activationTime"),
+      onAttach: list(item, "OnAttach"),
     },
+    lineBase,
     notWhen,
     spread: effects.some((e) => e.spread),
     passives,

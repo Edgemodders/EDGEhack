@@ -3,15 +3,15 @@
 // REDcode's project (docs/design.md, "H2: plan").
 import * as vscode from "vscode";
 import type { Hub } from "./hub";
-import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt, IconLook, withOwnIcon, withScripts } from "./document";
-import { Family, iconOf, IconRef, mainEffect } from "./read";
+import { AddedField, BuiltEffect, DamageTypeName, parseDoc, printDoc, QuickhackDoc, TierField, TIER_FIELDS, newBuiltEffect, withAddedBuild, withAddedEffect, withAddedRecipient, withAddedTier, withAddedValue, withField, withoutAddedEffect, withTierField, newDoc, withGetIt, GetIt, IconLook, withOwnIcon, withScripts, withLines } from "./document";
+import { Family, iconOf, IconRef, mainEffect, tierKey } from "./read";
 import { iconFile, IconWriter, LOOKS } from "./ownIcons";
 import { decodePng } from "./png";
 import { writeTweaks } from "./tweaks";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem, writeDocFiles } from "./projectDocs";
 import { addFunction, exportsOf, functionStub, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
-import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderScripts, type ScriptsState } from "./editorHtml";
+import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderLines, renderScripts, type ScriptsState } from "./editorHtml";
 import type { Sales } from "./getit";
 import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
@@ -227,6 +227,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         notes: addedNotes(fam, added),
         effectsHtml: renderAddedEffects(fam, added, iconSet),
         scriptsHtml: renderScripts(await this.scriptsState(document, doc)),
+        linesHtml: renderLines(fam, doc),
         ...(doc.newHack ? { getItHtml: renderGetIt(fam, doc, sales, desk) } : {}),
       });
     };
@@ -347,6 +348,10 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         addedValue?: { id: string; tier: string; field: AddedField; value?: number; game?: number };
         addedAll?: { id: string; tier: string; field: AddedField };
         getIt?: { tier: string; field: keyof GetIt; value?: boolean | number; game?: number };
+        lineAdd?: boolean;
+        lineText?: { i: number; text: string };
+        lineFrom?: { i: number; from: string };
+        lineRemove?: number;
         scriptAdd?: ScriptFunction;
         scriptOpen?: ScriptFunction;
         scriptText?: string;
@@ -403,6 +408,25 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           if (m.addedValue) await apply(document, withAddedValue(current(), m.addedValue.id, m.addedValue.tier, m.addedValue.field, m.addedValue.value, m.addedValue.game));
           if (m.addedAll) await apply(document, applyAddedToAll(current(), await this.hub.added(current(), fam), m.addedAll.id, m.addedAll.tier, m.addedAll.field));
           if (m.getIt) await apply(document, withGetIt(current(), m.getIt.tier, m.getIt.field, m.getIt.value, m.getIt.game));
+          if (m.lineAdd) {
+            await apply(document, withLines(current(), [...(current().lines ?? []), { text: "" }]));
+            await w.postMessage({ linesHtml: renderLines(fam, current()), linesAdded: true });
+          }
+          if (m.lineText) {
+            const lines = [...(current().lines ?? [])];
+            if (lines[m.lineText.i]) lines[m.lineText.i] = { ...lines[m.lineText.i], text: m.lineText.text };
+            await apply(document, withLines(current(), lines));
+          }
+          if (m.lineFrom) {
+            const lines = [...(current().lines ?? [])];
+            const first = [...fam.tiers].filter((t) => t.item).sort((a, b) => a.rank - b.rank)[0];
+            if (lines[m.lineFrom.i]) lines[m.lineFrom.i] = { text: lines[m.lineFrom.i].text, ...(first && m.lineFrom.from !== tierKey(first) ? { from: m.lineFrom.from } : {}) };
+            await apply(document, withLines(current(), lines));
+          }
+          if (m.lineRemove !== undefined) {
+            await apply(document, withLines(current(), (current().lines ?? []).filter((_, i) => i !== m.lineRemove)));
+            await w.postMessage({ linesHtml: renderLines(fam, current()) });
+          }
           if (m.scriptAdd || m.scriptOpen) {
             const project = (await redcode()).project();
             if (!project || onDesk(document.fileName) || !isInside(document.fileName, project.dir)) throw new Error("Its script goes in a project's REDnode package: add the quickhack to a project first.");

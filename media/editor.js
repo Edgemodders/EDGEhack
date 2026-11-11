@@ -330,6 +330,10 @@
       vscode.postMessage({ set: { field: el.dataset.set, value: el.value === "" ? undefined : text ? el.value : Number(el.value), game: text ? el.dataset.game : Number(el.dataset.game) } });
     } else if (el.dataset.field) {
       vscode.postMessage({ setTier: { tier: el.dataset.tierKey, field: el.dataset.field, value: el.value === "" ? undefined : Number(el.value), game: Number(el.dataset.game) } });
+    } else if (el.matches("[data-line-text]")) {
+      vscode.postMessage({ lineText: { i: Number(el.dataset.lineText), text: el.value } });
+    } else if (el.matches("[data-line-from]")) {
+      vscode.postMessage({ lineFrom: { i: Number(el.dataset.lineFrom), from: el.value } });
     } else if (el.matches("[data-script-text]")) {
       vscode.postMessage({ scriptText: el.value });
     } else if (el.matches("[data-getit-sell]")) {
@@ -436,6 +440,9 @@
     const scriptOpen = ev.target.closest("[data-script-open]");
     if (scriptOpen) vscode.postMessage({ scriptOpen: scriptOpen.dataset.scriptOpen });
     if (ev.target.closest("[data-script-remove]")) vscode.postMessage({ scriptRemove: true });
+    if (ev.target.closest("[data-line-add]")) vscode.postMessage({ lineAdd: true });
+    const lineRemove = ev.target.closest("[data-line-remove]");
+    if (lineRemove) vscode.postMessage({ lineRemove: Number(lineRemove.dataset.lineRemove) });
     if (ev.target.closest("[data-pack]")) vscode.postMessage({ pack: true });
     if (ev.target.closest("[data-add-to-project]")) vscode.postMessage({ addToProject: true });
   });
@@ -462,6 +469,13 @@
       pick(selected);
     }
     // Not while the disabled text is being typed; a button keeps the focus after its click, so not that.
+    // Not while a line is being typed; a new line's box takes the focus.
+    if (typeof m.linesHtml === "string" && !document.activeElement?.matches?.("[data-line-text]")) {
+      const box = q("[data-lines]");
+      const added = m.linesAdded && box;
+      box.innerHTML = m.linesHtml;
+      if (added) [...box.querySelectorAll("[data-line-text]")].pop()?.focus();
+    }
     if (typeof m.scriptsHtml === "string" && !document.activeElement?.matches?.("[data-script-text]")) {
       q("[data-scripts]").innerHTML = m.scriptsHtml;
     }

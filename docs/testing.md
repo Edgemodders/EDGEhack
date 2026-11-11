@@ -12,13 +12,14 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-11 | Pass, 129 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-11 | Pass, 135 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3d Feature lines](#h3d-feature-lines) | By hand, then in the game | H3d | | Waiting |
 | [H4.1 Try Live spike](#h41-try-live-spike) | In the game | H4 | 2026-11-11 | Pass, in two runs (REDnode 0.61.1, then 0.61.2 for names): every change shows live, a quickhack made live works, all of it undone when the spike stops |
 | [H3c.4 Together](#h3c4-together) | By hand, then in the game | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.27, REDnode 0.61.1, on the laptop): Pack and Play installs the mod's REDnode package, and REDnode runs its script |
 | [H3c.3 Scripts](#h3c3-scripts) | By hand, in VS Code | H3c | 2026-11-11 | Pass, all 9 steps (EDGEhack 0.0.26, on the laptop), with two fixes in 0.0.27 |
@@ -43,7 +44,28 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-Nothing.
+- [H3d Feature lines](#h3d-feature-lines).
+
+## H3d Feature lines
+
+EDGEhack 0.0.28, in VS Code, then in the game (REDnode is not needed for this one). Feature lines are bullets of your own in a quickhack item's tooltip, after the game's, from a tier up. Use Spike Prime in EDGEhack_Tests, or any new quickhack.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.28.vsix` and reload (or F5 at 0.0.28). Open **Spike Prime**, look at **Texts** | Under the wheel text, **Feature lines**: the game's own lines of the top tier, dimmed, then **Add a line** |
+| 2 | **Add a line**, type `Extra damage on the wounded`, click away | A box appears with the cursor in it, and a tier list beside it saying **Common and up** |
+| 3 | **Add a line** again, type `People only`, set its tier to **Epic and up** | Two lines |
+| 4 | Ctrl+S, then **Pack and Play** (game closed) | The status line says it saved. In the project's YAML (`source/resources/r6/tweaks/…`), records `…Line1_UI` and `…Line2_UI` with your texts |
+| 5 | Start the game, load a save. Look at Spike Prime (Legendary++) in the inventory | Its tooltip shows the game's lines, then **Extra damage on the wounded** and **People only** |
+| 6 | Switch on **Console**, run Spike Prime's **Get it** line for the Common tier, and look at that one's tooltip | Only **Extra damage on the wounded**: People only starts at Epic |
+| 7 | Scan an enemy with Spike Prime in the cyberdeck, and look at its **Hacking** tab | Note whether the lines show there too (they may not: that list comes from elsewhere) |
+| 8 | Quit. Back in VS Code, **Remove** the People only line, Ctrl+S, **Pack and Play**, and look at Spike Prime (Legendary++) again in the game | Only Extra damage on the wounded |
+
+Then say what differed, and how the lines look beside the game's.
+
+| Run | Result |
+|---|---|
+
 
 ## H4.1 Try Live spike
 

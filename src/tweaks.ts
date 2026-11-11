@@ -169,6 +169,32 @@ function wheelIconOf(doc: QuickhackDoc): string | undefined {
   return doc.ownIcons?.wheel ? iconRecord(doc.id, "wheel") : doc.wheelIcon;
 }
 
+/**
+ * Feature lines (H3d): per line, a copy of the family's first tooltip line (a UI-only package and its UI
+ * data, so the icon matches) with the modder's text, plain as H4.1's spike showed works. Answers the
+ * packages each tier's item gets: a tier gets the lines that start at it or below.
+ */
+function featureLines(out: Out, fam: Family, doc: QuickhackDoc): Map<Tier, string[]> {
+  const byTier = new Map<Tier, string[]>();
+  const lines = (doc.lines ?? []).filter((l) => l.text.trim());
+  if (!lines.length) return byTier;
+  const base = fam.tiers.find((t) => t.lineBase)?.lineBase;
+  if (!base) {
+    out.warnings.push(`${fam.name}'s items have no tooltip line to copy, so the feature lines were left out.`);
+    return byTier;
+  }
+  const ranked = [...fam.tiers].filter((t) => t.item).sort((a, b) => a.rank - b.rank);
+  lines.forEach((line, i) => {
+    const glp = `${out.prefix}.Line${i + 1}`;
+    out.records.push(`${glp}_UI:\n  $base: ${base.ui}\n  localizedDescription: ${JSON.stringify(line.text.trim())}\n  floatValues: []\n  intValues: []\n  nameValues: []\n  stats: []\n`);
+    out.records.push(`${glp}:\n  $base: ${base.glp}\n  UIData: ${glp}_UI\n  effectors: []\n  stats: []\n  statPools: []\n  items: []\n`);
+    const start = line.from ? ranked.findIndex((t) => tierKey(t) === line.from) : 0;
+    if (start < 0) out.warnings.push(`Feature line ${i + 1}: its tier is not one of ${fam.name}'s, so it shows from the first.`);
+    for (const t of ranked.slice(Math.max(start, 0))) byTier.set(t, [...(byTier.get(t) ?? []), glp]);
+  });
+  return byTier;
+}
+
 export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[] = [], sales?: Sales): WrittenTweaks {
   if (doc.newHack) return writeNewHack(fam, doc, added, sales);
   const out = new Out(`EDGEhack.${doc.id}`);
@@ -250,6 +276,7 @@ export function writeTweaks(fam: Family, doc: QuickhackDoc, added: ResolvedAdded
     if (!uis.length) out.warnings.push(`${fam.name}'s tiers apply no status effect with an icon of its own, so the status icon shows nowhere.`);
   }
   out.records.unshift(...iconRecords(doc));
+  for (const [t, glps] of featureLines(out, fam, doc)) out.appendAll(`${t.item}.OnAttach`, glps);
 
   if (!out.records.length && !out.changes.length) return { texts, warnings: out.warnings };
   const yaml = [`# Made by EDGEhack from ${doc.id}.quickhack.json. Change that document, not this file: saving it writes this again.\n`, ...out.records, ...out.changes].join("\n");
@@ -529,6 +556,7 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sa
   if (doc.cooldown !== undefined && !cooldowns.size) out.warnings.push(`${fam.name} has no cooldown to change.`);
 
   const actions = fam.tiers.map((t) => ({ rank: t.rank, path: newActionPath(doc, t) }));
+  const lines = featureLines(out, fam, doc);
   for (const t of fam.tiers) {
     const edit = doc.tiers[t.item ?? t.action] ?? {};
     const label = tierName(t);
@@ -613,6 +641,8 @@ function writeNewHack(fam: Family, doc: QuickhackDoc, added: ResolvedAdded[], sa
         iconPath: itemIconOf(doc)?.replace(/^UIIcon\./, ""),
         shardType: name,
         objectActions: [...t.lists.objectActions.filter((a) => !/^QuickHack\./.test(a)), ...actions.filter((a) => a.rank <= t.rank).map((a) => a.path)],
+        // Its feature lines after the game's (H3d), from their tiers up.
+        OnAttach: lines.get(t)?.length ? [...t.lists.onAttach, ...(lines.get(t) ?? [])] : undefined,
         CraftingData: craftingData,
       }),
     );

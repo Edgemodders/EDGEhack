@@ -1,7 +1,7 @@
 // The quickhack editor's HTML, pure (no VS Code): the document's values in inputs, the game's beside
 // them, and below them the read-only panels of what the game has. Each input names what it sets; the
 // page's script (media/editor.js) sends the changes to the host, which edits the document.
-import type { IconLook, QuickhackDoc, TierField } from "./document";
+import { LINE_MAX, type IconLook, type QuickhackDoc, type TierField } from "./document";
 import { DEFAULT_DISABLED_TEXT, ScriptFunction } from "./scripts";
 import { LOOKS } from "./ownIcons";
 import { PROMPTS, WORDS } from "./iconPrompts";
@@ -261,6 +261,23 @@ export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undef
 }
 
 /** The editor's page. `desk`: the document is on the Desk (H3.7), so it has no mod files and offers Add to Project. */
+/**
+ * Feature lines (H3d): the game's own tooltip lines of the top tier, read-only, then the modder's, each a
+ * text, the tier it shows from, and Remove; then Add a line.
+ */
+export function renderLines(fam: Family, doc: QuickhackDoc): string {
+  const ranked = [...fam.tiers].filter((t) => t.item).sort((a, b) => a.rank - b.rank);
+  const top = ranked[ranked.length - 1];
+  const game = top?.tooltip.length ? `<ul class="game-lines">${top.tooltip.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>` : "";
+  const own = (doc.lines ?? [])
+    .map((l, i) => {
+      const options = ranked.map((t, k) => `<option value="${esc(tierKey(t))}"${(l.from ?? tierKey(ranked[0])) === tierKey(t) ? " selected" : ""}>${esc(t.quality ?? `Tier ${k + 1}`)} and up</option>`).join("");
+      return `<li><input type="text" maxlength="${LINE_MAX}" data-line-text="${i}" placeholder="What it does, in a few words" value="${esc(l.text)}"> <select data-line-from="${i}" title="The tier it shows from: a tier's item lists the lines of the tiers below it too">${options}</select> <button data-line-remove="${i}" title="Takes the line away">Remove</button></li>`;
+    })
+    .join("");
+  return `${game}${own ? `<ul class="own-lines">${own}</ul>` : ""}<p><button data-line-add>Add a line</button></p>`;
+}
+
 /** What the Scripts section shows (H3c.3): worked out by the editor from the document and the file. */
 export interface ScriptsState {
   /** The document is in a project, so its script has a package to go in. */
@@ -344,6 +361,8 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
 <dt>Description</dt><dd><textarea rows="3" data-set="description" data-game="${esc(top.description ?? "")}" placeholder="${esc(top.description ?? "")}">${esc(doc.description ?? "")}</textarea></dd>
 <dt>Wheel text</dt><dd><textarea rows="2" data-set="wheelText" data-game="${esc(top.wheelDescription ?? "")}" placeholder="${esc(top.wheelDescription ?? "")}">${esc(doc.wheelText ?? "")}</textarea>
 <p class="foot">The game shows this only for a hack whose Hacking tab has no effects list.</p></dd>
+<dt>Feature lines</dt><dd><div data-lines>${renderLines(fam, doc)}</div>
+<p class="foot">Bullets of your own in the item's tooltip, after the game's (shown above them): say what a script or an added effect does. A line shows from its tier up, as the game's do.</p></dd>
 </dl>
 </div><div>
 <h2>Icons</h2>
@@ -387,7 +406,7 @@ ${rows}
 ${getIt}
 <section><h2>Scripts</h2>
 <div data-scripts>${renderScripts(scripts ?? { inProject: !desk, exists: false, functions: [] })}</div>
-<p class="foot">Its own logic, in JavaScript that REDnode runs in the game: needs REDnode 0.61.1 or later there. The script file is yours, in the mod's REDnode package, and Pack and Play installs it with the mod. A scan check shows the hack as "Checking..." for a second the first time V scans a person.</p>
+<p class="foot">Its own logic, in JavaScript that REDnode runs in the game: needs REDnode 0.61.1 or later there. Say what it does with a <b>Feature line</b> in Texts, so players see it on the item. The script file is yours, in the mod's REDnode package, and Pack and Play installs it with the mod. A scan check shows the hack as "Checking..." for a second the first time V scans a person.</p>
 </section>
 <h2 class="game">What the game has for this tier</h2>
 ${panels}

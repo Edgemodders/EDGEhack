@@ -248,7 +248,7 @@ Each phase ends with a hand test by the owner (and an in-game test where marked)
 | **H3 New and Effects** | Make a new quickhack from a family; Add Effect from other quickhacks and status effects (the sorted pool); attack features; Get it (crafting spec, vendor); the Desk | Hand test, and in the game: a new quickhack crafted or bought, with two added effects working on an enemy |
 | **H3b Own icons** | Each icon can be picked from the game, uploaded, or generated from a text prompt (see [Own icons](#own-icons-h3b)); the image goes into an atlas the mod ships | Hand test, and in the game: a new quickhack with its own icons in the inventory, on the wheel and on the target |
 | **H3c Scripts** | Two REDnode functions on a quickhack: a scan check (enabled or disabled per enemy) and on land (any logic). REDnode's `quickhacks` API, then the page's Scripts section (see [H3c Scripts: plan](#h3c-scripts-plan)). Its spike runs with H3's | Hand test, and in the game: a new quickhack disabled on the wrong enemy, with extra damage on land by the enemy's health |
-| **H3d Feature lines** | Proposed by the owner on 2026-11-11: bulleted lines of the modder's own in the item's tooltip, beside the game's, so a quickhack with a script can say what it does (see [H3d Feature lines: proposed](#h3d-feature-lines-proposed)) | Hand test, and in the game: the lines in the inventory's tooltip |
+| **H3d Feature lines** | Built in 0.0.28. Proposed by the owner on 2026-11-11: bulleted lines of the modder's own in the item's tooltip, beside the game's, so a quickhack with a script can say what it does (see [H3d Feature lines: proposed](#h3d-feature-lines-proposed)) | Hand test, and in the game: the lines in the inventory's tooltip |
 | **H4 Try Live and MCP** | Try Live through REDnode (after its spike and REDnode's editor channel work); the MCP server, running without VS Code, and Connect an Assistant, with tools for scripts and packing; EDGEchat's plugin and REDnode's attached servers as its two routes (see [MCP tools](#mcp-tools)) | Hand test and in-game test, with REDagent making a quickhack in the game |
 | **H5 Library** | Add to Library and the Library view (after EDGEbuilder agrees the `quickhack` kind) | Hand test |
 | **H6 First release** | 0.1.0 on the Marketplace, Open VSX, GitHub and Nexus Mods; the player guide; the README rule; the Nexus page. The owner chose on 2026-11-08 to release only after every phase above, as planned | The release gate: every hand test passed |
@@ -738,7 +738,7 @@ Checked: 129 unit tests (9 new in `test/scripts.test.ts`, one of them importing 
 
 A `canUse` that reads the game a lot is slower to answer than one using the snapshot, and the docs will say so.
 
-### H3d Feature lines: proposed
+### H3d Feature lines: proposed, then built
 
 Proposed by the owner on 2026-11-11: "When a modder adds a custom script, they would want to share those details through the quickhack's popup description card, where there is usually a short bulleted list of the main features of the quickhack." To agree, after H4.1's spike answers the open point.
 
@@ -751,6 +751,17 @@ Proposed by the owner on 2026-11-11: "When a modder adds a custom script, they w
 | The text | A key in the mod's `onscreens` file, as the other texts are; or plain text, if the spike shows it works without a LocKey |
 
 Unverified, for the spike and the test: a line from a plain text; whether a line shows in the scanner's **Hacking** tab too (that list comes from elsewhere, see [The player's line](#the-players-line-h2d-dropped)).
+
+**H3d built (2026-11-11), EDGEhack 0.0.28**, after H4.1's spike showed a line from plain text works (no icon shows on it, as on the game's own lines, the owner saw):
+
+| Part | Where | What |
+|---|---|---|
+| The document | `src/document.ts` | `lines: [{ text, from? }]`, plain text (folded to one line, `LINE_MAX` 160 characters), `from` the tier's item (missing: the first); `withLines` |
+| The reading | `src/read.ts` | A tier's `lists.onAttach`, and `lineBase`: its first tooltip line's package and UI data |
+| The records | `src/tweaks.ts` (`featureLines`) | Per line, `<prefix>.Line<n>_UI` (a copy of the family's line's UI data with the text) and `<prefix>.Line<n>` (a copy of its package, with no effectors, stats, stat pools or items). For a change to a game quickhack, appended to the `OnAttach` of the game's items from the line's tier up; for a new one, in its own items' `OnAttach` after the family's lines. An empty line writes nothing |
+| The page | `src/editorHtml.ts` (`renderLines`), `media/editor.js`, `src/editor.ts` | **Feature lines** in Texts: the top tier's own lines dimmed, then each line's text, its tier (**Common and up** and so on) and **Remove**; **Add a line** puts the cursor in a new box. The Scripts section's note points to it |
+
+Checked: 135 unit tests (6 new, `test/lines.test.ts`); the smoke test adds a line from Rare up through the page, saves, reads the records and the appends (none below Rare), and removes it (7 checks).
 
 ### H4 Try Live and MCP: plan
 

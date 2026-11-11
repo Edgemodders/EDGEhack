@@ -122,6 +122,38 @@ export interface QuickhackDoc {
    * and `onLand` REDnode runs in the game. `disabledText` is what a disabled hack says on the wheel.
    */
   scripts?: QuickhackScripts;
+  /**
+   * Feature lines (H3d): bullets of the modder's own in the item's tooltip, after the game's, from a tier
+   * up. Plain text: H4.1's spike showed a line needs no LocKey.
+   */
+  lines?: FeatureLine[];
+}
+
+export interface FeatureLine {
+  text: string;
+  /** The tier it shows from, by its item record (a tier lists the lines of the tiers below it). Missing: the first. */
+  from?: string;
+}
+
+/** The longest feature line, as the game's own run. */
+export const LINE_MAX = 160;
+
+/** A document with its feature lines changed: an empty list leaves the field out. */
+export function withLines(doc: QuickhackDoc, lines: FeatureLine[]): QuickhackDoc {
+  const { lines: _old, ...rest } = doc;
+  const clean = lines.map((l) => ({ text: l.text.replace(/\s+/g, " ").slice(0, LINE_MAX), ...(l.from ? { from: l.from } : {}) }));
+  return clean.length ? { ...rest, lines: clean } : rest;
+}
+
+function linesOf(v: unknown): FeatureLine[] | undefined {
+  if (v === undefined || v === null) return undefined;
+  if (!Array.isArray(v)) throw new Error("The feature lines must be a list.");
+  const lines = v.map((l, i) => {
+    const o = l as Record<string, unknown>;
+    if (!o || typeof o.text !== "string") throw new Error(`Feature line ${i + 1} needs a text.`);
+    return { text: o.text, ...(typeof o.from === "string" && o.from ? { from: o.from } : {}) };
+  });
+  return lines.length ? lines : undefined;
 }
 
 export interface QuickhackScripts {
@@ -316,6 +348,7 @@ export function parseDoc(source: string): QuickhackDoc {
     effects: addedEffects(o.effects),
     getIt: getItOf(o.getIt),
     scripts: scriptsOf(o.scripts),
+    lines: linesOf(o.lines),
   };
 }
 

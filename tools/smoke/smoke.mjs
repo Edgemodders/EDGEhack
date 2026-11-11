@@ -429,6 +429,35 @@ await run(editor, `document.querySelector("[data-pack]").click();`);
 for (let i = 0; i < 40 && fs.existsSync(mainFile); i++) await sleep(250);
 check(docOf().scripts === undefined && !fs.existsSync(mainFile) && !fs.existsSync(manifestFile) && fs.existsSync(scriptFile), "Remove takes the script off: EDGEhack's files go, the script file stays");
 
+// Feature lines (H3d): Add a line gives a focused box; its text and tier go into the document; a save writes
+// the line's records and appends it to the items from its tier up; Remove takes it away.
+const linesHtml = () => run(editor, `return document.querySelector("[data-lines]").innerHTML;`);
+check(/data-line-add/.test(await linesHtml()), "the Texts section has Feature lines with Add a line");
+await run(editor, `document.querySelector("[data-line-add]").click();`);
+for (let i = 0; i < 20 && !/data-line-text="0"/.test(await linesHtml()); i++) await sleep(150);
+check(await run(editor, `return document.activeElement?.dataset?.lineText === "0";`), "Add a line gives a new box, with the focus in it");
+await run(
+  editor,
+  `const t = document.querySelector('[data-line-text="0"]'); t.value = "Burns the wounded"; t.dispatchEvent(new Event("change", { bubbles: true })); t.blur();
+   const f = document.querySelector('[data-line-from="0"]'); f.value = "Items.OverheatLvl2Program"; f.dispatchEvent(new Event("change", { bubbles: true }));`,
+);
+await sleep(700);
+fs.rmSync(path.join(T, "packed.json"), { force: true });
+await run(editor, `document.querySelector("[data-pack]").click();`);
+for (let i = 0; i < 40 && !/Line1_UI/.test(fs.existsSync(yamlFile) ? fs.readFileSync(yamlFile, "utf8") : ""); i++) await sleep(250);
+const linesYaml = fs.existsSync(yamlFile) ? fs.readFileSync(yamlFile, "utf8") : "";
+check(JSON.stringify(docOf().lines) === JSON.stringify([{ text: "Burns the wounded", from: "Items.OverheatLvl2Program" }]), `the document has the line and its tier: ${JSON.stringify(docOf().lines)}`);
+check(/Line1_UI:\n  \$base: EquipmentGLP\.[A-Za-z0-9_]+\n  localizedDescription: "Burns the wounded"/.test(linesYaml), "a save writes the line's UI data, a copy of Overheat's own line, with its text");
+check(/Items\.OverheatLvl2Program\.OnAttach:\n  - !append EDGEhack\.smokemod_overheat\.Line1/.test(linesYaml) && !/Items\.OverheatLvl1Program\.OnAttach/.test(linesYaml), "and appends it from Rare up, not below");
+await run(editor, `const b = document.querySelector('[data-line-remove="0"]'); b.focus(); b.click();`);
+for (let i = 0; i < 20 && /data-line-text/.test(await linesHtml()); i++) await sleep(150);
+check(!/data-line-text/.test(await linesHtml()), "Remove takes the line away at once");
+await sleep(500);
+fs.rmSync(path.join(T, "packed.json"), { force: true });
+await run(editor, `document.querySelector("[data-pack]").click();`);
+for (let i = 0; i < 40 && /Line1/.test(fs.existsSync(yamlFile) ? fs.readFileSync(yamlFile, "utf8") : ""); i++) await sleep(250);
+check(docOf().lines === undefined && !/Line1/.test(fs.existsSync(yamlFile) ? fs.readFileSync(yamlFile, "utf8") : ""), "and the next save takes its records out");
+
 // Back to the game's value: no change, no modifier.
 await setInput(editor, RAM, "6");
 await sleep(400);

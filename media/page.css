@@ -32,6 +32,11 @@ table.scripts th, table.scripts td { border-bottom: 1px solid var(--line); paddi
 table.scripts th { font-weight: normal; white-space: nowrap; }
 table.scripts td:nth-child(2) { color: var(--dim); }
 [data-scripts] .bad { color: var(--vscode-errorForeground); }
+/* Feature lines (H3d): the game's lines read-only, then the modder's, each a row. */
+[data-lines] ul { margin: 0 0 6px; padding-left: 18px; }
+[data-lines] ul.game-lines li { color: var(--dim); }
+[data-lines] ul.own-lines li { margin: 4px 0; }
+[data-lines] input[data-line-text] { width: 60%; }
 .scaled { border-bottom: 1px dotted var(--dim); cursor: help; }
 .scaled sup, .foot sup { color: var(--cyan); }
 .foot { color: var(--dim); font-size: .85em; }
