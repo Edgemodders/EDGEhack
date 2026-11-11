@@ -67,6 +67,7 @@ Then quit the game without saving and say what you noted. I read REDnode's logs.
 
 | Run | Result |
 |---|---|
+| 2026-11-11, by the owner, on the laptop, REDnode 0.61.1 | **Partly run, steps 1 to 8.** Step 2: the RAM cost went up on the next scan with nothing else, so a change to an equipped hack's action shows at once. Step 5: burning and poisoned (after **Refresh list**), so an added effect works live. Step 7: TweakXL's reload is callable through REDnode, answered nothing (it returns nothing) in 1.9 s (whether it re-read the tweaks is unverified). Steps 6 and 8 failed: REDnode's `tweakdb.set` could not write a text key (`displayName`, a `gamedataLocKeyWrapper`: "cannot be set from JSON yet"), so the name stayed Overheat and New stopped after its clones. **REDnode 0.61.2 takes text keys**; steps 6, 6b and 8 to 10 again with it |
 
 
 ## H3c.4 Together
