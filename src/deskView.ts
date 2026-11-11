@@ -1,6 +1,7 @@
 // The Desk view (H3.7): the quickhacks on the Desk, newest first, then a Project group with the open REDcode
 // project's quickhacks (docs/design.md, "Views"). A click opens the editor. Each Desk quickhack has Add to
-// Project and Remove; a new one also Duplicate. Add to Library waits for the Library (H5).
+// Project, Add to Library and Remove; a new one also Duplicate. A project quickhack whose EDGE Library item
+// is newer than the project took is marked, with Refresh from Library (H5).
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -10,8 +11,9 @@ import { ProjectDoc, projectDocs } from "./projectDocs";
 import { redcode } from "./redcode";
 import type { ProjectRef } from "./types";
 import { docTreeItem } from "./quickhacksView";
+import { newerInLibrary, readLibraryRoot } from "./library";
 
-type Node = { kind: "desk"; item: DeskItem } | { kind: "project"; name: string; docs: ProjectDoc[] } | { kind: "doc"; entry: ProjectDoc };
+type Node = { kind: "desk"; item: DeskItem } | { kind: "project"; name: string; docs: ProjectDoc[]; newer: Map<string, { from?: number; to: number }> } | { kind: "doc"; entry: ProjectDoc; newer?: { from?: number; to: number } };
 
 export class DeskView implements vscode.TreeDataProvider<Node> {
   private readonly changed = new vscode.EventEmitter<Node | undefined>();
@@ -62,7 +64,7 @@ export class DeskView implements vscode.TreeDataProvider<Node> {
   }
 
   async getChildren(node?: Node): Promise<Node[]> {
-    if (node?.kind === "project") return node.docs.map((entry) => ({ kind: "doc", entry }));
+    if (node?.kind === "project") return node.docs.map((entry) => ({ kind: "doc", entry, newer: node.newer.get(path.resolve(entry.file)) }));
     if (node) return [];
     const out: Node[] = deskItems().map((item) => ({ kind: "desk", item }));
     let project: ProjectRef | undefined;
@@ -73,7 +75,10 @@ export class DeskView implements vscode.TreeDataProvider<Node> {
     }
     if (project) {
       const docs = projectDocs(project);
-      if (docs.length) out.push({ kind: "project", name: project.name, docs });
+      const root = readLibraryRoot();
+      const newer = new Map<string, { from?: number; to: number }>();
+      if (root) for (const n of newerInLibrary(project, root)) newer.set(path.resolve(n.file), { from: n.entry.version, to: n.item.asset.version });
+      if (docs.length) out.push({ kind: "project", name: project.name, docs, newer });
     }
     // Empty, the view shows its welcome text.
     return out;
@@ -86,7 +91,15 @@ export class DeskView implements vscode.TreeDataProvider<Node> {
       item.iconPath = new vscode.ThemeIcon("project");
       return item;
     }
-    if (node.kind === "doc") return docTreeItem(this.hub, node.entry, "desk-pdoc:", "edgehack.doc");
+    if (node.kind === "doc") {
+      const item = await docTreeItem(this.hub, node.entry, "desk-pdoc:", "edgehack.doc");
+      if (node.newer) {
+        item.description = `${item.description ?? ""} · newer in the Library (v${node.newer.to})`;
+        item.tooltip = `${item.tooltip ?? ""}\nThe EDGE Library has version ${node.newer.to}; this project took ${node.newer.from ?? "an older one"}. Refresh from Library takes it again.`;
+        item.contextValue = `${item.contextValue}.newer`;
+      }
+      return item;
+    }
     const item = await docTreeItem(this.hub, node.item, "desk:", "edgehack.desk");
     item.tooltip = `${item.tooltip ?? ""}\nOn the Desk: no mod files until it goes into a project.`;
     return item;

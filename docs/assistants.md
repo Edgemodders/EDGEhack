@@ -20,10 +20,10 @@ The server works in the project of the folder it starts in. A call can name anot
 
 | Tool | What it does | Asks first |
 |---|---|---|
-| `hack_find` | Searches the game's quickhacks, and the quickhack documents in the project and on the Desk | No |
+| `hack_find` | Searches the game's quickhacks, and the quickhack documents in the project, on the Desk and in the EDGE Library | No |
 | `hack_describe` | A game quickhack's tiers in plain words (RAM, upload, damage, duration, effects), or a document with what it changes, its warnings and its script | No |
 | `hack_effects` | The status effects it can add, another quickhack's own effects, and what EDGEhack builds: damage over time, a stat change, a chance to apply | No |
-| `hack_new` | A new quickhack from a game family (Clone and Modify), a document for changes to a family, or a Desk quickhack added to the project | Yes |
+| `hack_new` | A new quickhack from a game family (Clone and Modify), a document for changes to a family, or a Desk or Library quickhack added to the project | Yes |
 | `hack_edit` | Changes a document, as the editor's page does: costs per tier or on every tier, texts, icons, cooldown, added effects, Get it, feature lines. Writes the mod files | Yes |
 | `hack_script` | Writes a quickhack's scan check (`canUse`) or on-land function (`onLand`), which REDnode runs in the game | Yes |
 | `hack_pack` | Packs the project into its packed folder, as REDcode's Pack does. It does not install the mod | Yes |

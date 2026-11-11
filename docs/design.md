@@ -884,6 +884,19 @@ The hand test: a Desk quickhack added to a new Library (the root asked, a folder
 | Assistants adding to the Library? | Not in H5: they list it and take from it. The folders are the modder's |
 | Remove from Library | To the Recycle Bin, after asking; a project that took it keeps its copy |
 
+**H5 built (2026-11-11), EDGEhack 0.0.31, with H5.0:**
+
+| Part | Where | What |
+|---|---|---|
+| The Library | `src/library.ts` (no VS Code) | The root (`%APPDATA%\EDGE\library.json`; `EDGE_LIBRARY_CONFIG` for tests), the modder's folders and `safeFolder`, after REDcode's `library.ts`. `libraryItems` walks the root for `*.quickhack.asset` (other kinds and bakes passed over); `addToLibrary` copies a document and its own icons as an item, keeping the asset id it came with (a Desk item's, or a project's came-from note's) and replacing an item with that id where it is, version raised, only when asked; `projectFreeId` takes a project's mod name off the document's id; `savedInLibrary` raises the version at each save. The came-from note (`source/library.json`, after EDGEbuilder's `bake.ts`): `noteQuickhack` writes EDGEhack's entry and keeps the others; `libraryToProject` is Add to Project; `newerInLibrary` finds a project's quickhacks with a newer Library version, by id, then path |
+| The Desk | `src/desk.ts` | `deskAsset` reads a Desk item's `asset.json`; `deskCopy` is Copy to the Desk, with the Library item's asset id |
+| The editor | `src/editor.ts`, `src/editorHtml.ts` | A Library document is outside any project, as a Desk one (`placeOfFile`): its page offers Add to Project and says it is in the Library; a save raises its version and writes no mod files; Add to Project from it writes the came-from note and asks before replacing the project's copy |
+| The Library view | `src/libraryView.ts` | The folders that hold quickhacks and the way to them, each item with its family's icon and version. Follows the root's file and the root |
+| The commands | `src/libraryCommands.ts` | Add to Library (Desk rows, inline and in the menu; the Project group's rows), with the root asked the first time and the folder picker (last folder first, New Folder...); Open, Add to Project, Copy to the Desk, Reveal in File Explorer, Remove from Library (Recycle Bin, after asking); Refresh from Library on a Project row marked newer. Script arguments for the smoke test, as the Desk's |
+| Assistants | `src/tools.ts`, the server's text | `placeOf` knows a Library document; `hack_find` lists the Library's quickhacks with their version and folder; `hack_edit` on one raises its version; `hack_new` with `desk_file` a Library document adds it to a project with the came-from note |
+
+Checked: 184 unit tests (10 new: `test/library.test.ts` and the tools' Library paths); the smoke test's 147 checks (12 new: Add to Library into a folder, Add to Project with the note, a save in the Library raising its version and marking the project's copy, the Library view's rows, Refresh from Library, adding the Desk's copy again, Copy to the Desk, Remove from Library); the MCP client check's 33. A row's accessible label in a VS Code tree is its tooltip, so the smoke test checks the marks there. [EDGEbuilder #5](https://github.com/Edgemodders/EDGEbuilder/issues/5) is done (EDGEbuilder 7d8b1a1, the wiki 8beaf1a); closing it is the owner's.
+
 ## In-game add-on: the Netrunner bench (proposed)
 
 The owner's idea of 2026-11-10: quickhack crafting in the game, on the crafting screen's quickhack tab, whose middle panel is empty but for a placeholder picture. A REDnode app, released on its own, that reuses EDGEhack's parts. Not scheduled; its place in the order is to be agreed.

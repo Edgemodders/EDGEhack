@@ -200,3 +200,34 @@ export function writeToProject(place: ProjectPlace, from?: { file: string; id: s
   fs.writeFileSync(place.file, printDoc(place.doc));
   if (from) copyOwnIcons(from.file, from.id, place.file, place.doc.id);
 }
+
+/** A Desk item's asset.json, for Add to Library (H5): its id is the Library item's. */
+export function deskAsset(item: Pick<DeskItem, "folder">): DeskAsset | undefined {
+  try {
+    const a = JSON.parse(fs.readFileSync(path.join(item.folder, "asset.json"), "utf8")) as DeskAsset;
+    return typeof a.id === "string" ? a : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Copy to the Desk from the Library (H5): the item's document and own icons, with the item's asset id, so
+ * Add to Library from the Desk later updates that item. A Desk copy already there is replaced only with
+ * `replace`; without it, `exists` names it.
+ */
+export function deskCopy(root: string, from: { file: string; doc: QuickhackDoc; asset: { id: string; name: string; version: number } }, opts: { replace?: boolean } = {}): { item?: DeskItem; exists?: DeskItem } {
+  const folder = folderOf(root, from.doc.id);
+  if (fs.existsSync(folder)) {
+    const there = deskItems(root).find((i) => i.folder === folder);
+    if (!opts.replace) return { exists: there ?? { folder, file: path.join(folder, main(from.doc.id)), modified: 0 } };
+    fs.rmSync(path.join(folder, "source"), { recursive: true, force: true });
+  }
+  const file = path.join(folder, main(from.doc.id));
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const asset: DeskAsset = { format: 1, id: from.asset.id, name: from.asset.name, kind: "quickhack", main: main(from.doc.id).split(path.sep).join("/"), version: from.asset.version };
+  fs.writeFileSync(path.join(folder, "asset.json"), `${JSON.stringify(asset, null, 2)}\n`);
+  fs.writeFileSync(file, printDoc(from.doc));
+  copyOwnIcons(from.file, from.doc.id, file, from.doc.id);
+  return { item: { folder, file, modified: fs.statSync(file).mtimeMs, doc: from.doc } };
+}

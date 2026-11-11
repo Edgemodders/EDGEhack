@@ -36,10 +36,10 @@ Inside the game, REDnode starts the server for its own assistants and gives it t
 
 | Tool | What it does | Asks first |
 |---|---|---|
-| `hack_find` | Searches the game's quickhacks and the documents in the project and on the Desk | No |
+| `hack_find` | Searches the game's quickhacks and the documents in the project, on the Desk and in the EDGE Library | No |
 | `hack_describe` | A game quickhack's tiers in plain words, or a document with what it changes | No |
 | `hack_effects` | The status effects to add, another quickhack's effects, and what EDGEhack can build | No |
-| `hack_new` | A new quickhack from a game family, a document for changes to a family, or a Desk quickhack added to the project | Yes |
+| `hack_new` | A new quickhack from a game family, a document for changes to a family, or a Desk or Library quickhack added to the project | Yes |
 | `hack_edit` | Changes a document (costs, texts, icons, cooldown, effects, Get it, feature lines) and writes its mod files | Yes |
 | `hack_script` | Writes a quickhack's scan check or on-land function, run by REDnode in the game | Yes |
 | `hack_pack` | Packs the project into its packed folder | Yes |

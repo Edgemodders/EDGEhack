@@ -12,6 +12,8 @@ import { liveLimits, stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem } from "./projectDocs";
 import { saveDocFiles } from "./save";
+import { itemOfFile, libraryToProject, readLibraryRoot, savedInLibrary, type LibraryItem } from "./library";
+import type { ProjectRef } from "./types";
 import { applyToAll } from "./edits";
 import { addFunction, exportsOf, functionStub, lineOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
 import { addedIcons, gameValue, renderAddedEffects, renderEditor, renderGetIt, renderLines, renderScripts, type ScriptsState } from "./editorHtml";
@@ -27,6 +29,12 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 export const EditorViewType = "edgehack.quickhack.editor";
+
+/** Where a document is: on the Desk, in the EDGE Library (H5), or neither (a project, or a file elsewhere). */
+export function placeOfFile(file: string): "desk" | "library" | undefined {
+  if (onDesk(file)) return "desk";
+  return itemOfFile(readLibraryRoot(), file) ? "library" : undefined;
+}
 
 export class QuickhackEditor implements vscode.CustomTextEditorProvider {
   private readonly panels = new Map<string, Set<vscode.WebviewPanel>>();
@@ -104,6 +112,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
 
   /** Called when the Desk's folders change, so its view can follow. */
   onDeskChanged?: () => void;
+  /** Called when a Library item changes, so the Library view and the Project group's marks can follow. */
+  onLibraryChanged?: () => void;
 
   private async makeOnDesk(key: string, given?: string): Promise<string | undefined> {
     const root = deskRoot();
@@ -141,6 +151,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     if (open?.isDirty) await open.save();
     const doc = parseDoc(fs.readFileSync(file, "utf8"));
     const catalog = await this.hub.catalog();
+    const root = readLibraryRoot();
+    const item = itemOfFile(root, file);
+    if (item && root) return this.libraryToProject(project, item, catalog.families.map((f) => f.key), root);
     const place = projectPlace(project, catalog.families.map((f) => f.key), doc);
     const shown = doc.name || catalog.families.find((f) => f.key === doc.family)?.name || doc.family;
     if (place.replaces) {
@@ -167,6 +180,40 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     return place.file;
   }
 
+  /**
+   * Add to Project from the EDGE Library (H5): the item's document under the project's ids, with the
+   * came-from note, its mod files written, and the project's copy opened. A project that has it already
+   * gets it again after asking (Refresh from Library is the same). Returns the project's file.
+   */
+  async libraryToProject(project: ProjectRef, item: LibraryItem, familyKeys: string[], root: string, confirmed = false): Promise<string | undefined> {
+    let r = libraryToProject(project, item, familyKeys, root);
+    const shown = item.asset.name;
+    if (!r.added) {
+      if (!confirmed) {
+        const choice = await vscode.window.showWarningMessage(
+          `${project.name} already has ${shown}. Replace it with the Library's version ${item.asset.version}?`,
+          { modal: true, detail: "Changes made to it in the project since are lost." },
+          "Replace",
+        );
+        if (choice !== "Replace") return undefined;
+      }
+      const there = vscode.workspace.textDocuments.find((d) => d.uri.fsPath === vscode.Uri.file(r.file).fsPath);
+      if (there?.isDirty) await vscode.commands.executeCommand("workbench.action.revertFile", there.uri);
+      r = libraryToProject(project, item, familyKeys, root, { replace: true });
+    }
+    this.hub.log.appendLine(`Added ${shown} (version ${item.asset.version}) from the Library to ${project.name}: ${r.file}`);
+    try {
+      const result = await saveDocFiles(this.hub, project, r.doc, await iconWriter());
+      this.hub.log.appendLine(`Wrote ${r.doc.id}: ${result.yaml ?? "no YAML"}`);
+      announceCreated(project.dir, result.created);
+    } catch (e) {
+      void vscode.window.showErrorMessage(`EDGEhack added the document to the project, but not its mod files: ${message(e)} Change something and save to try again.`);
+    }
+    this.onLibraryChanged?.();
+    await vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(r.file), EditorViewType);
+    return r.file;
+  }
+
   async resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): Promise<void> {
     const w = panel.webview;
     w.options = {
@@ -179,7 +226,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     shown.add(panel);
     this.panels.set(document.uri.toString(), shown);
     w.html = this.shell(w, `<p class="loading">Reading the quickhack from the game…</p>`);
-    const desk = onDesk(document.fileName);
+    const place = placeOfFile(document.fileName);
+    const desk: boolean | "library" = place === "library" ? "library" : place === "desk";
 
     let doc: QuickhackDoc;
     let fam: Family;
@@ -474,7 +522,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
           }
           if (m.scriptAdd || m.scriptOpen) {
             const project = (await redcode()).project();
-            if (!project || onDesk(document.fileName) || !isInside(document.fileName, project.dir)) throw new Error("Its script goes in a project's REDnode package: add the quickhack to a project first.");
+            if (!project || placeOfFile(document.fileName) || !isInside(document.fileName, project.dir)) throw new Error("Its script goes in a project's REDnode package: add the quickhack to a project first.");
             const doc = current();
             const file = path.join(packageDir(project), doc.scripts?.file ?? scriptFileName(doc));
             const fn = (m.scriptAdd ?? m.scriptOpen) as ScriptFunction;
@@ -545,6 +593,13 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         say("Saved on the Desk. Add to Project writes its mod files into a project.");
         return;
       }
+      const root = readLibraryRoot();
+      const inLibrary = root ? savedInLibrary(root, document.fileName, doc.name) : undefined;
+      if (inLibrary) {
+        this.onLibraryChanged?.();
+        say(`Saved in the EDGE Library, version ${inLibrary.asset.version}. Add to Project writes its mod files into a project; projects that took it can refresh from it.`);
+        return;
+      }
       const project = (await redcode()).project();
       if (!project || !isInside(document.fileName, project.dir)) {
         say("Saved, but this document is not in the project open in REDcode, so no mod files were written.", true);
@@ -568,7 +623,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
 
   /** What the Scripts section shows for a document (H3c.3): its file in the project's REDnode package, and what it exports. */
   private async scriptsState(document: vscode.TextDocument, doc: QuickhackDoc): Promise<ScriptsState> {
-    const project = onDesk(document.fileName) ? undefined : (await redcode()).project();
+    const project = placeOfFile(document.fileName) ? undefined : (await redcode()).project();
     if (!project || !isInside(document.fileName, project.dir)) return { inProject: false, exists: false, functions: [] };
     if (!doc.scripts) return { inProject: true, exists: false, functions: [] };
     const file = path.join(packageDir(project), doc.scripts.file);

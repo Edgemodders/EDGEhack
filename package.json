@@ -71,7 +71,7 @@
       },
       {
         "view": "edgehack.library",
-        "contents": "Quickhacks in your EDGE Library. Coming in H5."
+        "contents": "Quickhacks you keep for good wait here, in the EDGE Library: one folder of your own that every EDGE tool shares.\nAdd to Library on a quickhack in the Desk view puts one here. The first time, it asks where the Library goes.\n[About the EDGE Library](https://edgemodders.ai/wiki/library.html)"
       }
     ],
     "commands": [
@@ -162,6 +162,52 @@
         "command": "edgehack.clearOpenAIKey",
         "title": "Clear the OpenAI Key...",
         "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.library.add",
+        "title": "Add to Library",
+        "category": "EDGEhack",
+        "icon": "$(library)"
+      },
+      {
+        "command": "edgehack.library.addToProject",
+        "title": "Add to Project",
+        "category": "EDGEhack",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "edgehack.library.copyToDesk",
+        "title": "Copy to the Desk",
+        "category": "EDGEhack",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "edgehack.library.reveal",
+        "title": "Reveal in File Explorer",
+        "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.library.remove",
+        "title": "Remove from Library",
+        "category": "EDGEhack",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "edgehack.library.refresh",
+        "title": "Refresh",
+        "category": "EDGEhack",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "edgehack.project.refreshFromLibrary",
+        "title": "Refresh from Library",
+        "category": "EDGEhack",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "edgehack.library.open",
+        "title": "Open",
+        "category": "EDGEhack"
       }
     ],
     "configuration": {
@@ -211,6 +257,11 @@
           "command": "edgehack.connectAssistant",
           "when": "view == edgehack.desk",
           "group": "z_assistant@1"
+        },
+        {
+          "command": "edgehack.library.refresh",
+          "when": "view == edgehack.library",
+          "group": "navigation@1"
         }
       ],
       "view/item/context": [
@@ -263,6 +314,61 @@
           "command": "edgehack.project.remove",
           "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.doc\\./",
           "group": "z@9"
+        },
+        {
+          "command": "edgehack.library.add",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\.(new|change)$/",
+          "group": "inline@2"
+        },
+        {
+          "command": "edgehack.library.add",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.desk\\.(new|change)$/",
+          "group": "navigation@3"
+        },
+        {
+          "command": "edgehack.library.add",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.doc\\.(new|change)/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "edgehack.project.refreshFromLibrary",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.doc\\..*\\.newer$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "edgehack.project.refreshFromLibrary",
+          "when": "view == edgehack.desk && viewItem =~ /^edgehack\\.doc\\..*\\.newer$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "edgehack.library.addToProject",
+          "when": "view == edgehack.library && viewItem =~ /^edgehack\\.library\\.(new|change)$/",
+          "group": "inline@1"
+        },
+        {
+          "command": "edgehack.library.addToProject",
+          "when": "view == edgehack.library && viewItem =~ /^edgehack\\.library\\.(new|change)$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "edgehack.library.copyToDesk",
+          "when": "view == edgehack.library && viewItem =~ /^edgehack\\.library\\.(new|change)$/",
+          "group": "navigation@2"
+        },
+        {
+          "command": "edgehack.library.reveal",
+          "when": "view == edgehack.library && viewItem =~ /^edgehack\\.library\\./",
+          "group": "navigation@3"
+        },
+        {
+          "command": "edgehack.library.remove",
+          "when": "view == edgehack.library && viewItem =~ /^edgehack\\.library\\./",
+          "group": "inline@9"
+        },
+        {
+          "command": "edgehack.library.remove",
+          "when": "view == edgehack.library && viewItem =~ /^edgehack\\.library\\./",
+          "group": "z@9"
         }
       ],
       "commandPalette": [
@@ -300,6 +406,34 @@
         },
         {
           "command": "edgehack.project.remove",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.library.add",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.library.addToProject",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.library.copyToDesk",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.library.reveal",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.library.remove",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.project.refreshFromLibrary",
+          "when": "false"
+        },
+        {
+          "command": "edgehack.library.open",
           "when": "false"
         }
       ]

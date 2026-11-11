@@ -12,6 +12,7 @@ How to keep it (the Edgemodders convention):
 
 **New**
 
+- **The EDGE Library:** keep quickhacks for good, in folders of your own, in the Library every EDGE tool shares (`Documents\EDGE Library` by default). **Add to Library** on a Desk quickhack or a project's; the **Library** view lists them with their versions, and opens, adds to a project, copies to the Desk, reveals or removes them. A Library quickhack is edited in place, each save raising its version; a project that took it shows it as newer in the Library, and **Refresh from Library** takes the new version. Assistants find Library quickhacks and add them to a project.
 - **Assistants:** EDGEhack has an MCP server, so an AI assistant such as Claude Code can make and change quickhacks with you: find and read the game's, make new ones, change their costs, texts and effects, write their scripts, pack the mod and try it live in the running game. **EDGEhack: Connect an Assistant (MCP)...** (in the Desk view's **...** menu) registers it with Claude Code; VS Code's own agents see it without that. Claude Code asks you before every change. Docs: https://edgemodders.github.io/EDGEhack/assistants.html
 
 **Fixed**

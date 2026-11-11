@@ -20,6 +20,7 @@ import { addFunction, exportsOf, packageDir, scriptFileName, type ScriptFunction
 import { liveLimits, stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { newItemPath, writeTweaks } from "./tweaks";
 import type { ProjectRef } from "./types";
+import { itemOfFile, libraryItems, libraryToProject, readLibraryRoot, savedInLibrary, type LibraryItem } from "./library";
 
 export interface ToolHost {
   core: HackCore;
@@ -27,24 +28,34 @@ export interface ToolHost {
   project(given?: string): ProjectRef | undefined;
   /** The Desk's folder. */
   desk: string;
+  /** The EDGE Library's root (H5), or undefined when there is none; the shared file's by default. */
+  library?(): string | undefined;
 }
+
+const libraryRoot = (host: ToolHost): string | undefined => (host.library ? host.library() : readLibraryRoot());
+
+/** A document's place, in words: on the Desk, in the EDGE Library, or in a project. */
+type Place = { doc: QuickhackDoc; file: string; project?: ProjectRef; desk: boolean; library?: LibraryItem };
+const whereOf = (p: Place): "desk" | "library" | "project" => (p.library ? "library" : p.desk ? "desk" : "project");
 
 const words = (q: string | undefined) => (q ?? "").toLowerCase().split(/\s+/).filter(Boolean);
 const matches = (ws: string[], ...texts: (string | undefined)[]) => ws.every((w) => texts.some((t) => t?.toLowerCase().includes(w)));
 const num = (n: number | undefined) => (n === undefined || !Number.isFinite(n) ? undefined : Math.round(n * 100) / 100);
 
-/** Where a document lives: on the Desk, or in the project whose folder holds it. */
-export function placeOf(host: ToolHost, file: string): { doc: QuickhackDoc; file: string; project?: ProjectRef; desk: boolean } {
+/** Where a document lives: on the Desk, in the EDGE Library, or in the project whose folder holds it. Desk and Library documents have no project (`desk`). */
+export function placeOf(host: ToolHost, file: string): Place {
   const full = path.resolve(file);
   if (!full.endsWith(".quickhack.json")) throw new Error(`${file} is not a quickhack document (a .quickhack.json file). hack_find lists them.`);
   if (!fs.existsSync(full)) throw new Error(`There is no ${full}. hack_find lists the documents there are.`);
   const doc = parseDoc(fs.readFileSync(full, "utf8"));
   if (onDesk(full, host.desk)) return { doc, file: full, desk: true };
+  const item = itemOfFile(libraryRoot(host), full);
+  if (item) return { doc, file: full, desk: true, library: item };
   for (let dir = path.dirname(full); ; dir = path.dirname(dir)) {
     if (fs.readdirSync(dir).some((e) => e.toLowerCase().endsWith(".cpmodproj"))) return { doc, file: full, project: projectAt(dir), desk: false };
     if (path.dirname(dir) === dir) break;
   }
-  throw new Error(`${full} is neither on EDGEhack's Desk nor in a WolvenKit project.`);
+  throw new Error(`${full} is not on EDGEhack's Desk, in the EDGE Library or in a WolvenKit project.`);
 }
 
 const needProject = (host: ToolHost, given: string | undefined, what: string): ProjectRef => {
@@ -53,7 +64,7 @@ const needProject = (host: ToolHost, given: string | undefined, what: string): P
   return p;
 };
 
-const docRow = (d: { file: string; doc?: QuickhackDoc; error?: string }, where: "project" | "desk") =>
+const docRow = (d: { file: string; doc?: QuickhackDoc; error?: string }, where: "project" | "desk" | "library") =>
   d.doc ? { file: d.file, where, id: d.doc.id, name: d.doc.name, family: d.doc.family, newHack: !!d.doc.newHack } : { file: d.file, where, error: d.error };
 
 /** hack_find: the game's quickhacks and the documents in the project and on the Desk whose names match every word. */
@@ -70,6 +81,10 @@ export async function findHacks(host: ToolHost, a: { query?: string; project?: s
   const docs = [
     ...(project ? projectDocs(project).map((d) => docRow(d, "project")) : []),
     ...deskItems(host.desk).map((d) => docRow(d, "desk")),
+    ...(() => {
+      const root = libraryRoot(host);
+      return root ? libraryItems(root).map((i) => ({ ...docRow(i, "library"), name: i.asset.name, version: i.asset.version, folder: i.place })) : [];
+    })(),
   ].filter((d) => !ws.length || matches(ws, "name" in d ? d.name : undefined, "family" in d ? d.family : undefined, "family" in d && d.family ? familyName(d.family) : undefined, "id" in d ? d.id : undefined));
   return {
     game: game.slice(0, limit),
@@ -130,7 +145,7 @@ export async function describeHack(host: ToolHost, a: { key?: string; file?: str
       const f = path.join(packageDir(place.project), place.doc.scripts.file);
       script = { file: f, exists: fs.existsSync(f), exports: fs.existsSync(f) ? exportsOf(fs.readFileSync(f, "utf8")) : [] };
     }
-    return { file: place.file, where: place.desk ? "desk" : "project", project: place.project?.dir, document: place.doc, ...(await review(host, place.doc, fam)), script, family: familySummary(fam) };
+    return { file: place.file, where: whereOf(place), version: place.library?.asset.version, project: place.project?.dir, document: place.doc, ...(await review(host, place.doc, fam)), script, family: familySummary(fam) };
   }
   if (!a.key) throw new Error("Pass key (a quickhack from hack_find, such as Overheat) or file (a document).");
   return familySummary(await host.core.family(a.key));
@@ -156,9 +171,13 @@ export async function listEffects(host: ToolHost, a: { query?: string; kind?: Po
 }
 
 /** Writes a document and its mod files where it lives. */
-async function store(host: ToolHost, place: { file: string; project?: ProjectRef; desk: boolean }, doc: QuickhackDoc): Promise<SaveResult | undefined> {
+async function store(host: ToolHost, place: Place, doc: QuickhackDoc): Promise<SaveResult | undefined> {
   fs.mkdirSync(path.dirname(place.file), { recursive: true });
   fs.writeFileSync(place.file, printDoc(doc));
+  if (place.library) {
+    savedInLibrary(libraryRoot(host)!, place.file, doc.name);
+    return undefined;
+  }
   if (place.desk) {
     savedOnDesk(place.file, doc.name, host.desk);
     return undefined;
@@ -177,7 +196,7 @@ const saved = (r: SaveResult | undefined, project?: ProjectRef) =>
         missingScripts: r.missingScripts,
         next: project ? "hack_pack packs the project; hack_try tries it in the running game first." : undefined,
       }
-    : { desk: true, next: "On the Desk no mod files are written. hack_new with desk_file and a project adds it to a project." };
+    : { desk: true, next: "On the Desk and in the EDGE Library no mod files are written. hack_new with desk_file (a Desk or Library document) and a project adds it to a project." };
 
 /** hack_new: a new quickhack from a game family, a document for changes to a family, or a Desk document added to a project. */
 export async function newHack(host: ToolHost, a: { family?: string; name?: string; change?: boolean; desk?: boolean; project?: string; desk_file?: string; replace?: boolean }) {
@@ -185,8 +204,15 @@ export async function newHack(host: ToolHost, a: { family?: string; name?: strin
   const keys = catalog.families.map((f) => f.key);
   if (a.desk_file) {
     const from = placeOf(host, a.desk_file);
-    if (!from.desk) throw new Error(`${a.desk_file} is not on the Desk.`);
-    const project = needProject(host, a.project, "Adding a Desk quickhack to a project");
+    if (!from.desk) throw new Error(`${a.desk_file} is not on the Desk or in the EDGE Library.`);
+    const project = needProject(host, a.project, "Adding a quickhack to a project");
+    if (from.library) {
+      // Add to Project from the Library (H5): the came-from note too, so Refresh from Library follows it.
+      const r = libraryToProject(project, from.library, keys, libraryRoot(host)!, { replace: a.replace });
+      if (!r.added) return { added: false, file: r.file, replaces: true, next: `${project.name} already has this quickhack. Ask the modder, then call again with replace true to replace the project's copy with the Library's version ${from.library.asset.version} (its changes there are lost).` };
+      const s = await saveDocFiles(host.core, project, r.doc, bridgeIconWriter(await host.core.bridge(), project));
+      return { added: true, file: r.file, where: "project", id: r.doc.id, fromLibrary: { name: from.library.asset.name, version: from.library.asset.version }, saved: saved(s, project) };
+    }
     const place = projectPlace(project, keys, from.doc);
     if (place.replaces && !a.replace) {
       return { added: false, file: place.file, replaces: true, next: `${project.name} already has this quickhack. Ask the modder, then call again with replace true to replace the project's copy (its changes there are lost).` };
@@ -236,7 +262,7 @@ export async function editHack(host: ToolHost, a: { file: string; changes: Chang
   const fam = await host.core.family(place.doc.family);
   const { doc, done } = await applyChanges(place.doc, a.changes, { fam, added: (d) => host.core.added(d, fam) });
   const r = await store(host, place, doc);
-  return { file: place.file, where: place.desk ? "desk" : "project", done, document: doc, ...(await review(host, doc, fam)), saved: saved(r, place.project) };
+  return { file: place.file, where: whereOf(place), done, document: doc, ...(await review(host, doc, fam)), saved: saved(r, place.project) };
 }
 
 /** hack_script: a quickhack's scan check or on-land function, in the mod's REDnode package. */

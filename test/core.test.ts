@@ -137,7 +137,7 @@ test("bridgeIconWriter imports into the project's folders with the texture setup
 // through its imports, must stay clear of "vscode" and of the extension's own VS Code files.
 test("the core reaches no VS Code import", () => {
   const src = path.join(__dirname, "..", "src");
-  const roots = ["core.ts", "save.ts", "redbridge.ts", "locate.ts", "project.ts", "types.ts", "tryLive.ts", "desk.ts", "projectDocs.ts", "edits.ts", "tools.ts", "pack.ts"];
+  const roots = ["core.ts", "save.ts", "redbridge.ts", "locate.ts", "project.ts", "types.ts", "tryLive.ts", "desk.ts", "projectDocs.ts", "edits.ts", "tools.ts", "pack.ts", "library.ts"];
   const seen = new Set<string>();
   const bad: string[] = [];
   const walk = (file: string, from: string) => {

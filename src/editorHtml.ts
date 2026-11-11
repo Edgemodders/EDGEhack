@@ -225,7 +225,7 @@ export function renderAddedEffects(fam: Family, added: ResolvedAdded[], icons: M
  * box, the components to craft it, and a Console line for testing. `sales` undefined: still being read.
  * On the Desk (H3.7) the Console line waits: the records take the project's name when it goes into one.
  */
-export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undefined, desk = false): string {
+export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undefined, desk: boolean | "library" = false): string {
   return fam.tiers
     .map((t, i) => {
       if (!t.item) return "";
@@ -260,7 +260,7 @@ export function renderGetIt(fam: Family, doc: QuickhackDoc, sales: Sales | undef
     .join("");
 }
 
-/** The editor's page. `desk`: the document is on the Desk (H3.7), so it has no mod files and offers Add to Project. */
+/** The editor's page. `desk`: the document is on the Desk (H3.7), or `"library"` in the EDGE Library (H5), so it has no mod files and offers Add to Project. */
 /**
  * Feature lines (H3d): the game's own tooltip lines of the top tier, read-only, then the modder's, each a
  * text, the tier it shows from, and Remove; then Add a line.
@@ -316,7 +316,7 @@ export function renderScripts(s: ScriptsState): string {
   return `${file}<table class="scripts"><tbody>${rows}</tbody></table>${text}`;
 }
 
-export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales, desk = false, scripts?: ScriptsState): string {
+export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons, start: number, added: ResolvedAdded[] = [], sales?: Sales, desk: boolean | "library" = false, scripts?: ScriptsState): string {
   const tiers = fam.tiers;
   const top = tiers[tiers.length - 1];
   const head = tiers.map((t, i) => `<th data-tier="${i}"><button data-pick="${i}" data-tier="${i}" data-key="${esc(tierKey(t))}">${esc(t.quality ?? `Tier ${i + 1}`)}</button></th>`).join("");
@@ -343,7 +343,12 @@ export function renderEditor(fam: Family, doc: QuickhackDoc, icons: EditorIcons,
 <p class="foot">Each tier is got the way the game's ${esc(fam.name)} is: a stock line of its own at the same vendors, behind the same gate, and a schematic of its own where the game sells one. Vendors show it on a save you already have. The kind of component stays the game's for that quality.</p>
 </section>`
     : "";
-  const status = desk ? "On the Desk: it writes no mod files until you add it to a project." : "Each save writes the mod's files into the project.";
+  const status =
+    desk === "library"
+      ? "In the EDGE Library: it writes no mod files until you add it to a project. Each save raises its version, and projects that took it can refresh from it."
+      : desk
+        ? "On the Desk: it writes no mod files until you add it to a project."
+        : "Each save writes the mod's files into the project.";
   const action = `${desk ? `<button data-add-to-project>Add to Project</button>` : `<button data-pack>Pack and Play</button>`} <button data-try-live title="Sends its changes to the running game through REDnode (0.62.0 or later), with no packing; a new quickhack's selected tier goes in V's backpack. Saving sends them again">Try Live</button> <button data-try-stop hidden title="Puts the game's records back as they were">Stop</button>`;
   return `<main data-start="${start}" class="edit"${doc.newHack ? " data-new-hack" : ""}${desk ? " data-desk" : ""}>
 <header class="hack">

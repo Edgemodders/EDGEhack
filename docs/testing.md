@@ -12,13 +12,14 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H4 | 2026-11-11 | Pass, 172 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H5 | 2026-11-11 | Pass, 184 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H5 Library](#h5-library) | By hand in VS Code, then in the game | H5 | Waiting | The smoke test passed its 147 checks (12 for the Library) |
 | [H4.5 The MCP server](#h45-the-mcp-server) | An MCP client script on the real REDbridge and game, then by hand with Claude Code | H4 | 2026-11-11 | Pass: the script's 33 checks, and the hand test's steps 1 to 7 with Claude Code (EDGEhack 0.0.30); step 8, Try Live, left for later |
 | [H4.4 The core outside VS Code](#h44-the-core-outside-vs-code) | Automated: unit tests, the smoke test, and a script on the real REDbridge and game with no VS Code | H4 | 2026-11-11 | Pass: 162 unit tests, 135 smoke checks, all 11 checks of the script |
 | [H4.3 Try Live](#h43-try-live) | By hand, then in the game | H4 | 2026-11-11 | Pass, steps 1 to 6 and 8 (EDGEhack 0.0.29, REDnode 0.62.1, dev PC); step 7, a name written in EDGEhack, shows only after Pack and Play, as the page says |
@@ -47,7 +48,24 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-Nothing.
+- [H5 Library](#h5-library), EDGEhack 0.0.31, with H5.0's two fixes (checked in the next game run).
+
+## H5 Library
+
+EDGEhack 0.0.31 (F5), on the dev PC, with REDcode's project EDGEhack_Test1 open. The game stays closed until step 10. If you already have an EDGE Library from another tool, EDGEhack uses it and does not ask where.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | In the Desk view, hover a quickhack (Desk Spark, or any) and press the **Add to Library** icon | The first time: "Where should the EDGE Library go?", offering `Documents\EDGE Library`. Pick it |
+| 2 | In the folder picker, **New Folder...**, type `Quickhacks/Electric` | "Desk Spark is in the EDGE Library, in Quickhacks/Electric", with Reveal. The Library view shows Quickhacks › Electric › Desk Spark, "v1" |
+| 3 | In the Library view, click Desk Spark, change a RAM, save | The page says it is in the EDGE Library and offers Add to Project, not Pack and Play; after the save, "Saved in the EDGE Library, version 2"; the row says v2 |
+| 4 | On its row, **Add to Project** | It opens as `edgehack_test1_desk_spark` in the project, with its mod files written. `source\library.json` in the project has an entry with `by: "edgehack"` and `version: 2` |
+| 5 | Back in the Library's copy, change another number and save | Version 3. In the Desk view's Project group, Desk Spark says "newer in the Library (v3)" |
+| 6 | On that Project row, **Refresh from Library** | It asks first; the project's copy takes version 3, the mark goes |
+| 7 | On a Project row that was never in the Library (Static Bloom), right-click, **Add to Library**, pick a folder | It is in the Library, named without the mod's name (`static_bloom.quickhack.asset`) |
+| 8 | On Desk Spark in the Library view, **Copy to the Desk**, then on the Desk's Desk Spark **Add to Library** | Copy to the Desk asks before replacing the Desk's; Add to Library then asks to replace the Library's copy, keeps it where it is, and raises its version |
+| 9 | On a Library row, **Remove from Library** | It asks, then the item goes to the Recycle Bin; the project's copy stays |
+| 10 | Optional: with the project packed (Pack and Play), the refreshed Desk Spark in the game | It has version 3's numbers |
 
 ## H4.5 The MCP server
 

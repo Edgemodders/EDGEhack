@@ -8,6 +8,8 @@ import { QuickhackPage } from "./page";
 import { recordOfArg } from "./quickhack";
 import { QuickhackEditor } from "./editor";
 import { DeskView } from "./deskView";
+import { LibraryView } from "./libraryView";
+import { registerLibrary } from "./libraryCommands";
 import { copyName, deskRoot, duplicateDeskItem, deskNewHackProblem } from "./desk";
 import { projectFilesOf, scriptEntries } from "./projectDocs";
 import { writeScriptPackage } from "./scripts";
@@ -18,14 +20,6 @@ import { connectAssistant, installServer, registerWithEditor } from "./mcp";
 import * as path from "node:path";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
-class Empty implements vscode.TreeDataProvider<never> {
-  getTreeItem(element: never): vscode.TreeItem {
-    return element;
-  }
-  getChildren(): never[] {
-    return [];
-  }
-}
 
 export function activate(context: vscode.ExtensionContext): void {
   const log = vscode.window.createOutputChannel("EDGEhack");
@@ -40,6 +34,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const desk = new DeskView(hub);
   const deskTree = vscode.window.createTreeView("edgehack.desk", { treeDataProvider: desk });
   editor.onDeskChanged = () => desk.refresh();
+  // The EDGE Library (H5): its view, and its commands in libraryCommands.ts.
+  const library = new LibraryView(hub);
   void desk.watch().then((d) => context.subscriptions.push(d), (e: unknown) => log.appendLine(`Desk: not watched: ${e instanceof Error ? e.message : String(e)}`));
   const failed = (err: unknown): void => void vscode.window.showErrorMessage(err instanceof Error ? err.message : String(err));
 
@@ -192,7 +188,9 @@ export function activate(context: vscode.ExtensionContext): void {
         return false;
       }
     }),
-    vscode.window.registerTreeDataProvider("edgehack.library", new Empty()),
+    vscode.window.createTreeView("edgehack.library", { treeDataProvider: library }),
+    library.watch(),
+    ...registerLibrary(context, hub, editor, desk, library),
     vscode.commands.registerCommand("edgehack.openQuickhack", open),
     // The same, as REDcode's TweakDB view menu entry: a separate id so the palette shows only one.
     vscode.commands.registerCommand("edgehack.openQuickhackFromREDcode", open),

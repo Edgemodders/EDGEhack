@@ -10,6 +10,7 @@ import { Records } from "../src/records";
 import { readFamily } from "../src/read";
 import { describeHack, editHack, findHacks, newHack, placeOf, scriptHack, type ToolHost } from "../src/tools";
 import { projectAt } from "../src/project";
+import { addToLibrary, itemById, readNote } from "../src/library";
 import type { BridgeClient, TweakRecordsQuery } from "../src/types";
 import { fetchRecord, fetchText, records } from "./fixture";
 
@@ -91,7 +92,8 @@ function host() {
   fs.writeFileSync(path.join(dir, "Proj.cpmodproj"), "<CP77Mod><Name>Proj</Name><ModName>Proj</ModName></CP77Mod>");
   const core = new HackCore({ storage: path.join(root, "store"), bridge: async () => bridge });
   let withProject = true;
-  const h: ToolHost = { core, desk: path.join(root, "desk"), project: (given) => (given ? projectAt(given) : withProject ? projectAt(dir) : undefined) };
+  const lib = path.join(root, "library");
+  const h: ToolHost = { core, desk: path.join(root, "desk"), library: () => lib, project: (given) => (given ? projectAt(given) : withProject ? projectAt(dir) : undefined) };
   return { h, dir, root, noProject: () => (withProject = false) };
 }
 
@@ -164,4 +166,27 @@ test("the MCP provider src/mcp.ts registers is declared in package.json, or VS C
   const declared = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).contributes.mcpServerDefinitionProviders ?? [];
   assert.ok(id, "src/mcp.ts names its provider");
   assert.ok(declared.some((p: { id: string }) => p.id === id), `package.json declares ${id}`);
+});
+
+test("Library quickhacks: hack_find lists them, hack_edit raises their version, and hack_new takes one into a project with the came-from note", async () => {
+  const { h, dir, noProject } = host();
+  noProject();
+  const made = await newHack(h, { family: "Zap", name: "Kept Bolt" });
+  const lib = h.library!()!;
+  const { item } = addToLibrary(lib, "Quickhacks", { file: made.file!, doc: placeOf(h, made.file!).doc });
+  const found = await findHacks(h, { query: "kept" });
+  const row = found.documents.find((d) => d.where === "library") as { name?: string; version?: number; folder?: string } | undefined;
+  assert.deepEqual([row?.name, row?.version, row?.folder], ["Kept Bolt", 1, "Quickhacks"]);
+  assert.equal(placeOf(h, item.file).library?.asset.id, item.asset.id);
+  const edited = await editHack(h, { file: item.file, changes: [{ op: "tier", tier: "0", field: "ram", value: 7 }] });
+  assert.equal(edited.where, "library");
+  assert.equal(itemById(lib, item.asset.id)?.asset.version, 2);
+  await assert.rejects(scriptHack(h, { file: item.file, function: "canUse" }), /lives in a project/);
+  const added = await newHack(h, { desk_file: item.file, project: dir });
+  assert.equal(added.added, true);
+  assert.deepEqual((added as { fromLibrary?: unknown }).fromLibrary, { name: "Kept Bolt", version: 2 });
+  const note = readNote(dir).items[0];
+  assert.deepEqual([note.by, note.kind, note.id, note.version], ["edgehack", "quickhack", item.asset.id, 2]);
+  const again = await newHack(h, { desk_file: item.file, project: dir });
+  assert.equal(again.added, false);
 });

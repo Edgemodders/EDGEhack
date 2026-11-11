@@ -90,6 +90,8 @@ const rednodeChannel = http.createServer((req, res) => {
 await new Promise((r) => rednodeChannel.listen(0, "127.0.0.1", r));
 fs.mkdirSync(T, { recursive: true });
 fs.writeFileSync(path.join(T, "rednode-editor.json"), JSON.stringify({ port: rednodeChannel.address().port, token: "smoke" }));
+// The EDGE Library (H5) in the scratch folder, never the modder's own.
+fs.writeFileSync(path.join(T, "library.json"), JSON.stringify({ root: path.join(T, "library") }));
 
 const env = {
   ...process.env,
@@ -97,6 +99,7 @@ const env = {
   EH_BRIDGE: BRIDGE,
   EH_GAME: GAME,
   EDGEHACK_DESK: path.join(T, "desk"),
+  EDGE_LIBRARY_CONFIG: path.join(T, "library.json"),
   EDGEHACK_OPENAI_BASE: `http://127.0.0.1:${openai.address().port}`,
   OPENAI_API_KEY: "sk-smoke-test",
   EDGEMODDERS_KEYS_DIR: path.join(T, "keys"),
@@ -729,4 +732,43 @@ await step({ dumpLoc: true });
 const locAfter = JSON.parse(fs.readFileSync(path.join(T, "loc.json"), "utf8"));
 const entriesAfter = locAfter ? JSON.parse(locAfter).Data.RootChunk.root.Data.entries : [];
 check(!entriesAfter.some((e) => e.secondaryKey?.startsWith("EDGEhack-smokemod_smoke_desk-")) && entriesAfter.some((e) => e.secondaryKey?.startsWith("EDGEhack-smokemod_overheat-")), "its texts leave the onscreens file; the others' stay");
+// ---- The EDGE Library (H5): its root in the scratch folder (EDGE_LIBRARY_CONFIG), never the modder's own.
+const libFile = path.join(T, "library", "Quickhacks", "Fire", "smoke_desk.quickhack.asset", "source", "raw", "edgehack", "smoke_desk.quickhack.json");
+const libAsset = () => JSON.parse(fs.readFileSync(path.join(T, "library", "Quickhacks", "Fire", "smoke_desk.quickhack.asset", "asset.json"), "utf8"));
+const deskId = JSON.parse(fs.readFileSync(path.join(deskItem, "asset.json"), "utf8")).id;
+await step({ command: "edgehack.library.add", args: [deskFile, "Quickhacks/Fire"] });
+check(fs.existsSync(libFile) && libAsset().id === deskId && libAsset().version === 1 && libAsset().kind === "quickhack", "Add to Library copies the Desk quickhack into the folder picked, with the Desk's asset id");
+await step({ command: "edgehack.library.addToProject", args: [libFile, true] });
+for (let i = 0; i < 40 && !fs.existsSync(addedYaml); i++) await sleep(500);
+const note = () => JSON.parse(fs.readFileSync(path.join(T, "proj", "source", "library.json"), "utf8")).items.find((x) => x.by === "edgehack");
+check(fs.existsSync(added) && fs.existsSync(addedYaml), "Add to Project from the Library puts it in the project with its mod files");
+check(note()?.id === deskId && note()?.version === 1 && note()?.kind === "quickhack" && note()?.path === "Quickhacks/Fire/smoke_desk.quickhack.asset", "and writes the came-from note");
+await step({ command: "edgehack.library.open", args: [libFile] });
+const libPage = await pageWith("document.querySelector('[data-status]')?.textContent.includes('In the EDGE Library') && !!document.querySelector('main[data-desk]')", "the Library quickhack's editor");
+check(await run(libPage, `return !!document.querySelector("[data-add-to-project]") && !document.querySelector("[data-pack]");`), "its page offers Add to Project, not Pack and Play");
+await setInput(libPage, '[data-tier-key="Items.OverheatLvl3Program"][data-field="ram"]', "10");
+await sleep(800);
+await step({ command: "workbench.action.files.save" });
+await sleep(1500);
+check(JSON.parse(fs.readFileSync(libFile, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 10 && libAsset().version === 2, "a change saved in the Library raises the item's version");
+check(/Saved in the EDGE Library, version 2/.test(await run(libPage, `return document.querySelector("[data-status]").textContent;`)), "the page says it was saved in the Library");
+await step({ command: "workbench.view.extension.edgehack" });
+await sleep(4000);
+const libRows = await main(`[...document.querySelectorAll('.monaco-list-row')].map((r) => r.getAttribute("aria-label") ?? r.textContent)`);
+log("Library rows:", JSON.stringify(libRows.filter((r) => /Smoke Desk|Fire|Quickhacks/.test(r))));
+// A row's accessible label is its tooltip: the marks are checked there.
+check(libRows.some((r) => /The EDGE Library has version 2; this project took 1/.test(r)), "the project's copy is marked newer in the Library");
+check(libRows.some((r) => /^Fire/.test(r)) && libRows.some((r) => /Smoke Desk/.test(r) && /In the EDGE Library, Quickhacks\/Fire, version 2/.test(r)), "the Library view shows its folder and the item at version 2");
+await shot("library.png");
+await step({ command: "edgehack.project.refreshFromLibrary", args: [added, true] });
+await sleep(2500);
+check(JSON.parse(fs.readFileSync(added, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 10 && note()?.version === 2, "Refresh from Library takes version 2 into the project and notes it");
+await step({ command: "edgehack.library.add", args: [deskFile, undefined, true] });
+check(libAsset().version === 3 && JSON.parse(fs.readFileSync(libFile, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 9, "adding the Desk's again replaces the Library's copy where it is, raising its version");
+await step({ command: "edgehack.library.copyToDesk", args: [libFile, true] });
+check(JSON.parse(fs.readFileSync(path.join(deskItem, "asset.json"), "utf8")).id === deskId && JSON.parse(fs.readFileSync(deskFile, "utf8")).tiers["Items.OverheatLvl3Program"]?.ram === 9, "Copy to the Desk keeps the item's asset id");
+await step({ command: "edgehack.library.remove", args: [libFile, true] });
+await sleep(1000);
+check(!fs.existsSync(libFile) && fs.existsSync(added), "Remove from Library takes it out (to the Recycle Bin); the project keeps its copy");
+
 finish();

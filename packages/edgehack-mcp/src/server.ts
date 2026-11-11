@@ -98,7 +98,7 @@ server.registerTool(
   {
     title: "Find quickhacks",
     description:
-      "Searches the game's quickhacks (read from the user's own Cyberpunk 2077) and the quickhack documents in the project and on EDGEhack's Desk. Every word must match a name, key or category. " +
+      "Searches the game's quickhacks (read from the user's own Cyberpunk 2077) and the quickhack documents in the project, on EDGEhack's Desk and in the EDGE Library (the modder's store of finished work, with a version each). Every word must match a name, key or category. " +
       "Game quickhacks come back with their key (Overheat, or action:<record> for a device or vehicle hack), for hack_describe and hack_new; documents with their file, for hack_describe, hack_edit, hack_script and hack_try. The first call reads the game's TweakDB (about 15 s).",
     inputSchema: { query: z.string().optional().describe("Words to match, such as 'overheat' or 'control'. Empty lists everything"), project, limit: z.number().int().min(1).max(500).optional() },
     annotations: READ,
@@ -145,13 +145,13 @@ server.registerTool(
     description:
       "Makes a quickhack document. With family and name: a new quickhack beside the game's family, with records of its own (Clone and Modify); its mod files are written into the project at once. " +
       "With change true: the document for changes to the game's family itself (or opens the one there). With no project (or desk true) it goes on EDGEhack's Desk, with no mod files. " +
-      "With desk_file and a project: Add to Project, a Desk quickhack copied into the project under the project's names, its mod files written; the Desk keeps its own. The user is asked before every call.",
+      "With desk_file (a Desk or EDGE Library document) and a project: Add to Project, the quickhack copied into the project under the project's names, its mod files written; the Desk or the Library keeps its own, and a Library quickhack is noted so the project can refresh from it. The user is asked before every call.",
     inputSchema: {
       family: z.string().optional().describe("The game quickhack's key from hack_find, such as Overheat"),
       name: z.string().optional().describe("A new quickhack's name, as players see it. Its record names come from it and stay"),
       change: z.boolean().optional().describe("A document for changes to the family itself, not a new quickhack"),
       desk: z.boolean().optional().describe("On the Desk even when a project is there"),
-      desk_file: z.string().optional().describe("A Desk document to add to the project"),
+      desk_file: z.string().optional().describe("A Desk or EDGE Library document to add to the project"),
       replace: z.boolean().optional().describe("With desk_file: replace the project's copy when it has one. Ask the modder first"),
       project,
     },
@@ -187,7 +187,7 @@ server.registerTool(
   {
     title: "Change a quickhack",
     description:
-      "Changes a quickhack document, in order, as the editor's page does, and saves it: in a project its mod files (TweakXL YAML, texts, own icons, the REDnode package) are written again; on the Desk none are. " +
+      "Changes a quickhack document, in order, as the editor's page does, and saves it: in a project its mod files (TweakXL YAML, texts, own icons, the REDnode package) are written again; on the Desk and in the EDGE Library none are (a Library save raises its version). " +
       "A number set to the game's value, or null, goes back to the game's. Changes: set (name, description, wheelText, itemIcon, wheelIcon, cooldown), tier (ram, upload, damage, duration, bossRam, bossUpload on one tier, or all), " +
       "addEffect, removeEffect, effectValue, effectTier, effectBuild, effectOn (on added effects, by id), getIt (a new quickhack's vendors and crafting), lines (feature lines). " +
       "Nothing is saved when a change cannot be made. Answers the document, EDGEhack's warnings and notes, and the files written. The user is asked before every call, so send all the changes of one request in one call, in order, rather than one call each.",
