@@ -47,7 +47,7 @@ EDGEhack 0.0.23 (0.0.22 renamed the icons' **Game's** button to **Original**; 0.
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.21.vsix` and reload. Open EDGEhack_Test1 in REDcode, **Clone and Modify** Overheat as **Gen Test** | Each icon has **Generate...**, and **Generate All...** is under the three icons |
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.23.vsix` and reload (or press F5 in the repo at 0.0.23). Open EDGEhack_Test1 in REDcode, **Clone and Modify** Overheat as **Gen Test** | Each icon has **Generate...**, and **Generate All...** is under the three icons |
 | 2 | Wheel: **Generate...**. Type `a skull made of static`, then open **Show the Prompt** | A panel titled "Generate the Wheel icon" says it is one paid image. The prompt shown holds your words and changes as you type |
 | 3 | Press **Generate** | With no OpenAI key in the EDGE tools' shared store, VS Code asks for it once in a password box (it is then in REDnode's Keys too). Within about a minute a result shows: **Shown now** (the game's wheel icon) beside **Generated**, both at 64 x 64, the glyph white on nothing |
 | 4 | **Try Again** | Another picture replaces it |
