@@ -10,7 +10,7 @@ import { Records } from "../src/records";
 import { readFamily } from "../src/read";
 import { newDoc, newHackDoc, withLines, withTierField, withField } from "../src/document";
 import { newItemPath, writeTweaks } from "../src/tweaks";
-import { EDITOR, LiveOp, stopTrying, tryLive, yamlToOps } from "../src/tryLive";
+import { EDITOR, LiveOp, liveLimits, stopTrying, tryLive, yamlToOps } from "../src/tryLive";
 import { fetchRecord, fetchText } from "./fixture";
 
 const family = () =>
@@ -131,4 +131,11 @@ test("a new quickhack's item for the tier given is its own", async () => {
   const fam = await family();
   const doc = newHackDoc("My Mod", "Zap", "Static Skull");
   assert.match(newItemPath(doc, fam.tiers[1]), /^Items\.EDGEhack_my_mod_static_skull_/);
+});
+
+test("liveLimits says what a live try cannot show yet", () => {
+  assert.match(liveLimits({ newHack: true, name: "Agent Heat" }, "its") ?? "", /text keys \(LocKey#\.\.\.\) until Pack and Play and a game restart/);
+  assert.equal(liveLimits({ name: "Hotter" }, "your"), "Your texts show as last packed until Pack and Play and a game restart.");
+  assert.equal(liveLimits({ ownIcons: { item: true } }, "its"), "Its own icons show after Pack and Play.");
+  assert.equal(liveLimits({}, "your"), undefined);
 });

@@ -8,7 +8,7 @@ import { Family, iconOf, IconRef, mainEffect, tierKey } from "./read";
 import { iconFile, IconWriter, LOOKS } from "./ownIcons";
 import { decodePng } from "./png";
 import { newItemPath, writeTweaks } from "./tweaks";
-import { stopTrying, tryLive, yamlToOps } from "./tryLive";
+import { liveLimits, stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { isInside } from "./projectFiles";
 import { makeNewHackDoc, newHackProblem } from "./projectDocs";
 import { saveDocFiles } from "./save";
@@ -276,9 +276,9 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
       const r = await tryLive(ops, doc.name || fam.name, give);
       live = true;
       this.hub.log.appendLine(`Try Live ${doc.id}: ${r.applied} changes${give ? `, gave ${give}` : ""}`);
-      const later = [doc.name || doc.description || doc.wheelText ? "your texts" : "", doc.ownIcons ? "your own icons" : ""].filter(Boolean);
+      const later = liveLimits(doc, "your");
       await w.postMessage({
-        status: `Trying it live: ${r.applied} changes in the game${give ? `, and the ${tier?.quality ?? "selected"} tier in V's backpack (put it in the cyberdeck)` : ""}. Saving sends them again; Stop puts the game back.${later.length ? ` ${later.join(" and ")} show as last packed, until Pack and Play.` : ""}`,
+        status: `Trying it live: ${r.applied} changes in the game${give ? `, and the ${tier?.quality ?? "selected"} tier in V's backpack (put it in the cyberdeck)` : ""}. Saving sends them again; Stop puts the game back.${later ? ` ${later}` : ""}`,
         live: "on",
       });
     };

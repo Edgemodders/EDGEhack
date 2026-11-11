@@ -1,6 +1,6 @@
 {
   "name": "@edgemodders/edgehack-mcp",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "description": "EDGEhack for AI assistants over MCP: find, describe, make and change Cyberpunk 2077 quickhacks, write their scripts, pack the mod and try it live in the running game.",
   "license": "MIT",
   "author": "Edgemodders",

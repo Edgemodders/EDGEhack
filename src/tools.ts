@@ -17,7 +17,7 @@ import { projectAt } from "./project";
 import { tierKey, type Family } from "./read";
 import { bridgeIconWriter, saveDocFiles, type SaveResult } from "./save";
 import { addFunction, exportsOf, packageDir, scriptFileName, type ScriptFunction } from "./scripts";
-import { stopTrying, tryLive, yamlToOps } from "./tryLive";
+import { liveLimits, stopTrying, tryLive, yamlToOps } from "./tryLive";
 import { newItemPath, writeTweaks } from "./tweaks";
 import type { ProjectRef } from "./types";
 
@@ -286,13 +286,13 @@ export async function tryHack(host: ToolHost, a: { file?: string; tier?: string;
   const tier = a.tier !== undefined ? findTier(fam, a.tier) : undefined;
   const give = doc.newHack && tier?.item ? newItemPath(doc, tier) : undefined;
   const r = await tryLive(yamlToOps(written.yaml), doc.name || fam.name, give);
-  const later = [doc.name || doc.description || doc.wheelText ? "its texts" : "", doc.ownIcons ? "its own icons" : ""].filter(Boolean);
+  const later = liveLimits(doc, "its");
   return {
     applied: r.applied,
     gave: r.gave,
     note: [
       give ? "The tier is in V's backpack: the player puts it in the cyberdeck." : doc.newHack ? "Pass tier to give V the new quickhack." : undefined,
-      later.length ? `${later.join(" and ")} show as last packed, until the mod is packed and installed.` : undefined,
+      later,
       "The first try of a session waits for the player to allow EDGEhack in the game (F10). hack_try with stop true puts the game back.",
     ].filter(Boolean),
   };

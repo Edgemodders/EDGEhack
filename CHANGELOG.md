@@ -16,6 +16,7 @@ How to keep it (the Edgemodders convention):
 
 **Fixed**
 
+- Try Live said a new quickhack's texts show "as last packed", but one never packed has none: its name shows as its text key (`LocKey#...`). Try Live now says so, and that names and texts show after Pack and Play and a game restart, since the game reads new texts only when it starts.
 - When reading the game's list of quickhack icons failed once, the pages showed none of the game's icons until **Refresh**. The next look now reads it again.
 
 **New**

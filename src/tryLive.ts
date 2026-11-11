@@ -5,7 +5,7 @@
 //
 // What shows live (H4.1's spike): a changed number on the next scan, an added effect after a refresh, a
 // renamed item at once, a new quickhack made live. Not live: texts in the mod's onscreens file and own
-// icons, which arrive with the archive (Pack and Play); until then they show as the last packed ones.
+// icons, which arrive with the archive (Pack and Play): liveLimits says it in words.
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -151,4 +151,18 @@ export async function stopTrying(): Promise<number> {
   if (!a.body.ok) throw new Error(a.body.reason ?? `REDnode answered ${a.status}`);
   await editorCall("quickhacks.refresh", {}).catch(() => undefined);
   return a.body.restored ?? 0;
+}
+
+/**
+ * What a live try cannot show yet, in words, or undefined when everything shows (H5.0). The game reads
+ * text entries only when it starts (the live names spike), so a new quickhack's name and texts show as
+ * their text keys (LocKey#...) until the mod is packed and the game started again, and a changed one's as
+ * last packed until then. Own icons arrive with the archive, at Pack and Play.
+ */
+export function liveLimits(doc: { newHack?: boolean; name?: string; description?: string; wheelText?: string; ownIcons?: object }, whose: "your" | "its"): string | undefined {
+  const notes: string[] = [];
+  if (doc.newHack) notes.push(`A new quickhack's name and texts show as text keys (LocKey#...) until Pack and Play and a game restart: the game reads new texts only when it starts.`);
+  else if (doc.name || doc.description || doc.wheelText) notes.push(`${whose === "your" ? "Your" : "Its"} texts show as last packed until Pack and Play and a game restart.`);
+  if (doc.ownIcons) notes.push(`${whose === "your" ? "Your" : "Its"} own icons show after Pack and Play.`);
+  return notes.length ? notes.join(" ") : undefined;
 }

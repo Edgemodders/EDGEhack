@@ -190,7 +190,7 @@ server.registerTool(
       "Changes a quickhack document, in order, as the editor's page does, and saves it: in a project its mod files (TweakXL YAML, texts, own icons, the REDnode package) are written again; on the Desk none are. " +
       "A number set to the game's value, or null, goes back to the game's. Changes: set (name, description, wheelText, itemIcon, wheelIcon, cooldown), tier (ram, upload, damage, duration, bossRam, bossUpload on one tier, or all), " +
       "addEffect, removeEffect, effectValue, effectTier, effectBuild, effectOn (on added effects, by id), getIt (a new quickhack's vendors and crafting), lines (feature lines). " +
-      "Nothing is saved when a change cannot be made. Answers the document, EDGEhack's warnings and notes, and the files written. The user is asked before every call.",
+      "Nothing is saved when a change cannot be made. Answers the document, EDGEhack's warnings and notes, and the files written. The user is asked before every call, so send all the changes of one request in one call, in order, rather than one call each.",
     inputSchema: { file, changes: z.array(change).min(1).max(100) },
     annotations: WRITE,
     _meta: ASK_FIRST,
