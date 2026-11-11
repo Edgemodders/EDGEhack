@@ -12,13 +12,14 @@ Last updated 2026-11-10.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 108 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0, H1, H2, H3 | 2026-11-10 | Pass, 117 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H3b.3 Generate](#h3b3-generate) | By hand, then in the game | H3b | | Waiting |
 | [H3.7c Remove from Project](#h37c-remove-from-project) | By hand, in VS Code | H3 | 2026-11-10 | Pass, all 6 steps (EDGEhack 0.0.20) |
 | [H3b.2 Upload](#h3b2-upload) | By hand, then in the game | H3b | 2026-11-10 | Pass, all 10 steps (EDGEhack 0.0.19, with REDcode's test build from main e9b5e7b) |
 | [H3b.1 Own icons spike](#h3b1-own-icons-spike) | By hand, in the game | H3b | 2026-11-10 | Pass, steps 1 to 6: our item card, wheel glyph and status symbol all showed |
@@ -38,7 +39,30 @@ Last updated 2026-11-10.
 
 ## Waiting for a hand test
 
-Nothing.
+- [H3b.3 Generate](#h3b3-generate).
+
+## H3b.3 Generate
+
+EDGEhack 0.0.21, with REDcode's test build from H3b.2 still installed (or REDcode 0.10.8 once released). Then in the game. Each Generate is a paid image on your OpenAI account (Generate All is three). You judge the looks: the prompts are fixed in `src/iconPrompts.ts` and get tuned from what you see.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Install `E:\Modding\Cyberpunk 2077\EDGEhack\dist\edgehack-0.0.21.vsix` and reload. Open EDGEhack_Test1 in REDcode, **Clone and Modify** Overheat as **Gen Test** | Each icon has **Generate...**, and **Generate All...** is under the three icons |
+| 2 | Wheel: **Generate...**. Type `a skull made of static`, then open **Show the Prompt** | A panel titled "Generate the Wheel icon" says it is one paid image. The prompt shown holds your words and changes as you type |
+| 3 | Press **Generate** | With no OpenAI key in the EDGE tools' shared store, VS Code asks for it once in a password box (it is then in REDnode's Keys too). Within about a minute a result shows: **Shown now** (the game's wheel icon) beside **Generated**, both at 64 x 64, the glyph white on nothing |
+| 4 | **Try Again** | Another picture replaces it |
+| 5 | **Keep** | The Wheel icon shows it; the status line says "Wheel icon kept. Save to write it into the mod." |
+| 6 | **Generate All...**, type words of your own, **Generate** | The Item comes first, then the Wheel and Status, each beside the icon shown now. The Wheel and Status show the same glyph as the Item card's screen |
+| 7 | Look at each at its real size against the game's | Say what is off in each look (the card, the line art, the silhouette), with a screenshot: this tunes the prompts |
+| 8 | **Keep All**, then Ctrl+S | The three icons show the generated pictures; the save names the texture and atlas as in H3b.2, no error |
+| 9 | Item: **Generate...**, **Generate**, then **Cancel** while it runs | The status line says "Cancelled." and no result shows |
+| 10 | Pack and Play, start the game, load a save. Switch on **Console** in REDnode's launcher and run the line **Get it** shows on Gen Test's page for the Epic tier. Look at Gen Test in the inventory, on the quickhack wheel, and on a hacked enemy | The generated item card, wheel glyph and status symbol show where the game's do |
+
+Then say what differed, with screenshots of the generated icons you would change.
+
+| Run | Result |
+|---|---|
+
 
 ## H3.7c Remove from Project
 

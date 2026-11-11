@@ -15,6 +15,9 @@ import type { Sales } from "./getit";
 import { addedNotes, applyAddedToAll, effectSummary, offeredEffects, plainName, ResolvedAdded } from "./effects";
 import { iconsOf } from "./pageHtml";
 import { bridge, redcode } from "./redcode";
+import { generateLook } from "./generate";
+import { cleanWords } from "./iconPrompts";
+import { openaiBase, openaiKey, openaiModel, openaiQuality } from "./openaiKey";
 import { deskChange, deskNewHackProblem, deskRoot, makeDeskNewHack, onDesk, projectPlace, savedOnDesk, writeToProject } from "./desk";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -235,18 +238,54 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
     });
     void w.postMessage({ warnings: writeTweaks(fam, doc, added, sales).warnings, notes: addedNotes(fam, added) });
 
+    // Generate (H3b.3): one run at a time on this page, outside the message queue, since an image can
+    // take a minute and the page stays editable meanwhile. The Item's last picture is kept for the
+    // Wheel and Status drawn from it.
+    let generating: AbortController | undefined;
+    let itemPicture: Buffer | undefined;
+    panel.onDidDispose(() => generating?.abort());
+    const generate = async (g: { which: IconLook | "all"; words: string; fromItem?: boolean }): Promise<void> => {
+      if (generating) return void w.postMessage({ status: "A Generate is already running on this page. Wait for it, or Cancel it.", bad: true });
+      const words = cleanWords(g.words ?? "");
+      if (!words) return void w.postMessage({ generateDone: { error: "Say what the icon shows first, such as \"a skull made of static\"." } });
+      const looks: IconLook[] = g.which === "all" ? ["item", "wheel", "status"] : [g.which];
+      const run = new AbortController();
+      generating = run;
+      try {
+        const key = await openaiKey(true);
+        if (!key) return void w.postMessage({ generateDone: { error: "Generate needs an OpenAI key. Run EDGEhack: Set the OpenAI Key, or press Generate again." } });
+        const model = await openaiModel(key);
+        for (const look of looks) {
+          const reference = look !== "item" && (g.which === "all" || g.fromItem) ? itemPicture : undefined;
+          await w.postMessage({ status: `Generating the ${LOOKS[look].label} icon with ${model}${reference ? ", from the Item's picture" : ""}: one paid image, up to a minute…` });
+          const got = await generateLook(look, words, { key, model, base: openaiBase(), quality: openaiQuality(), signal: run.signal }, reference);
+          if (look === "item") itemPicture = got.png;
+          this.hub.log.appendLine(`Generated the ${look} icon of ${document.fileName} with ${model}: ${got.png.length} bytes.`);
+          await w.postMessage({ generated: { which: look, image: `data:image/png;base64,${got.png.toString("base64")}`, prompt: got.prompt, model } });
+        }
+        await w.postMessage({ generateDone: {}, status: "Keep the ones you like. Nothing goes into the mod until Keep, then Save." });
+      } catch (e) {
+        this.hub.log.appendLine(`Generate failed: ${message(e)}`);
+        await w.postMessage({ generateDone: { error: message(e) } });
+      } finally {
+        generating = undefined;
+      }
+    };
+
     // One message at a time, each from the document as it is now: two quick changes would otherwise
     // both start from the same text, and the second would undo the first.
     let queue: Promise<void> = Promise.resolve();
     const current = (): QuickhackDoc => parseDoc(document.getText());
     w.onDidReceiveMessage(
       (m: {
+        generate?: { which: IconLook | "all"; words: string; fromItem?: boolean };
+        generateCancel?: boolean;
         set?: { field: keyof QuickhackDoc; value?: string | number; game?: string | number };
         setTier?: { tier: string; field: TierField; value?: number; game?: number };
         applyAll?: { field: TierField; tier?: string };
         chooseIcon?: "item" | "wheel";
         setIcon?: { which: IconLook; value?: string };
-        uploadIcon?: { which: IconLook; png: string };
+        uploadIcon?: { which: IconLook; png: string; generated?: boolean };
         uploadFailed?: string;
         addEffect?: boolean;
         pickFamily?: string;
@@ -264,6 +303,8 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
         pack?: boolean;
         addToProject?: boolean;
       }) => {
+        if (m.generate) return void generate(m.generate);
+        if (m.generateCancel) return void generating?.abort();
         queue = queue.then(async () => {
         try {
           if (m.open) void vscode.commands.executeCommand("redcode.openTweakRecord", m.open);
@@ -291,7 +332,7 @@ export class QuickhackEditor implements vscode.CustomTextEditorProvider {
             fs.mkdirSync(path.dirname(file), { recursive: true });
             fs.writeFileSync(file, png);
             await apply(document, withOwnIcon(doc, which, true));
-            await w.postMessage({ iconShown: { which, changed: true, src: m.uploadIcon.png }, status: `${look.label} icon uploaded. Save to write it into the mod.` });
+            await w.postMessage({ iconShown: { which, changed: true, src: m.uploadIcon.png }, status: `${look.label} icon ${m.uploadIcon.generated ? "kept" : "uploaded"}. Save to write it into the mod.` });
           }
           if (m.uploadFailed) await w.postMessage({ status: `That picture could not be read: ${m.uploadFailed}`, bad: true });
           if (m.addEffect) await this.offerEffects(w, fam);

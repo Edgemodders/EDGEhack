@@ -8,15 +8,18 @@
   // The icon an Upload is for (H3b): its look, size and whether black becomes see-through.
   let uploading = null;
 
-  /** A picture fitted inside the look's size, centred, on nothing; as PNG data. */
-  async function fitted(file, u) {
-    const bitmap = await createImageBitmap(file);
+  /**
+   * A picture (a file, or an image element) fitted to the look's size, centred, on nothing; as PNG data.
+   * `u.fit` "cover" fills the size and cuts what is over at the edges; otherwise it fits inside it.
+   */
+  async function fitted(source, u) {
+    const bitmap = await createImageBitmap(source);
     const c = document.createElement("canvas");
     c.width = u.width;
     c.height = u.height;
     const g = c.getContext("2d");
     g.imageSmoothingQuality = "high";
-    const scale = Math.min(u.width / bitmap.width, u.height / bitmap.height);
+    const scale = (u.fit === "cover" ? Math.max : Math.min)(u.width / bitmap.width, u.height / bitmap.height);
     const w = Math.max(1, Math.round(bitmap.width * scale));
     const h = Math.max(1, Math.round(bitmap.height * scale));
     g.drawImage(bitmap, Math.floor((u.width - w) / 2), Math.floor((u.height - h) / 2), w, h);
@@ -49,6 +52,125 @@
     } catch (e) {
       vscode.postMessage({ uploadFailed: String(e?.message ?? e) });
     }
+  });
+
+  // Generate (H3b.3): the panel's looks (prompts, sizes, fits) from the page, the run's mode ("all" or
+  // one look), and the fitted results waiting for Keep, by look.
+  const generateBox = q("[data-generate]");
+  const looks = generateBox ? JSON.parse(generateBox.dataset.looks) : {};
+  let generateMode = null;
+  const results = {};
+
+  function promptsFor(mode, words) {
+    const w = words.replace(/\s+/g, " ").trim().slice(0, 300) || "…";
+    const fill = (t) => t.split(looks.item.words).join(w);
+    if (mode !== "all") return fill(looks[mode].alone);
+    return ["item", "wheel", "status"].map((k) => `${looks[k].label}:\n${fill(k === "item" ? looks[k].alone : looks[k].fromItem)}`).join("\n\n");
+  }
+
+  function showPrompt() {
+    if (generateMode) q("[data-generate-prompt]").textContent = promptsFor(generateMode, q("[data-generate-words]").value);
+  }
+
+  function openGenerate(mode) {
+    generateMode = mode;
+    for (const k of Object.keys(results)) delete results[k];
+    q("[data-generate-results]").innerHTML = "";
+    q("[data-generate-keep-all-row]").hidden = true;
+    q("[data-generate-title]").textContent = mode === "all" ? "Generate All: the Item, then the Wheel and Status drawn from it, with the same glyph" : `Generate the ${looks[mode].label} icon`;
+    q("[data-generate-cost]").textContent =
+      mode === "all"
+        ? "Three paid images on your OpenAI account. Nothing goes into the mod until you Keep one and save."
+        : "One paid image on your OpenAI account. Nothing goes into the mod until you Keep it and save.";
+    generateBox.hidden = false;
+    showPrompt();
+    q("[data-generate-words]").focus();
+  }
+
+  function busy(on) {
+    q("[data-generate-go]").disabled = on;
+    q("[data-generate-cancel]").hidden = !on;
+    for (const b of all("[data-generate-again]")) b.disabled = on;
+  }
+
+  function startGenerate(which, fromItem) {
+    const words = q("[data-generate-words]").value;
+    if (!words.trim()) {
+      q("[data-generate-words]").focus();
+      vscode.postMessage({ generate: { which, words } });
+      return;
+    }
+    busy(true);
+    vscode.postMessage({ generate: { which, words, fromItem } });
+  }
+
+  /** A generated picture: fitted to its look, shown at its real size beside the icon shown now, with Keep and Try Again. */
+  async function showResult(m) {
+    const look = looks[m.which];
+    const img = new Image();
+    img.src = m.image;
+    await img.decode();
+    const png = await fitted(img, { width: look.width, height: look.height, fit: look.fit, black: look.black });
+    results[m.which] = png;
+    const box = q("[data-generate-results]");
+    box.querySelector(`[data-result="${m.which}"]`)?.remove();
+    const now = q(`[data-icon-figure="${m.which}"] img`)?.src;
+    const fig = document.createElement("figure");
+    fig.className = "result";
+    fig.dataset.result = m.which;
+    const pair = document.createElement("div");
+    pair.className = "pair";
+    for (const [src, label] of [[now, "Shown now"], [png, "Generated"]]) {
+      const cell = document.createElement("div");
+      const pic = document.createElement(src ? "img" : "span");
+      if (src) pic.src = src;
+      pic.className = `real ${m.which}`;
+      pic.style.width = `${look.width}px`;
+      pic.style.height = `${look.height}px`;
+      const cap = document.createElement("small");
+      cap.textContent = label;
+      cell.append(pic, cap);
+      pair.appendChild(cell);
+    }
+    const cap = document.createElement("figcaption");
+    cap.textContent = `${look.label} ${look.width} x ${look.height} `;
+    const keep = document.createElement("button");
+    keep.textContent = "Keep";
+    keep.className = "primary";
+    keep.dataset.generateKeep = m.which;
+    const again = document.createElement("button");
+    again.textContent = "Try Again";
+    again.dataset.generateAgain = m.which;
+    again.title = generateMode === "all" && m.which !== "item" ? "One more paid image, drawn from the same Item picture" : "One more paid image";
+    cap.append(keep, " ", again);
+    const sent = document.createElement("details");
+    sent.innerHTML = "<summary>The prompt sent</summary>";
+    const pre = document.createElement("pre");
+    pre.className = "prompt";
+    pre.textContent = `${m.prompt}\n\n(${m.model})`;
+    sent.appendChild(pre);
+    fig.append(pair, cap, sent);
+    const order = ["item", "wheel", "status"];
+    const after = [...box.children].find((c) => order.indexOf(c.dataset.result) > order.indexOf(m.which));
+    box.insertBefore(fig, after ?? null);
+    q("[data-generate-keep-all-row]").hidden = Object.keys(results).length < 2;
+  }
+
+  function keep(which) {
+    if (!results[which]) return;
+    vscode.postMessage({ uploadIcon: { which, png: results[which], generated: true } });
+    const fig = q(`[data-result="${which}"]`);
+    fig?.classList.add("kept");
+    const b = fig?.querySelector("[data-generate-keep]");
+    if (b) {
+      b.textContent = "Kept";
+      b.disabled = true;
+    }
+  }
+
+  q("[data-generate-words]")?.addEventListener("input", showPrompt);
+  q("[data-generate-words]")?.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" && !q("[data-generate-go]").disabled) startGenerate(generateMode, false);
   });
 
   function pick(i) {
@@ -224,6 +346,19 @@
       input.value = "";
       input.click();
     }
+    const gen = ev.target.closest("[data-icon-generate]");
+    if (gen) openGenerate(gen.dataset.iconGenerate);
+    if (ev.target.closest("[data-generate-go]")) startGenerate(generateMode, false);
+    if (ev.target.closest("[data-generate-cancel]")) vscode.postMessage({ generateCancel: true });
+    if (ev.target.closest("[data-generate-close]")) {
+      if (!q("[data-generate-cancel]").hidden) vscode.postMessage({ generateCancel: true });
+      generateBox.hidden = true;
+    }
+    const again = ev.target.closest("[data-generate-again]");
+    if (again) startGenerate(again.dataset.generateAgain, generateMode === "all");
+    const kp = ev.target.closest("[data-generate-keep]");
+    if (kp) keep(kp.dataset.generateKeep);
+    if (ev.target.closest("[data-generate-keep-all]")) for (const k of Object.keys(results)) keep(k);
     const ir = ev.target.closest("[data-icon-reset]");
     if (ir) vscode.postMessage({ setIcon: { which: ir.dataset.iconReset } });
     const c = ev.target.closest("[data-choice]");
@@ -319,6 +454,21 @@
       figure?.classList.toggle("changed", !!m.iconShown.changed);
       const reset = figure?.querySelector("[data-icon-reset]");
       if (reset) reset.hidden = !m.iconShown.changed;
+    }
+    if (m.generated) {
+      showResult(m.generated).catch((e) => {
+        const s = q("[data-status]");
+        s.textContent = `The generated picture could not be read: ${e?.message ?? e}`;
+        s.classList.add("bad");
+      });
+    }
+    if (m.generateDone) {
+      busy(false);
+      if (m.generateDone.error) {
+        const s = q("[data-status]");
+        s.textContent = m.generateDone.error;
+        s.classList.add("bad");
+      }
     }
     if (typeof m.status === "string") {
       const s = q("[data-status]");

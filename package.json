@@ -2,7 +2,7 @@
   "name": "edgehack",
   "displayName": "EDGEhack",
   "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -147,8 +147,34 @@
         "title": "Remove from Project...",
         "category": "EDGEhack",
         "icon": "$(trash)"
+      },
+      {
+        "command": "edgehack.setOpenAIKey",
+        "title": "Set the OpenAI Key...",
+        "category": "EDGEhack"
+      },
+      {
+        "command": "edgehack.clearOpenAIKey",
+        "title": "Clear the OpenAI Key...",
+        "category": "EDGEhack"
       }
     ],
+    "configuration": {
+      "title": "EDGEhack",
+      "properties": {
+        "edgehack.generate.model": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "The OpenAI model Generate uses for icons. Empty: the newest GPT Image model (`gpt-image...`) your key's account lists."
+        },
+        "edgehack.generate.quality": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "auto"],
+          "default": "medium",
+          "markdownDescription": "The quality Generate asks OpenAI for. Higher costs more per image."
+        }
+      }
+    },
     "menus": {
       "view/title": [
         {

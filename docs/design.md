@@ -630,6 +630,17 @@ Checked: 107 unit tests (7 new, `test/ownIcons.test.ts`); the smoke test uploads
 
 **Remove from Project (2026-11-10, EDGEhack 0.0.20, asked for by the owner):** the Desk view's Project rows get a trash can (`edgehack.project.remove`, inline and in the menu). After a modal that lists them, the document, its `.icons` folder, its YAML and its icons' texture and atlas go to the Recycle Bin (`projectFilesOf` in `src/projectDocs.ts`), and its texts leave the onscreens file (`removeTexts` in `src/projectFiles.ts`). The shared script stays, since other documents may need it. Passed its hand test on 2026-11-10.
 
+**H3b.3 built (2026-11-10), EDGEhack 0.0.21:**
+
+| Part | Where | What |
+|---|---|---|
+| The prompts | `src/iconPrompts.ts` (no VS Code) | `PROMPTS`: per look, the prompt from words alone and (Wheel, Status) the one drawn from the Item's picture, the size asked for (Item 1024 x 1536 portrait, the others 1024 x 1024), the fit (the Item card fills 99 x 128 and is cut at the edges; the others fit inside) and white on black; `promptFor`, `cleanWords` (one line, 300 characters at most) |
+| The service | `src/imageService.ts`, `src/generate.ts` (no VS Code) | OpenAI's `v1/models` (`gpt-image*`, newest first, mini last), `v1/images/generations`, and `v1/images/edits` with the Item's picture as the reference, after EDGEmat's `imageServices.ts`; errors in words, a 3-minute limit and Cancel. `generateLook` draws one look |
+| The key and model | `src/openaiKey.ts`, `src/keys.mjs` (REDnode's `tools/keys/keys.mjs`, copied unchanged) | The key from the shared store (`openai`), asked for once in a password box and saved there; **EDGEhack: Set the OpenAI Key** and **Clear the OpenAI Key**. Settings `edgehack.generate.model` (empty: the newest the account lists) and `edgehack.generate.quality` (default medium) |
+| The page | `src/editorHtml.ts`, `media/editor.js`, `src/editor.ts` | **Generate...** on each icon and **Generate All...**; the panel with the words, the cost, **Show the Prompt** (the whole prompt as typed), and each result fitted in the page's canvas (black made see-through for Wheel and Status) at its real size beside the icon shown now, with **Keep**, **Try Again** and the prompt sent; **Keep All** with two or more. Keep goes through Upload's path, so nothing is written before it. A run goes outside the page's message queue, one at a time, and the page stays editable |
+
+Checked: 117 unit tests (9 new, `test/generate.test.ts`, against a stand-in server); the smoke test runs Generate All against a stand-in OpenAI (13 checks: the prompts shown, one generation and two edits from it, each result fitted, nothing kept before Keep, Try Again, Keep All, the save). Unverified until the hand test: real images from OpenAI, and how close the prompts get to the game's looks.
+
 ### H3c Scripts: plan
 
 Asked for by the owner on 2026-11-05: a quickhack can carry two REDnode functions, for what records cannot say. Agreed the same day. Read from game 2.5's scripts; nothing here has run in the game yet.

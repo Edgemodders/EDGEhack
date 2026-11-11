@@ -10,6 +10,8 @@
 // (the game folder), EH_CODE (Code.exe, default the per-user install).
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
+import * as http from "node:http";
+import * as zlib from "node:zlib";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,14 +29,61 @@ const CODE = process.env.EH_CODE ?? cachedCode ?? path.join(local, "Programs", "
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log("[smoke]", ...a);
 
-for (const f of ["ud", "proj", "desk", "control.json", "done.json", "packed.json", "opened.json", "loc.json"]) fs.rmSync(path.join(T, f), { recursive: true, force: true });
+for (const f of ["ud", "proj", "desk", "keys", "control.json", "done.json", "packed.json", "opened.json", "loc.json"]) fs.rmSync(path.join(T, f), { recursive: true, force: true });
 fs.mkdirSync(path.join(T, "proj", "source", "raw"), { recursive: true });
 fs.mkdirSync(path.join(T, "ud", "User"), { recursive: true });
 fs.cpSync(path.join(here, "stub"), path.join(T, "stub"), { recursive: true });
 fs.writeFileSync(path.join(T, "ud", "User", "settings.json"), JSON.stringify({ "window.dialogStyle": "custom", "security.workspace.trust.enabled": false }));
 for (const f of [BRIDGE, CODE]) if (!fs.existsSync(f)) throw new Error(`Not found: ${f}`);
 
-const env = { ...process.env, EH_SMOKE: T, EH_BRIDGE: BRIDGE, EH_GAME: GAME, EDGEHACK_DESK: path.join(T, "desk") };
+// A stand-in OpenAI for Generate (H3b.3): every image is a white square on black, 1024 x 1024. The
+// key comes from OPENAI_API_KEY, which wins over the shared store, and the store is a scratch folder.
+const openaiSeen = [];
+function squarePng(n) {
+  const rows = [];
+  for (let y = 0; y < n; y++) {
+    const row = Buffer.alloc(1 + n * 3);
+    for (let x = 0; x < n; x++) if (x > n * 0.3 && x < n * 0.7 && y > n * 0.3 && y < n * 0.7) row.fill(255, 1 + x * 3, 4 + x * 3);
+    rows.push(row);
+  }
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const body = Buffer.concat([Buffer.from(type, "latin1"), data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(zlib.crc32(body));
+    return Buffer.concat([len, body, crc]);
+  };
+  const head = Buffer.alloc(13);
+  head.writeUInt32BE(n, 0);
+  head.writeUInt32BE(n, 4);
+  head[8] = 8;
+  head[9] = 2;
+  return Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), chunk("IHDR", head), chunk("IDAT", zlib.deflateSync(Buffer.concat(rows))), chunk("IEND", Buffer.alloc(0))]);
+}
+const SQUARE = squarePng(1024);
+const openai = http.createServer((req, res) => {
+  const parts = [];
+  req.on("data", (c) => parts.push(c));
+  req.on("end", () => {
+    const body = Buffer.concat(parts);
+    openaiSeen.push({ path: req.url, auth: req.headers.authorization, body });
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify(req.url === "/v1/models" ? { data: [{ id: "gpt-image-1" }, { id: "gpt-4o" }] } : { data: [{ b64_json: SQUARE.toString("base64") }] }));
+  });
+});
+await new Promise((r) => openai.listen(0, "127.0.0.1", r));
+
+const env = {
+  ...process.env,
+  EH_SMOKE: T,
+  EH_BRIDGE: BRIDGE,
+  EH_GAME: GAME,
+  EDGEHACK_DESK: path.join(T, "desk"),
+  EDGEHACK_OPENAI_BASE: `http://127.0.0.1:${openai.address().port}`,
+  OPENAI_API_KEY: "sk-smoke-test",
+  EDGEMODDERS_KEYS_DIR: path.join(T, "keys"),
+};
 // Started from a VS Code terminal, these would attach it to that VS Code, or run it as Node.
 for (const k of Object.keys(env)) if (/^(VSCODE_|ELECTRON_)/.test(k)) delete env[k];
 const code = spawn(CODE, ["--new-window", "--user-data-dir", path.join(T, "ud"), "--extensions-dir", path.join(T, "ex"), "--disable-extensions", "--extensionDevelopmentPath", repo, "--extensionDevelopmentPath", path.join(T, "stub"), "--remote-debugging-port=9347", "--skip-welcome", "--skip-release-notes", "--disable-workspace-trust", path.join(T, "proj")], { env, stdio: "ignore" });
@@ -47,6 +96,7 @@ const check = (ok, what) => {
 const finish = (msg) => {
   log(failed ? `FAILED: ${failed} check(s)` : "PASS", msg ?? "");
   code.kill();
+  openai.close();
   process.exit(failed ? 1 : 0);
 };
 setTimeout(() => {
@@ -278,6 +328,58 @@ await step({ command: "workbench.action.files.save" });
 for (let i = 0; i < 20 && fs.existsSync(atlasFile); i++) await sleep(250);
 check(docOf().ownIcons === undefined && docOf().wheelIcon === undefined, "Game's clears the own icon and the picked one");
 check(!fs.existsSync(atlasFile), "with no own icons, a save removes the atlas");
+
+// Generate (H3b.3): Generate All against the stand-in OpenAI, the Item first, then the Wheel and Status
+// as edits of it; Keep writes a fitted picture as Upload does, and nothing is kept before Keep.
+await run(
+  editor,
+  `document.querySelector('[data-icon-generate="all"]').click();
+   const w = document.querySelector("[data-generate-words]"); w.value = "a skull made of static"; w.dispatchEvent(new Event("input"));`,
+);
+const shownPrompt = await run(editor, `return document.querySelector("[data-generate-prompt]").textContent;`);
+check(/a skull made of static/.test(shownPrompt) && /Item:/.test(shownPrompt) && /Wheel:/.test(shownPrompt) && /Status:/.test(shownPrompt), "Show the Prompt holds the three prompts with the words");
+check(/Three paid images/.test(await run(editor, `return document.querySelector("[data-generate-cost]").textContent;`)), "Generate All says it is three paid images");
+// An earlier upload's file stays after Game's (for undo): Keep must write it anew.
+const wheelTime = () => (fs.existsSync(ownWheel) ? fs.statSync(ownWheel).mtimeMs : 0);
+const wheelBefore = wheelTime();
+await run(editor, `document.querySelector("[data-generate-go]").click();`);
+let results = 0;
+for (let i = 0; i < 60 && results < 3; i++) {
+  await sleep(250);
+  results = await run(editor, `return document.querySelectorAll("[data-result]").length;`);
+}
+check(results === 3, `Generate All shows three results: ${results}`);
+const gens = openaiSeen.filter((r) => r.path === "/v1/images/generations");
+const edits = openaiSeen.filter((r) => r.path === "/v1/images/edits");
+check(openaiSeen.some((r) => r.path === "/v1/models") && openaiSeen.every((r) => r.auth === "Bearer sk-smoke-test"), "it read the account's models, with the key");
+check(gens.length === 1 && /a skull made of static/.test(JSON.parse(gens[0].body.toString()).prompt) && JSON.parse(gens[0].body.toString()).size === "1024x1536", "the Item was drawn from words, portrait");
+check(edits.length === 2 && edits.every((e) => e.body.includes(SQUARE.subarray(0, 64)) && /same glyph/.test(e.body.toString("latin1"))), "the Wheel and Status were edits of the Item's picture");
+const sizes = await run(editor, `return [...document.querySelectorAll("[data-result]")].map((f) => { const i = f.querySelectorAll("img.real"); const g = i[i.length - 1]; return f.dataset.result + ":" + g.naturalWidth + "x" + g.naturalHeight; }).join(" ");`);
+check(sizes === "item:99x128 wheel:64x64 status:64x64", `each result is fitted to its look: ${sizes}`);
+check(wheelTime() === wheelBefore, "nothing is kept before Keep");
+await run(editor, `document.querySelector('[data-generate-keep="wheel"]').click();`);
+for (let i = 0; i < 30 && wheelTime() === wheelBefore; i++) await sleep(200);
+check(wheelTime() !== wheelBefore, "Keep writes the Wheel's picture beside the document");
+await run(editor, `document.querySelector('[data-generate-again="status"]').click();`);
+for (let i = 0; i < 40 && openaiSeen.filter((r) => r.path === "/v1/images/edits").length < 3; i++) await sleep(250);
+check(openaiSeen.filter((r) => r.path === "/v1/images/edits").length === 3, "Try Again on the Status draws it again from the same Item picture");
+await sleep(800);
+await run(editor, `document.querySelector("[data-generate-keep-all]").click();`);
+const ownItem = path.join(path.dirname(ownWheel), "item.png");
+const ownStatus = path.join(path.dirname(ownWheel), "status.png");
+for (let i = 0; i < 30 && !(fs.existsSync(ownItem) && fs.existsSync(ownStatus)); i++) await sleep(200);
+check(fs.existsSync(ownItem) && fs.existsSync(ownStatus), "Keep All writes the Item's and the Status's too");
+await step({ command: "workbench.action.files.save" });
+for (let i = 0; i < 40 && !fs.existsSync(atlasFile); i++) await sleep(250);
+const kept = docOf().ownIcons ?? {};
+check(kept.item === true && kept.wheel === true && kept.status === true, "the saved document marks the three generated icons");
+check(fs.existsSync(atlasFile), "and a save writes their atlas");
+await shot("generate.png");
+await run(editor, `document.querySelector("[data-generate-close]").click(); for (const w of ["item", "wheel", "status"]) document.querySelector('[data-icon-reset="' + w + '"]').click();`);
+await sleep(800);
+await step({ command: "workbench.action.files.save" });
+for (let i = 0; i < 20 && fs.existsSync(atlasFile); i++) await sleep(250);
+check(docOf().ownIcons === undefined && !fs.existsSync(atlasFile), "Game's on each takes the generated icons out again");
 
 // Back to the game's value: no change, no modifier.
 await setInput(editor, RAM, "6");

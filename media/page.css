@@ -117,3 +117,22 @@ main.edit select { background: var(--vscode-dropdown-background); color: var(--v
 .chance-mode { border-left: 3px solid var(--yellow, #fcee0a); padding: 4px 8px; margin: 6px 0; }
 .icons label.black { font-size: .8em; color: var(--dim); white-space: nowrap; }
 .icons figure { max-width: 190px; }
+
+/* Generate (H3b.3): the words, the prompt, and each result at its real size beside the icon shown now */
+.generate { margin-top: 10px; border: 1px solid var(--line); padding: 8px 10px; }
+.generate .generate-title { margin: 0 0 6px; color: var(--cyan); }
+.generate label.words { display: block; color: var(--dim); }
+.generate label.words input { display: block; width: 100%; margin-top: 3px; }
+button.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border-color: transparent; }
+button.primary:hover { background: var(--vscode-button-hoverBackground); }
+button:disabled { opacity: .5; cursor: default; }
+pre.prompt { white-space: pre-wrap; font-family: var(--vscode-editor-font-family); font-size: .85em; color: var(--dim); margin: 4px 0; }
+.results { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; }
+.results figure.result { margin: 0; border: 1px solid var(--line); padding: 8px; max-width: 320px; }
+.results figure.result.kept { border-color: var(--yellow); }
+.results .pair { display: flex; gap: 12px; align-items: flex-end; }
+.results .pair > div { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.results .pair small { color: var(--dim); font-size: .8em; }
+.results .real { display: block; image-rendering: auto; background: #08090d; }
+.results span.real { border: 1px dashed var(--line); }
+.results figcaption { margin-top: 6px; color: var(--dim); font-size: .9em; }

@@ -12,6 +12,7 @@ import { copyName, deskRoot, duplicateDeskItem, deskNewHackProblem } from "./des
 import { projectFilesOf } from "./projectDocs";
 import { removeTexts } from "./projectFiles";
 import { bridge, redcode } from "./redcode";
+import { clearOpenAIKey, setOpenAIKey } from "./openaiKey";
 import * as path from "node:path";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
@@ -211,6 +212,10 @@ export function activate(context: vscode.ExtensionContext): void {
       const record = QuickhacksView.recordOf(node as never);
       if (record) void vscode.commands.executeCommand("redcode.openTweakRecord", record);
     }),
+    vscode.commands.registerCommand("edgehack.setOpenAIKey", async () => {
+      if (await setOpenAIKey()) void vscode.window.showInformationMessage("EDGEhack: the OpenAI API key is saved in the EDGE tools' shared key store.");
+    }),
+    vscode.commands.registerCommand("edgehack.clearOpenAIKey", () => clearOpenAIKey()),
   );
 }
 
