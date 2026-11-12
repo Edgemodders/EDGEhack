@@ -54,10 +54,10 @@ function pickFolder(context: vscode.ExtensionContext, root: string, name: string
   const folders = libraryFolders(root);
   const order = ["", ...folders].sort((a, b) => Number(b === last) - Number(a === last));
   const qp = vscode.window.createQuickPick<FolderItem>();
-  qp.title = `Add to Library: ${name}`;
-  qp.placeholder = "Pick a Library folder";
+  qp.title = `Add to Library: ${name}: which folder?`;
+  qp.placeholder = "Pick a folder in the Library for it, or make one with New Folder...";
   qp.items = [
-    ...order.map((folder): FolderItem => ({ label: folder ? `$(folder) ${folder}` : "$(root-folder) The Library's root", description: folder === last ? "Last used" : folder ? undefined : root, folder })),
+    ...order.map((folder): FolderItem => ({ label: folder ? `$(folder) ${folder}` : "$(root-folder) The Library's top folder", description: folder === last ? "Last used" : folder ? undefined : "no folder of its own", folder })),
     { label: "$(new-folder) New Folder...", action: "new", alwaysShow: true },
   ];
   const first = qp.items.find((i) => i.folder === (last ?? ""));

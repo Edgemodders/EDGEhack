@@ -56,8 +56,8 @@ EDGEhack 0.0.31 (F5), on the dev PC, with REDcode's project EDGEhack_Test1 open.
 
 | Step | Do | Expect |
 |---|---|---|
-| 1 | In the Desk view, hover a quickhack (Desk Spark, or any) and press the **Add to Library** icon | The first time: "Where should the EDGE Library go?", offering `Documents\EDGE Library`. Pick it |
-| 2 | In the folder picker, **New Folder...**, type `Quickhacks/Electric` | "Desk Spark is in the EDGE Library, in Quickhacks/Electric", with Reveal. The Library view shows Quickhacks › Electric › Desk Spark, "v1" |
+| 1 | In the Desk view, hover a quickhack (Desk Spark, or any) and press the **Add to Library** icon | The first time: "Where should the EDGE Library go?", offering `Documents\EDGE Library`. Pick it. A second list opens at once: the folder picker |
+| 2 | In that folder picker ("Add to Library: Desk Spark: which folder?"), **New Folder...** (its last row), type `Quickhacks/Electric` | "Desk Spark is in the EDGE Library, in Quickhacks/Electric", with Reveal. The Library view shows Quickhacks › Electric › Desk Spark, "v1" |
 | 3 | In the Library view, click Desk Spark, change a RAM, save | The page says it is in the EDGE Library and offers Add to Project, not Pack and Play; after the save, "Saved in the EDGE Library, version 2"; the row says v2 |
 | 4 | On its row, **Add to Project** | It opens as `edgehack_test1_desk_spark` in the project, with its mod files written. `source\library.json` in the project has an entry with `by: "edgehack"` and `version: 2` |
 | 5 | Back in the Library's copy, change another number and save | Version 3. In the Desk view's Project group, Desk Spark says "newer in the Library (v3)" |
