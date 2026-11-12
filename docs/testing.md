@@ -19,6 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [H6.1 The last game check](#h61-the-last-game-check) | In the game, with REDagent | H6 | 2026-11-11 | Pass, all 5 steps (EDGEhack 0.0.31, REDnode 0.63.0, REDagent 0.4.3): one ask for one request's changes, and Try Live's note on a new quickhack |
 | [H5 Library](#h5-library) | By hand in VS Code, then in the game | H5 | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.31, dev PC). The first try at step 2 put the quickhack in the Library's top folder: the folder picker took the click that answered the Library's place question (fixed the same day) |
 | [H4.5 The MCP server](#h45-the-mcp-server) | An MCP client script on the real REDbridge and game, then by hand with Claude Code | H4 | 2026-11-11 | Pass: the script's 33 checks, and the hand test's steps 1 to 7 with Claude Code (EDGEhack 0.0.30); step 8, Try Live, left for later |
 | [H4.4 The core outside VS Code](#h44-the-core-outside-vs-code) | Automated: unit tests, the smoke test, and a script on the real REDbridge and game with no VS Code | H4 | 2026-11-11 | Pass: 162 unit tests, 135 smoke checks, all 11 checks of the script |
@@ -48,7 +49,23 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-- H5.0's two fixes, in the next game run: Try Live's note on a new quickhack, and REDagent 0.4.3 asking once for one request's changes.
+Nothing.
+
+## H6.1 The last game check
+
+EDGEhack 0.0.31 (F5), REDnode 0.63.0, REDagent 0.4.3, game 2.5, on the dev PC: H5.0's two fixes in the game.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | Load a save, open REDagent | Its window opens |
+| 2 | "Make a new quickhack from Short Circuit called Agent Spark, with 1 less RAM on every tier, 2 more seconds of upload on the Rare tier, and a feature line saying it arcs to drones." | It asks once for `hack_new`, then **once** for all the changes (one `hack_edit`). Agent Spark is on the Desk |
+| 3 | "Try Agent Spark live and give me its Rare tier." | It asks first; its answer says the name shows as a text key (LocKey#...) until Pack and Play and a game restart |
+| 4 | "Stop trying it." | It asks first, and the game is put back |
+| 5 | In VS Code, open Agent Spark from the Desk view and press **Try Live** | The page's status says the same about the text key |
+
+| Run | Result |
+|---|---|
+| 2026-11-11, by the owner, dev PC | **Pass, all 5 steps** |
 
 ## H5 Library
 
