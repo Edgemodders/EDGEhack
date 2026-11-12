@@ -18,7 +18,7 @@ How to keep it (the Edgemodders convention):
 
 **Other**
 
-- 0.1.0 reached GitHub and Open VSX but not the VS Code Marketplace, which refused it; 0.1.1 is the first on the Marketplace.
+- The VS Code Marketplace refused 0.1.0 and 0.1.1 ("suspicious content", with no reason given); both are on GitHub and Open VSX, and 0.1.1 on Nexus Mods. The Marketplace listing is being sorted out.
 
 ## 0.1.0 (2026-11-11)
 
