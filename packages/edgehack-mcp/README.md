@@ -1,6 +1,6 @@
 # EDGEhack MCP server
 
-[EDGEhack](https://edgemodders.github.io/EDGEhack/), the quickhack editor for Cyberpunk 2077, for AI assistants over MCP. An assistant can find and read the game's quickhacks, make new ones, change their costs, texts and effects, write their scripts, pack the mod, and try it live in the running game. It reads the game from your own install, through REDbridge.
+[EDGEhack](https://edgemodders.github.io/EDGEhack/), the game mod editor for the video game Cyberpunk 2077, for AI assistants over MCP. In the game, quickhacks are abilities the player's character uses in the story; this server edits that game data and writes game mod files. It is a video game modding tool, not a security or hacking tool. An assistant can find and read the game's quickhacks, make new ones, change their costs, texts and effects, write their scripts, pack the mod, and try it live in the running game. It reads the game from your own install, through REDbridge.
 
 It runs without VS Code. In VS Code, EDGEhack's **Connect an Assistant (MCP)...** command registers it with Claude Code for you.
 

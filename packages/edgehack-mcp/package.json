@@ -1,18 +1,17 @@
 {
   "name": "@edgemodders/edgehack-mcp",
-  "version": "0.1.1",
-  "description": "EDGEhack for AI assistants over MCP: find, describe, make and change Cyberpunk 2077 quickhacks, write their scripts, pack the mod and try it live in the running game.",
+  "version": "0.1.2",
+  "description": "EDGEhack's MCP server for AI assistants: edit quickhacks, the in-game abilities of the video game Cyberpunk 2077, and write game mod files. A game modding tool, not a security or hacking tool.",
   "license": "MIT",
   "author": "Edgemodders",
   "homepage": "https://edgemodders.github.io/EDGEhack/",
   "keywords": [
     "mcp",
     "model-context-protocol",
-    "cyberpunk2077",
-    "modding",
-    "quickhacks",
-    "tweakxl",
-    "tweakdb"
+    "cyberpunk 2077",
+    "video game",
+    "game modding",
+    "tweakxl"
   ],
   "repository": {
     "type": "git",

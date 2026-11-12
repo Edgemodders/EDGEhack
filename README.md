@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://edgemodders.github.io/EDGEhack/"><img src="docs/assets/brand/badges/docs.svg" alt="docs: read the docs"></a>
-  <img src="docs/assets/brand/badges/status.svg" alt="status: 0.1.1 released">
+  <img src="docs/assets/brand/badges/status.svg" alt="status: 0.1.2 released">
   <img src="docs/assets/brand/badges/game.svg" alt="game: Cyberpunk 2077">
   <img src="docs/assets/brand/badges/vscode.svg" alt="runs in: VS Code">
   <a href="LICENSE"><img src="docs/assets/brand/badges/license.svg" alt="license: MIT"></a>
@@ -24,7 +24,7 @@ A quickhack editor for Cyberpunk 2077, as a VS Code extension in the EDGE family
 **[Guide](https://edgemodders.ai/wiki/edgehack/)** &middot; [Docs](https://edgemodders.github.io/EDGEhack/) &middot; [Design](docs/design.md) &middot; [Changelog](CHANGELOG.md) &middot; [Tests](docs/testing.md)
 
 > [!NOTE]
-> **Status: 0.1.1 released on 2026-11-11, for game 2.5**, the first release, a preview: on GitHub, Open VSX, Nexus Mods and npm; the VS Code Marketplace refused it ("suspicious content") and is being asked why. Generate's OpenAI key is kept in VS Code's own secret storage. Open any quickhack in plain words, change it, or Clone and Modify it into a new one with effects from any other, icons of your own (uploaded or drawn by OpenAI) and scripts run by REDnode; try it live in the running game; keep it in the EDGE Library; and let Claude Code or REDagent make quickhacks with you. On [Open VSX](https://open-vsx.org/extension/edgemodders/edgehack), [GitHub releases](https://github.com/Edgemodders/EDGEhack/releases) and npm (`@edgemodders/edgehack-mcp`). [Guide](https://edgemodders.ai/wiki/edgehack/)
+> **Status: 0.1.2 released on 2026-11-11, for game 2.5**, the first release, a preview: on GitHub, Open VSX, Nexus Mods and npm; the VS Code Marketplace refused it ("suspicious content") and is being asked why. Generate's OpenAI key is kept in VS Code's own secret storage. Open any quickhack in plain words, change it, or Clone and Modify it into a new one with effects from any other, icons of your own (uploaded or drawn by OpenAI) and scripts run by REDnode; try it live in the running game; keep it in the EDGE Library; and let Claude Code or REDagent make quickhacks with you. On [Open VSX](https://open-vsx.org/extension/edgemodders/edgehack), [GitHub releases](https://github.com/Edgemodders/EDGEhack/releases) and npm (`@edgemodders/edgehack-mcp`). [Guide](https://edgemodders.ai/wiki/edgehack/)
 
 ## Repo layout
 

@@ -1,8 +1,8 @@
 {
   "name": "edgehack",
-  "displayName": "EDGEhack",
-  "description": "Quickhack editor for Cyberpunk 2077: open any quickhack, change its name, icon, costs and effects, or make a new one from the game's own status effects.",
-  "version": "0.1.1",
+  "displayName": "EDGEhack: Cyberpunk 2077 Game Mod Editor",
+  "description": "A mod editor for the video game Cyberpunk 2077. Edit the game's quickhacks, the in-game abilities the player's character uses in the story: their names, icons, costs and effects. Writes game mod files (TweakXL). A game modding tool, not a security or hacking tool.",
+  "version": "0.1.2",
   "publisher": "edgemodders",
   "preview": true,
   "pricing": "Free",
@@ -28,13 +28,13 @@
     "Other"
   ],
   "keywords": [
-    "cyberpunk",
     "cyberpunk 2077",
-    "quickhacks",
-    "tweakdb",
+    "video game",
+    "game modding",
+    "mod editor",
+    "gaming",
     "tweakxl",
-    "modding",
-    "edgehack"
+    "tweakdb"
   ],
   "main": "./dist/extension.js",
   "activationEvents": [],

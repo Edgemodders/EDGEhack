@@ -10,6 +10,12 @@ How to keep it (the Edgemodders convention):
 
 ## Unreleased
 
+## 0.1.2 (2026-11-11)
+
+**Changed**
+
+- EDGEhack's name in the extension lists is now "EDGEhack: Cyberpunk 2077 Game Mod Editor", and its description and Marketplace page say plainly that it is a mod editor for the video game Cyberpunk 2077, where quickhacks are in-game abilities, and not a security or hacking tool. Nothing else changed.
+
 ## 0.1.1 (2026-11-11)
 
 **Changed**

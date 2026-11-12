@@ -1,8 +1,12 @@
-# EDGEhack
+# EDGEhack: a Cyberpunk 2077 game mod editor
 
-A quickhack editor for Cyberpunk 2077, in the EDGE family of modding tools. Open any of the game's quickhacks and see every tier in plain words. Change its costs, texts and effects, or make new quickhacks with effects, icons and logic of your own, and try them live in the running game.
+EDGEhack is a **mod editor for the video game Cyberpunk 2077** (CD Projekt RED, 2020), in the EDGE family of game modding tools. In the game, *quickhacks* are abilities the player's character, V, uses in the story: a game mechanic, like spells in a fantasy game. EDGEhack edits those game abilities and writes **game mod files** for them.
 
-> **0.1.0, the first release, for game 2.5.** A preview: every part passed its tests, in the game where it changes the game. [Guide](https://edgemodders.ai/wiki/edgehack/)
+> **This is a video game modding tool, not a security or hacking tool.** It only reads and changes Cyberpunk 2077's own game data (TweakDB, through TweakXL) on your own PC, and makes mods for that game. It does nothing to networks, computers or other software.
+
+Open any of the game's quickhacks and see every tier in plain words. Change its costs, texts and effects, or make new in-game quickhacks with effects, icons and logic of your own, and try them live in the running game.
+
+> **For game 2.5.** A preview: every part passed its tests, in the game where it changes the game. [Guide](https://edgemodders.ai/wiki/edgehack/)
 
 ## What it does
 
