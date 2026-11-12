@@ -899,7 +899,7 @@ The hand test: a Desk quickhack added to a new Library (the root asked, a folder
 
 ### H6 First release: plan
 
-Written on 2026-11-11 after H5 passed, for the owner to agree. EDGEhack 0.1.0 on the VS Code Marketplace, Open VSX, GitHub and Nexus Mods (page 37293), with its MCP server on npm. The release gate holds: every hand test of the changes passed. All five release secrets reach the repo (`VSCE_PAT`, `OVSX_PAT`, `NEXUS_KEY`, `NPM_TOKEN`, `RELEASE_TOKEN`), and the docs site builds from GitHub Actions.
+Written on 2026-11-11 after H5 passed. **Agreed with the owner on 2026-11-11**, with their notes: the Nexus description is written again for what EDGEhack has now, and the owner adds screenshots there; after the release, a dossier of the wiki's screenshots with their file names, as EDGEbuilder's, so the owner's pictures land where the pages already name them. EDGEhack 0.1.0 on the VS Code Marketplace, Open VSX, GitHub and Nexus Mods (page 37293), with its MCP server on npm. The release gate holds: every hand test of the changes passed. All five release secrets reach the repo (`VSCE_PAT`, `OVSX_PAT`, `NEXUS_KEY`, `NPM_TOKEN`, `RELEASE_TOKEN`), and the docs site builds from GitHub Actions.
 
 | Step | Delivers | Ends with |
 |---|---|---|
@@ -913,7 +913,7 @@ Written on 2026-11-11 after H5 passed, for the owner to agree. EDGEhack 0.1.0 on
 
 | Question | Recommended |
 |---|---|
-| Where the player guide lives | On the EDGEweb wiki (edgemodders.ai/wiki/edgehack/), as the other EDGE tools' user pages are, with the docs site keeping the design and the tests and linking to it |
+| Where the player guide lives | On the EDGEweb wiki (edgemodders.ai/wiki/edgehack/), as the other EDGE tools' user pages are, with the docs site keeping the design and the tests and linking to it. Each screenshot is named in its page (`/assets/shots/edgehack/<page>-<what>.webp`) and shows as a placeholder until the file is there |
 | Pictures | The smoke test's screenshots now (it already takes the Quickhacks view, the Desk and the Library); the owner swaps in their own where they want, as with Sound Tools' page |
 | The Nexus page's files | The Nexus zip only (the vsix inside, with install steps), as EDGEdeck's and EDGEwave's pages have; Mod Manager Download off, since it is a VS Code extension |
 | Version | 0.1.0, still marked preview on the Marketplace (`"preview": true`), since the phases are done but the tool is new |
