@@ -60,8 +60,12 @@ function pickFolder(context: vscode.ExtensionContext, root: string, name: string
     ...order.map((folder): FolderItem => ({ label: folder ? `$(folder) ${folder}` : "$(root-folder) The Library's top folder", description: folder === last ? "Last used" : folder ? undefined : "no folder of its own", folder })),
     { label: "$(new-folder) New Folder...", action: "new", alwaysShow: true },
   ];
-  const first = qp.items.find((i) => i.folder === (last ?? ""));
+  // Only the folder last used is picked out: the first time, no row is, so nothing is taken by a stray Enter.
+  const first = last === undefined ? undefined : qp.items.find((i) => i.folder === last);
   if (first) qp.activeItems = [first];
+  // The picker opens where the Library's place question was, at once: the click or Enter that answered that
+  // question must not answer this one (the owner's H5 test, 2026-11-11, took the top folder that way).
+  const shownAt = Date.now();
   return new Promise((resolve) => {
     let done = false;
     const finish = (r: string | undefined): void => {
@@ -70,6 +74,7 @@ function pickFolder(context: vscode.ExtensionContext, root: string, name: string
       qp.dispose();
     };
     qp.onDidAccept(async () => {
+      if (Date.now() - shownAt < 500) return;
       const item = qp.activeItems[0];
       if (!item) return;
       if (item.action === "new") {
