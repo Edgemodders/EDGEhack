@@ -26,6 +26,6 @@ As of 2026-11-11. Each phase ends with a hand test by the owner, and an in-game 
 | H3d Feature lines | Done 2026-11-11: bullets of the modder's own in the item's tooltip passed in the game (EDGEhack 0.0.28) |
 | H4 Try Live and MCP | Under way: Try Live (H4.1 to H4.3) passed in the game on 2026-11-11 (EDGEhack 0.0.29, REDnode 0.62.1); live names parked. H4.4, the core outside VS Code, built and checked on 2026-11-11. H4.5, the MCP server and Connect an Assistant, passed its hand test with Claude Code on 2026-11-11 (EDGEhack 0.0.30). H4.6, REDagent in the game (REDnode 0.63.0, REDagent 0.4.2), passed in the game on 2026-11-11. **H4 is done** |
 | H5 Library | Done 2026-11-11: passed its hand test (EDGEhack 0.0.31). Plan agreed with the owner on 2026-11-11 (design, "H5 Library: plan"): two fixes from H4, the `quickhack` kind on EDGEbuilder, Add to Library, the Library view, Refresh from Library, and assistants listing and taking from it |
-| H6 First release | Plan agreed with the owner on 2026-11-11 (design, "H6 First release: plan") |
+| H6 First release | Released as 0.1.1 on 2026-11-11 (GitHub, Open VSX, npm, Nexus; the VS Code Marketplace refused it and is being asked why). Plan agreed with the owner on 2026-11-11 (design, "H6 First release: plan") |
 
 EDGEhack is not affiliated with CD Projekt RED. Source code and issues: [github.com/Edgemodders/EDGEhack](https://github.com/Edgemodders/EDGEhack)
