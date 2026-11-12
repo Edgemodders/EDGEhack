@@ -19,6 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [0.1.1 The key in VS Code's secret storage](#011-the-key-in-vs-codes-secret-storage) | By hand, in VS Code | H6 | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.1.1) |
 | [H6.1 The last game check](#h61-the-last-game-check) | In the game, with REDagent | H6 | 2026-11-11 | Pass, all 5 steps (EDGEhack 0.0.31, REDnode 0.63.0, REDagent 0.4.3): one ask for one request's changes, and Try Live's note on a new quickhack |
 | [H5 Library](#h5-library) | By hand in VS Code, then in the game | H5 | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.31, dev PC). The first try at step 2 put the quickhack in the Library's top folder: the folder picker took the click that answered the Library's place question (fixed the same day) |
 | [H4.5 The MCP server](#h45-the-mcp-server) | An MCP client script on the real REDbridge and game, then by hand with Claude Code | H4 | 2026-11-11 | Pass: the script's 33 checks, and the hand test's steps 1 to 7 with Claude Code (EDGEhack 0.0.30); step 8, Try Live, left for later |
@@ -50,6 +51,21 @@ Last updated 2026-11-11.
 ## Waiting for a hand test
 
 Nothing.
+
+## 0.1.1 The key in VS Code's secret storage
+
+EDGEhack 0.1.1 (F5), on the dev PC: the OpenAI key for Generate kept in VS Code's own secret storage, after the Marketplace refused 0.1.0 with the shared key store inside.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | **EDGEhack: Clear the OpenAI Key...**, then **Clear It** | "the OpenAI API key is cleared" |
+| 2 | **Generate...** on a quickhack's Wheel icon | It asks for the key, saying it is kept in VS Code's secret storage, for EDGEhack only; it draws with it |
+| 3 | Close the development host, F5 again, **Generate...** | It does not ask again |
+| 4 | **Clear the OpenAI Key...**, then **Generate...** | It asks again; Esc draws nothing |
+
+| Run | Result |
+|---|---|
+| 2026-11-11, by the owner, dev PC | **Pass, all 4 steps** |
 
 ## H6.1 The last game check
 
