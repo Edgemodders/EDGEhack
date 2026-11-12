@@ -37,7 +37,7 @@ fs.writeFileSync(path.join(T, "ud", "User", "settings.json"), JSON.stringify({ "
 for (const f of [BRIDGE, CODE]) if (!fs.existsSync(f)) throw new Error(`Not found: ${f}`);
 
 // A stand-in OpenAI for Generate (H3b.3): every image is a white square on black, 1024 x 1024. The
-// key comes from OPENAI_API_KEY, which wins over the shared store, and the store is a scratch folder.
+// key comes from OPENAI_API_KEY, which wins over VS Code's secret storage.
 const openaiSeen = [];
 function squarePng(n) {
   const rows = [];
@@ -102,7 +102,6 @@ const env = {
   EDGE_LIBRARY_CONFIG: path.join(T, "library.json"),
   EDGEHACK_OPENAI_BASE: `http://127.0.0.1:${openai.address().port}`,
   OPENAI_API_KEY: "sk-smoke-test",
-  EDGEMODDERS_KEYS_DIR: path.join(T, "keys"),
   EDGEHACK_REDNODE_EDITOR: path.join(T, "rednode-editor.json"),
 };
 // Started from a VS Code terminal, these would attach it to that VS Code, or run it as Node.

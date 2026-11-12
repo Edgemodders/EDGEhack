@@ -15,13 +15,14 @@ import { projectFilesOf, scriptEntries } from "./projectDocs";
 import { writeScriptPackage } from "./scripts";
 import { removeTexts } from "./projectFiles";
 import { bridge, redcode } from "./redcode";
-import { clearOpenAIKey, setOpenAIKey } from "./openaiKey";
+import { clearOpenAIKey, initKeys, setOpenAIKey } from "./openaiKey";
 import { connectAssistant, installServer, registerWithEditor } from "./mcp";
 import * as path from "node:path";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
 
 export function activate(context: vscode.ExtensionContext): void {
+  initKeys(context);
   const log = vscode.window.createOutputChannel("EDGEhack");
   const hub = new Hub(context.extensionUri, context.globalStorageUri, log);
   const quickhacks = new QuickhacksView(hub);
@@ -226,7 +227,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (record) void vscode.commands.executeCommand("redcode.openTweakRecord", record);
     }),
     vscode.commands.registerCommand("edgehack.setOpenAIKey", async () => {
-      if (await setOpenAIKey()) void vscode.window.showInformationMessage("EDGEhack: the OpenAI API key is saved in the EDGE tools' shared key store.");
+      if (await setOpenAIKey()) void vscode.window.showInformationMessage("EDGEhack: the OpenAI API key is saved in VS Code's secret storage.");
     }),
     vscode.commands.registerCommand("edgehack.clearOpenAIKey", () => clearOpenAIKey()),
   );

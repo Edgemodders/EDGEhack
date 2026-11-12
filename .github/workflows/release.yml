@@ -27,7 +27,8 @@
 #                                               node ../EDGErepo/tools/nexus/nexus.mjs release on the
 #                                               dev PC with the release's zip: it skips what is
 #                                               already done
-#   ... with "Make a release", the npm job      after the release job, publishes EDGEhack's MCP server
+#   ... with "Make a release", the npm job      once the GitHub release exists (even if a store refused
+#                                               the extension), publishes EDGEhack's MCP server
 #                                               @edgemodders/edgehack-mcp at EDGEhack's version, with
 #                                               provenance (NPM_TOKEN); skipped when that version is
 #                                               already on npm
@@ -64,6 +65,9 @@ concurrency:
 jobs:
   release:
     runs-on: windows-latest
+    # Set once the GitHub release exists, so the npm job runs even when a store refused the extension.
+    outputs:
+      released: ${{ steps.github.outputs.released }}
     defaults:
       run:
         shell: bash
@@ -173,6 +177,7 @@ jobs:
 
       # Makes the tag too (--target: this commit).
       - name: GitHub release
+        id: github
         if: env.RELEASE == 'true' && !cancelled() && steps.package.outcome == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -180,9 +185,10 @@ jobs:
           if gh release view "v${VERSION}" >/dev/null 2>&1; then
             echo "Release v${VERSION} already exists; adding the files if they are missing"
             gh release upload "v${VERSION}" "${VSIX}" "dist/EDGEhack-${VERSION}-nexus.zip" --clobber
-            exit 0
+          else
+            gh release create "v${VERSION}" "${VSIX}" "dist/EDGEhack-${VERSION}-nexus.zip" --target "${GITHUB_SHA}" --title "EDGEhack ${VERSION}" --notes-file "${RUNNER_TEMP}/notes.md"
           fi
-          gh release create "v${VERSION}" "${VSIX}" "dist/EDGEhack-${VERSION}-nexus.zip" --target "${GITHUB_SHA}" --title "EDGEhack ${VERSION}" --notes-file "${RUNNER_TEMP}/notes.md"
+          echo "released=true" >> "$GITHUB_OUTPUT"
 
       # Skips what is already on Nexus, so a re-run is safe.
       - name: Nexus Mods
@@ -191,11 +197,13 @@ jobs:
           NEXUS_KEY: ${{ secrets.NEXUS_KEY }}
         run: node "$RUNNER_TEMP/EDGErepo/tools/nexus/nexus.mjs" release --version "${VERSION}" --zip "dist/EDGEhack-${VERSION}-nexus.zip" --notes "${RUNNER_TEMP}/nexus-notes.txt"
 
-  # EDGEhack's MCP server on npm (H4.5), built from this commit, with provenance. After the release job,
-  # so a release that failed publishes nothing here; a re-run skips a version npm already has.
+  # EDGEhack's MCP server on npm (H4.5), built from this commit, with provenance. It runs once the GitHub
+  # release exists, even when the Marketplace or Open VSX refused the extension (the Marketplace refused
+  # 0.1.0, 2026-11-11), so a store's refusal does not hold the server back; a run that made no GitHub
+  # release publishes nothing here. A re-run skips a version npm already has.
   npm:
     needs: release
-    if: inputs.release
+    if: ${{ !cancelled() && needs.release.outputs.released == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

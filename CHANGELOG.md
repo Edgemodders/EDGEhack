@@ -10,6 +10,14 @@ How to keep it (the Edgemodders convention):
 
 ## Unreleased
 
+**Changed**
+
+- Generate's OpenAI key is kept in VS Code's own encrypted secret storage, for EDGEhack only, and asked for once the first time you Generate; `OPENAI_API_KEY` in the environment still wins. EDGEhack no longer reads or writes the EDGE tools' shared key store, so a key saved there by another EDGE tool is asked for again. **EDGEhack: Set the OpenAI Key...** and **Clear the OpenAI Key...** work on EDGEhack's own copy.
+
+**Other**
+
+- 0.1.0 reached GitHub and Open VSX but not the VS Code Marketplace, which refused it; 0.1.1 is the first on the Marketplace.
+
 ## 0.1.0 (2026-11-11)
 
 The first release, for game 2.5. A preview: every part below passed its tests, in the game where it changes the game. Guide: https://edgemodders.ai/wiki/edgehack/
