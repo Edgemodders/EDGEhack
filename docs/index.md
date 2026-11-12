@@ -4,6 +4,7 @@ EDGEhack is a VS Code extension that edits Cyberpunk 2077's quickhacks. Open any
 
 | Document | What it covers |
 |---|---|
+| [Guide](https://edgemodders.ai/wiki/edgehack/) | For modders, on the EDGEweb wiki: install, your first quickhack, the editor, scripts, Try Live, the Desk and the Library, assistants, troubleshooting |
 | [Design](design.html) | How the game builds a quickhack, the editor, adding effects, the views, the Desk and Library, opening a quickhack from any tool, trying it in the game, the phases and the open questions |
 | [Assistants (MCP)](assistants.html) | EDGEhack's MCP server: connecting Claude Code, and what an assistant can do with quickhacks |
 | [Tests](testing.html) | Every test, with its steps for running again |
