@@ -897,6 +897,27 @@ The hand test: a Desk quickhack added to a new Library (the root asked, a folder
 
 **Passed the owner's hand test on 2026-11-11** (all 10 steps; the folder picker's first-time click fixed on the way). Checked: 184 unit tests (10 new: `test/library.test.ts` and the tools' Library paths); the smoke test's 147 checks (12 new: Add to Library into a folder, Add to Project with the note, a save in the Library raising its version and marking the project's copy, the Library view's rows, Refresh from Library, adding the Desk's copy again, Copy to the Desk, Remove from Library); the MCP client check's 33. A row's accessible label in a VS Code tree is its tooltip, so the smoke test checks the marks there. [EDGEbuilder #5](https://github.com/Edgemodders/EDGEbuilder/issues/5) is done (EDGEbuilder 7d8b1a1, the wiki 8beaf1a); closing it is the owner's.
 
+### H6 First release: plan
+
+Written on 2026-11-11 after H5 passed, for the owner to agree. EDGEhack 0.1.0 on the VS Code Marketplace, Open VSX, GitHub and Nexus Mods (page 37293), with its MCP server on npm. The release gate holds: every hand test of the changes passed. All five release secrets reach the repo (`VSCE_PAT`, `OVSX_PAT`, `NEXUS_KEY`, `NPM_TOKEN`, `RELEASE_TOKEN`), and the docs site builds from GitHub Actions.
+
+| Step | Delivers | Ends with |
+|---|---|---|
+| **H6.1 The last game check** | H5.0's two fixes in the game, with REDagent 0.4.3 deployed: REDagent makes a quickhack with three changes asked for in one sentence (one ask card), and Try Live's note on a new quickhack in the editor and in REDagent's answer | The owner's short run |
+| **H6.2 The player guide** | A guide for modders, from opening a quickhack to releasing the mod: the Quickhacks view, the editor (texts, numbers, Apply to all), Clone and Modify, Add Effect and Build one, Get it, own icons (Upload, Generate), Scripts, Feature lines, Try Live, Pack and Play, the Desk, the Library, assistants. Pictures from the smoke test's screenshots, which the owner can replace | The guide pages, linked from the README, the Marketplace page and Nexus |
+| **H6.3 The store pages** | `README.marketplace.md` and `nexus/description.bbcode` written again for what EDGEhack is now (pulled from Nexus first, so the owner's own edits are kept), the README's status line and badge for 0.1.0, the changelog's 0.1.0 section (the Unreleased list, which holds everything since H0) | The owner reads them |
+| **H6.4 The release run** | Version 0.1.0 in EDGEhack and its server, then the release workflow with Make a release and Update Nexus Mods, started when the owner asks: the Marketplace, Open VSX, the GitHub release with the vsix and the Nexus zip, Nexus's first main file, and npm's first `@edgemodders/edgehack-mcp` | Each place checked after the run |
+| **H6.5 After it** | EDGEchat lists the server ([EDGEchat #4](https://github.com/Edgemodders/EDGEchat/issues/4), a nudge to its session); REDnode pins `@edgemodders/edgehack-mcp` 0.1.0 and ships it from its next release, so players' REDagent gets the tools; REDagent's next release with 0.4.3's briefing; the wiki's EDGEhack pages | Each repo's own release |
+
+**Decision points, with a recommendation each:**
+
+| Question | Recommended |
+|---|---|
+| Where the player guide lives | On the EDGEweb wiki (edgemodders.ai/wiki/edgehack/), as the other EDGE tools' user pages are, with the docs site keeping the design and the tests and linking to it |
+| Pictures | The smoke test's screenshots now (it already takes the Quickhacks view, the Desk and the Library); the owner swaps in their own where they want, as with Sound Tools' page |
+| The Nexus page's files | The Nexus zip only (the vsix inside, with install steps), as EDGEdeck's and EDGEwave's pages have; Mod Manager Download off, since it is a VS Code extension |
+| Version | 0.1.0, still marked preview on the Marketplace (`"preview": true`), since the phases are done but the tool is new |
+
 ## In-game add-on: the Netrunner bench (proposed)
 
 The owner's idea of 2026-11-10: quickhack crafting in the game, on the crafting screen's quickhack tab, whose middle panel is empty but for a placeholder picture. A REDnode app, released on its own, that reuses EDGEhack's parts. Not scheduled; its place in the order is to be agreed.
