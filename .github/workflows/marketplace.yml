@@ -1,0 +1,37 @@
+# Publishes a release's .vsix, exactly as released on GitHub, to the VS Code Marketplace only.
+# For a version that is released already (its tag exists, so release.yml refuses it) but that the
+# Marketplace refused at the time, such as 0.1.2 on 2026-11-12. Nothing is built: the .vsix comes
+# from the GitHub release v<version>. --skip-duplicate makes a second run harmless.
+name: Marketplace only
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The released version whose .vsix goes to the Marketplace (for example 0.1.2)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  marketplace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: npm ci
+      - name: The .vsix from the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          mkdir -p dist
+          gh release download "v${VERSION}" --pattern "edgehack-${VERSION}.vsix" --dir dist
+          echo "VSIX=${GITHUB_WORKSPACE}/dist/edgehack-${VERSION}.vsix" >> "$GITHUB_ENV"
+      - name: VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: node_modules/.bin/vsce publish --packagePath "${VSIX}" --skip-duplicate
