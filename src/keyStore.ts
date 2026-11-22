@@ -36,6 +36,29 @@ export interface KeyInfo {
 export const Service = "openai";
 export const Caller = "EDGEhack";
 
+/** What REDcode's keys.status answers (REDcode f6c7cbf and later): whether a key is set and whether a caller may read it. */
+export interface KeyStatus {
+  service: string;
+  set: boolean;
+  source?: string;
+  unreadable?: boolean;
+  access: "allowed" | "denied" | "unasked";
+}
+
+/**
+ * Why REDcode's Keys answered no key, in words for Generate, from its status; undefined when REDcode's password
+ * box should ask for one (no key set, or a REDcode without status).
+ */
+export function noKeyReason(s: KeyStatus | undefined): string | undefined {
+  if (!s) return undefined;
+  if (s.access === "denied")
+    return "You chose Don't Allow when REDcode asked whether EDGEhack may read your OpenAI key. To change that, run Forget Tool Permissions for Keys in REDcode's Keys view, then press Generate again.";
+  // A key is there but the question was closed unanswered: a password box would replace that key, so ask the question again instead.
+  if (s.set && !s.unreadable && s.access === "unasked")
+    return "REDcode's question about your OpenAI key was closed without an answer. Press Generate again and choose Allow.";
+  return undefined;
+}
+
 /** A REDbridge that answers JSON-RPC methods by name has no keys.* when it is older than 0.18.0. */
 const MethodNotFound = -32601;
 export const TooOld = "The key store needs REDbridge 0.18.0 or later. In VS Code: REDcode: Install REDbridge (or Update REDbridge).";

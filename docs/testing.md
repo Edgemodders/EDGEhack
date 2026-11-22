@@ -12,7 +12,7 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H5, K4d | 2026-11-22 | Pass, 187 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H5, K4d | 2026-11-22 | Pass, 188 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
@@ -67,6 +67,7 @@ Your everyday VS Code, with the released EDGEhack 0.1.2, keeps its own copy of t
 | 2 | **Asked.** Open a quickhack, **Generate...** on its Wheel icon | REDcode asks whether EDGEhack may read your OpenAI key. **Allow**: it draws. Generate again: no question. The Keys view lists EDGEhack as a reader |
 | 3 | **Changed.** In REDcode's Keys view, **Set Key** on OpenAI with a wrong key (one letter changed), then **Generate...** with no reload | OpenAI refuses the key, in words. Set the right key again, **Generate...**: it draws |
 | 4 | **Cleared.** **EDGEhack: Clear the OpenAI Key...** | It says the key is shared in REDcode's Keys, with **Open REDcode's Keys**. There, **Remove Key** on OpenAI |
+| 2b | Optional, **Don't Allow.** In REDcode's Keys view, **Forget Tool Permissions for Keys**; then **Generate...** and answer **Don't Allow** | Generate stops with "You chose Don't Allow… run Forget Tool Permissions for Keys in REDcode's Keys view", and no password box. Forget the permissions again, **Generate...**, **Allow**: it draws (REDcode f6c7cbf or later; an older one opens the password box) |
 | 5 | **Generate...** | REDcode's password box. Cancel it: nothing is drawn. **EDGEhack: Set the OpenAI Key...**, paste the key | "saved in REDcode's Keys, for every EDGE tool"; the Keys view shows OpenAI set; **Generate...** draws |
 
 EDGEhack's MCP server reads no key, so there is no MCP step. The smoke test covers a REDcode with no Keys (its stand-in has none): EDGEhack's own key, as in 0.1.2.
@@ -74,6 +75,7 @@ EDGEhack's MCP server reads no key, so there is no MCP step. The smoke test cove
 | Run | Result |
 |---|---|
 | 2026-11-22, by Claude | Type check, build, 187 unit tests (5 new: the key store's client against a stand-in REDbridge, copied from EDGEwave's) and the smoke test all pass; no PowerShell or decryption in `dist/extension.js` |
+| 2026-11-22, by Claude, with REDcode's `keys.status` | 188 unit tests (`noKeyReason`: a no, a dismissed question over a set key, no key, an unreadable key) and the smoke test pass (its first run timed out opening a quickhack, the rerun passed); no PowerShell or decryption in the bundle |
 | By hand | **Not run** |
 
 ## 0.1.1 The key in VS Code's secret storage

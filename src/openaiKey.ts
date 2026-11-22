@@ -10,7 +10,7 @@
 // The model comes from the key's own account, newest first, unless the edgehack.generate.model setting names one.
 import * as vscode from "vscode";
 import { listModels, OPENAI, Quality } from "./imageService";
-import { Caller, findBridge, KeysBridge, Service } from "./keyStore";
+import { Caller, findBridge, KeysBridge, noKeyReason, Service } from "./keyStore";
 import { keyStore, REDcodeId } from "./redcode";
 
 const SECRET = "edgehack.openai.key";
@@ -76,16 +76,22 @@ export async function openaiKey(ask = true): Promise<string | undefined> {
     return asking;
   }
   await moveToStore();
+  let k: string | undefined;
   try {
-    const k = (await keys.get(Service, Caller))?.trim();
-    if (k || !ask) return k || undefined;
+    k = (await keys.get(Service, Caller))?.trim();
   } catch (e) {
     // REDbridge not running (yet) or too old: a key EDGEhack still keeps itself, else the reason.
     const own = (await secrets?.get(SECRET))?.trim();
     if (own) return own;
     throw new Error(`EDGEhack reads the OpenAI key from REDcode's Keys, which cannot be reached: ${(e as Error).message}`);
   }
-  asking ??= keys.ask(Service, Caller).finally(() => (asking = undefined));
+  if (k || !ask) return k || undefined;
+  // No key, or the modder's no: a newer REDcode tells them apart (keys.status), so a no is not met with a password box.
+  if (typeof keys.status === "function") {
+    const why = noKeyReason(await keys.status(Service, Caller).catch(() => undefined));
+    if (why) throw new Error(why);
+  }
+  asking ??=keys.ask(Service, Caller).finally(() => (asking = undefined));
   return (await asking)?.trim() || undefined;
 }
 

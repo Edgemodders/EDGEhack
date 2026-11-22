@@ -6,7 +6,7 @@ import * as assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { findBridge, installedRedcodeDirs, KeysBridge, TooOld } from "../src/keyStore";
+import { findBridge, installedRedcodeDirs, KeysBridge, noKeyReason, TooOld } from "../src/keyStore";
 
 /** The stand-in: keys in memory, seeded from argv; "old" answers every keys.* as an unknown method. */
 const stub = `
@@ -118,4 +118,14 @@ test("findBridge: the setting (a file or its folder) first, else inside REDcode,
   assert.equal(findBridge({ redcodeDirs: [], pathEnv: [path.join(root, "none"), path.dirname(onPath)].join(path.delimiter) }), onPath);
   assert.notEqual(older, newer);
   assert.deepEqual(installedRedcodeDirs(path.join(root, "missing")), []);
+});
+
+test("noKeyReason: a no, an unanswered question and no key, from REDcode's keys.status", () => {
+  assert.equal(noKeyReason(undefined), undefined, "a REDcode without status: ask, as before");
+  assert.equal(noKeyReason({ service: "openai", set: false, access: "unasked" }), undefined, "no key set: REDcode's password box asks");
+  assert.equal(noKeyReason({ service: "openai", set: true, unreadable: true, access: "unasked" }), undefined, "an unreadable key: asking replaces it");
+  assert.match(noKeyReason({ service: "openai", set: true, access: "denied" }) ?? "", /Don't Allow.*Forget Tool Permissions for Keys/);
+  assert.match(noKeyReason({ service: "openai", set: false, access: "denied" }) ?? "", /Don't Allow/, "a no stays a no with no key set too");
+  assert.match(noKeyReason({ service: "openai", set: true, access: "unasked" }) ?? "", /closed without an answer/, "a key is there but the question was dismissed: no password box over it");
+  assert.equal(noKeyReason({ service: "openai", set: true, access: "allowed" }), undefined);
 });

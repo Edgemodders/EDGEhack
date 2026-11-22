@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import type { BridgeClient, ProjectRef } from "./types";
+import type { KeyStatus } from "./keyStore";
 
 export const REDcodeId = "edgemodders.redcode-cyberpunk";
 
@@ -33,6 +34,8 @@ export interface KeysApi {
   get(service: string, caller: string): Promise<string | undefined>;
   /** Asks for the key in a password box and saves it for every tool; undefined when the modder cancels. */
   ask(service: string, caller: string): Promise<string | undefined>;
+  /** Whether a key is set and whether `caller` may read it, asking nothing and never answering the key (REDcode f6c7cbf and later; missing before). */
+  status?(service: string, caller: string): Promise<KeyStatus>;
   /** A service's key was set, replaced or removed, here or by another tool. */
   readonly onDidChange: vscode.Event<string>;
 }
