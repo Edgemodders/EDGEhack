@@ -1,6 +1,6 @@
 {
   "name": "@edgemodders/edgehack-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "EDGEhack's MCP server for AI assistants: edit quickhacks, the in-game abilities of the video game Cyberpunk 2077, and write game mod files. A game modding tool, not a security or hacking tool.",
   "license": "MIT",
   "author": "Edgemodders",

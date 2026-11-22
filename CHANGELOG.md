@@ -11,9 +11,19 @@ How to keep it (the Edgemodders convention):
 
 ## Unreleased
 
+## 0.1.3 (2026-11-22)
+
+<!-- nexus
+Changed: Generate's OpenAI key lives in REDcode's Keys, the key store every EDGE tool shares
+Changed: A key kept in VS Code's secret storage moves to REDcode's Keys by itself, once
+Changed: After Don't Allow, Generate says how to undo it instead of asking for the key again
+Changed: Generate's errors show in the Generate box, just above Generate
+Needs: REDcode 0.10.16 or later and REDbridge 0.18.0 or later for the shared key store
+-->
+
 **Changed**
 
-- Generate's OpenAI key is in REDcode's **Keys**, the key store every EDGE tool shares ([#3](https://github.com/Edgemodders/EDGEhack/issues/3)). REDcode asks once whether EDGEhack may read it, and with no key set asks for it in its own password box, saved for every tool. A key EDGEhack kept in VS Code's secret storage moves there by itself, once. **Set the OpenAI Key** opens REDcode's box; **Clear the OpenAI Key** points to REDcode's Keys, where Remove Key is. With a REDcode older than the store, the key stays in VS Code's secret storage as before. `OPENAI_API_KEY` in the environment still wins. After **Don't Allow**, Generate says how to undo it (Forget Tool Permissions for Keys in REDcode's Keys) instead of opening the password box again, with a REDcode that has `keys.status`. Needs REDcode with Keys and REDbridge 0.18.0.
+- Generate's OpenAI key is in REDcode's **Keys**, the key store every EDGE tool shares ([#3](https://github.com/Edgemodders/EDGEhack/issues/3)). REDcode asks once whether EDGEhack may read it, and with no key set asks for it in its own password box, saved for every tool. A key EDGEhack kept in VS Code's secret storage moves there by itself, once. **Set the OpenAI Key** opens REDcode's box; **Clear the OpenAI Key** points to REDcode's Keys, where Remove Key is. With a REDcode older than the store, the key stays in VS Code's secret storage as before. `OPENAI_API_KEY` in the environment still wins. After **Don't Allow**, Generate says how to undo it (Forget Tool Permissions for Keys in REDcode's Keys) instead of opening the password box again, with a REDcode that has `keys.status`. Needs REDcode 0.10.16 and REDbridge 0.18.0.
 - Generate's errors, such as OpenAI refusing the key, show in the Generate box under what the icon shows, just above Generate, instead of at the top of the page.
 
 ## 0.1.2 (2026-11-11)
