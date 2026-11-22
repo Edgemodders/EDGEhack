@@ -19,7 +19,7 @@ Last updated 2026-11-11.
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
-| [Shared keys (#3)](#shared-keys-3) | By hand, F5 with REDcode main and REDbridge 0.18.0, an OpenAI key | K4d | 2026-11-22 | **Pass**, all 5 steps (owner) |
+| [Shared keys (#3)](#shared-keys-3) | By hand, F5 with REDcode main and REDbridge 0.18.0, an OpenAI key | K4d | 2026-11-22 | **Pass**, all 5 steps and 2b (owner) |
 | [0.1.1 The key in VS Code's secret storage](#011-the-key-in-vs-codes-secret-storage) | By hand, in VS Code | H6 | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.1.1) |
 | [H6.1 The last game check](#h61-the-last-game-check) | In the game, with REDagent | H6 | 2026-11-11 | Pass, all 5 steps (EDGEhack 0.0.31, REDnode 0.63.0, REDagent 0.4.3): one ask for one request's changes, and Try Live's note on a new quickhack |
 | [H5 Library](#h5-library) | By hand in VS Code, then in the game | H5 | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.31, dev PC). The first try at step 2 put the quickhack in the Library's top folder: the folder picker took the click that answered the Library's place question (fixed the same day) |
@@ -77,6 +77,7 @@ EDGEhack's MCP server reads no key, so there is no MCP step. The smoke test cove
 | 2026-11-22, by Claude | Type check, build, 187 unit tests (5 new: the key store's client against a stand-in REDbridge, copied from EDGEwave's) and the smoke test all pass; no PowerShell or decryption in `dist/extension.js` |
 | 2026-11-22, by Claude, with REDcode's `keys.status` | 188 unit tests (`noKeyReason`: a no, a dismissed question over a set key, no key, an unreadable key) and the smoke test pass (its first run timed out opening a quickhack, the rerun passed); no PowerShell or decryption in the bundle |
 | 2026-11-22, by the owner, dev PC, F5 with REDcode main (f6c7cbf) and REDbridge 0.18.0 | **Pass**: steps 1 to 5. Step 1's message showed once the F5 window was used (the owner's everyday window, with the released EDGEhack 0.1.2 and REDcode 0.10.15, has no store, so it showed none, as it should). Step 3's first run showed OpenAI's refusal at the top of the page, out of sight; the owner asked for it in the Generate box, built in a813493 (under the words, above Generate), and step 3 passed again with it |
+| 2026-11-22, by the owner, the same session | Step 2b (Don't Allow, with `keys.status`): **pass**. Generate stopped with the message in its box and no password box; after Forget Tool Permissions for Keys and Allow, it drew |
 
 ## 0.1.1 The key in VS Code's secret storage
 
