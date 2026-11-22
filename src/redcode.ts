@@ -23,6 +23,27 @@ export interface REDcodeApi {
   importFile(file: string, options?: { template?: string; texture?: Record<string, string | boolean> }): Promise<{ ok: boolean; written: string[]; texture?: unknown }>;
   /** Packs the project and gets it into the game as fast as it allows (REDcode: Pack and Play). */
   packAndPlay(): Promise<"rednode" | "hot" | "installed" | undefined>;
+  /** The shared key store (REDcode #33, REDcode 0.10.16 and later); undefined with an older REDcode. */
+  readonly keys?: KeysApi;
+}
+
+/** REDcode's shared key store, as REDcodeApi.keys gives it (EDGEhack #3; https://edgemodders.github.io/REDcode/api.html#keys). */
+export interface KeysApi {
+  /** The key, or undefined when none is set, it cannot be read, or the modder said no; asks the modder the first time a caller reads a service. Throws when REDbridge is not running or is too old. */
+  get(service: string, caller: string): Promise<string | undefined>;
+  /** Asks for the key in a password box and saves it for every tool; undefined when the modder cancels. */
+  ask(service: string, caller: string): Promise<string | undefined>;
+  /** A service's key was set, replaced or removed, here or by another tool. */
+  readonly onDidChange: vscode.Event<string>;
+}
+
+/** REDcode's shared key store, or undefined with an older REDcode or none. */
+export async function keyStore(): Promise<KeysApi | undefined> {
+  try {
+    return (await redcode()).keys;
+  } catch {
+    return undefined;
+  }
 }
 
 /** REDcode's API, activating REDcode if needed. Throws with a message for the user when it is missing or too old. */

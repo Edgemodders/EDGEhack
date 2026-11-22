@@ -15,15 +15,17 @@ import { projectFilesOf, scriptEntries } from "./projectDocs";
 import { writeScriptPackage } from "./scripts";
 import { removeTexts } from "./projectFiles";
 import { bridge, redcode } from "./redcode";
-import { clearOpenAIKey, initKeys, setOpenAIKey } from "./openaiKey";
+import { clearOpenAIKey, initKeys, setOpenAIKey, watchKeys } from "./openaiKey";
 import { connectAssistant, installServer, registerWithEditor } from "./mcp";
 import * as path from "node:path";
 
 /** An empty tree, so a view shows its welcome text until its phase fills it. */
 
 export function activate(context: vscode.ExtensionContext): void {
-  initKeys(context);
   const log = vscode.window.createOutputChannel("EDGEhack");
+  initKeys(context, (line) => log.appendLine(line));
+  // The OpenAI key in REDcode's Keys (EDGEhack #3): its changes heard, and EDGEhack's own copy moved there once.
+  void watchKeys().then((d) => context.subscriptions.push(...d), (e: unknown) => log.appendLine(`OpenAI: key changes not watched: ${e instanceof Error ? e.message : String(e)}`));
   const hub = new Hub(context.extensionUri, context.globalStorageUri, log);
   const quickhacks = new QuickhacksView(hub);
   const view = vscode.window.createTreeView("edgehack.quickhacks", { treeDataProvider: quickhacks, showCollapseAll: true });
@@ -226,9 +228,8 @@ export function activate(context: vscode.ExtensionContext): void {
       const record = QuickhacksView.recordOf(node as never);
       if (record) void vscode.commands.executeCommand("redcode.openTweakRecord", record);
     }),
-    vscode.commands.registerCommand("edgehack.setOpenAIKey", async () => {
-      if (await setOpenAIKey()) void vscode.window.showInformationMessage("EDGEhack: the OpenAI API key is saved in VS Code's secret storage.");
-    }),
+    // setOpenAIKey says where the key was saved: REDcode's Keys, or VS Code's secret storage with an older REDcode.
+    vscode.commands.registerCommand("edgehack.setOpenAIKey", () => setOpenAIKey()),
     vscode.commands.registerCommand("edgehack.clearOpenAIKey", () => clearOpenAIKey()),
   );
 }

@@ -12,13 +12,14 @@ Last updated 2026-11-11.
 
 | Test | Kind | Phase | Last run | Result |
 |---|---|---|---|---|
-| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H5 | 2026-11-11 | Pass, 184 tests |
+| [Type check, build and unit tests](#type-check-build-and-unit-tests) | Automated, also on GitHub (Check) | H0 to H5, K4d | 2026-11-22 | Pass, 187 tests |
 | Quickhack names against game 2.5 | By script, read only | H0 | 2026-11-04 | All 92 quickhack items read: 18 families a player sees and the Cyberdeck item; 7 internal items with other names left out, as they should be |
 | [H1 outside VS Code](#h1-outside-vs-code) | By script, read only, the real REDbridge on game 2.5 | H1 | 2026-11-04 | Pass: 18 families with every tier, 63 device and 4 vehicle hacks, 36 icons, no problems |
 | [H1 Read](#h1-read) | By hand, installed .vsix | H1 | 2026-11-04 | Pass, all 18 steps (EDGEhack 0.0.3) |
 | [H2c Edit](#h2c-edit) | By hand, then in the game | H2 | 2026-11-05 | Pass, Parts A and B (EDGEhack 0.0.4). The Hacking tab's upload and duration differ from the inventory's: the game's own doing |
 | [H3.1 and H3c.1 Spikes](#h31-and-h3c1-spikes) | By hand, in the game | H3, H3c | 2026-11-05 | Pass, on game 2.5: a new quickhack beside Overheat, and both functions. A status effect from a function and spread were not run |
 | [H3.3 New](#h33-new) | By hand, then in the game | H3 | 2026-11-06 | Pass |
+| [Shared keys (#3)](#shared-keys-3) | By hand, F5 with REDcode main and REDbridge 0.18.0, an OpenAI key | K4d | 2026-11-22 | Not run |
 | [0.1.1 The key in VS Code's secret storage](#011-the-key-in-vs-codes-secret-storage) | By hand, in VS Code | H6 | 2026-11-11 | Pass, all 4 steps (EDGEhack 0.1.1) |
 | [H6.1 The last game check](#h61-the-last-game-check) | In the game, with REDagent | H6 | 2026-11-11 | Pass, all 5 steps (EDGEhack 0.0.31, REDnode 0.63.0, REDagent 0.4.3): one ask for one request's changes, and Try Live's note on a new quickhack |
 | [H5 Library](#h5-library) | By hand in VS Code, then in the game | H5 | 2026-11-11 | Pass, all 10 steps (EDGEhack 0.0.31, dev PC). The first try at step 2 put the quickhack in the Library's top folder: the folder picker took the click that answered the Library's place question (fixed the same day) |
@@ -50,7 +51,30 @@ Last updated 2026-11-11.
 
 ## Waiting for a hand test
 
-Nothing.
+[Shared keys (#3)](#shared-keys-3).
+
+## Shared keys (#3)
+
+Built 2026-11-22 for [#3](https://github.com/Edgemodders/EDGEhack/issues/3) (K4d), on EDGEwave's model ([EDGEwave #12](https://github.com/Edgemodders/EDGEwave/issues/12), the store's pilot): Generate's OpenAI key from REDcode's Keys, the store every EDGE tool shares. Its release is held until every K4d tool passes, then all go out with REDcode (the owner's rule of 2026-11-19).
+
+Needs REDcode main with Keys (pull and `npm run build` in `REDcode/extensions/redcode`), REDbridge 0.18.0 (**REDcode: Update REDbridge**), and F5 > **Run EDGEhack with REDcode main**. Remove `OPENAI_API_KEY` from Windows' environment first, or it wins over the store. Every step uses the real store, `%APPDATA%\Edgemodders\keys`, which REDnode's in-game Keys view and EDGEmat share: if the store already has an OpenAI key (EDGEmat's or EDGEfab's), step 1 says so and keeps it.
+
+Your everyday VS Code, with the released EDGEhack 0.1.2, keeps its own copy of the key until step 1 moves it; it then asks for the key once more there. That lasts only until both releases have the store.
+
+| Step | Do | Expect |
+|---|---|---|
+| 1 | **Moved.** With the key EDGEhack 0.1.2 saved, start the F5 window | Once: "your OpenAI key is now in REDcode's Keys…" (or "REDcode's Keys already has an OpenAI key (ending …)"), with **Open REDcode's Keys**. The Keys view shows OpenAI set. Reload the window: no message |
+| 2 | **Asked.** Open a quickhack, **Generate...** on its Wheel icon | REDcode asks whether EDGEhack may read your OpenAI key. **Allow**: it draws. Generate again: no question. The Keys view lists EDGEhack as a reader |
+| 3 | **Changed.** In REDcode's Keys view, **Set Key** on OpenAI with a wrong key (one letter changed), then **Generate...** with no reload | OpenAI refuses the key, in words. Set the right key again, **Generate...**: it draws |
+| 4 | **Cleared.** **EDGEhack: Clear the OpenAI Key...** | It says the key is shared in REDcode's Keys, with **Open REDcode's Keys**. There, **Remove Key** on OpenAI |
+| 5 | **Generate...** | REDcode's password box. Cancel it: nothing is drawn. **EDGEhack: Set the OpenAI Key...**, paste the key | "saved in REDcode's Keys, for every EDGE tool"; the Keys view shows OpenAI set; **Generate...** draws |
+
+EDGEhack's MCP server reads no key, so there is no MCP step. The smoke test covers a REDcode with no Keys (its stand-in has none): EDGEhack's own key, as in 0.1.2.
+
+| Run | Result |
+|---|---|
+| 2026-11-22, by Claude | Type check, build, 187 unit tests (5 new: the key store's client against a stand-in REDbridge, copied from EDGEwave's) and the smoke test all pass; no PowerShell or decryption in `dist/extension.js` |
+| By hand | **Not run** |
 
 ## 0.1.1 The key in VS Code's secret storage
 

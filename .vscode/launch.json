@@ -8,6 +8,19 @@
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
       "preLaunchTask": "build edgehack"
+    },
+    {
+      // REDcode's main branch beside EDGEhack, until a REDcode release has the key store (EDGEhack #3).
+      // Build REDcode first: npm run build in ../REDcode/extensions/redcode.
+      "name": "Run EDGEhack with REDcode main",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionDevelopmentPath=${workspaceFolder}/../REDcode/extensions/redcode"
+      ],
+      "outFiles": ["${workspaceFolder}/dist/**/*.js", "${workspaceFolder}/../REDcode/extensions/redcode/dist/**/*.js"],
+      "preLaunchTask": "build edgehack"
     }
   ]
 }
