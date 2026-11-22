@@ -133,6 +133,8 @@ main.edit select { background: var(--vscode-dropdown-background); color: var(--v
 .generate { margin-top: 10px; border: 1px solid var(--line); padding: 8px 10px; }
 .generate .generate-title { margin: 0 0 6px; color: var(--cyan); }
 .generate label.words { display: block; color: var(--dim); }
+/* Generate's own errors, under the words and above its button, where the modder is looking */
+.generate .generate-error { margin: 6px 0 0; color: var(--vscode-errorForeground); white-space: pre-line; }
 .generate label.words input { display: block; width: 100%; margin-top: 3px; }
 button.primary { background: var(--vscode-button-background); color: var(--vscode-button-foreground); border-color: transparent; }
 button.primary:hover { background: var(--vscode-button-hoverBackground); }

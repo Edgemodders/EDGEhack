@@ -145,6 +145,7 @@
         ? "Three paid images on your OpenAI account. Nothing goes into the mod until you Keep one and save."
         : "One paid image on your OpenAI account. Nothing goes into the mod until you Keep it and save.";
     generateBox.hidden = false;
+    generateError("");
     showPrompt();
     q("[data-generate-words]").focus();
   }
@@ -155,7 +156,16 @@
     for (const b of all("[data-generate-again]")) b.disabled = on;
   }
 
+  /** Generate's error, under the words and above its button; empty hides it. */
+  function generateError(text) {
+    const e = q("[data-generate-error]");
+    if (!e) return;
+    e.textContent = text || "";
+    e.hidden = !text;
+  }
+
   function startGenerate(which, fromItem) {
+    generateError("");
     const words = q("[data-generate-words]").value;
     if (!words.trim()) {
       q("[data-generate-words]").focus();
@@ -568,8 +578,15 @@
       busy(false);
       if (m.generateDone.error) {
         const s = q("[data-status]");
-        s.textContent = m.generateDone.error;
-        s.classList.add("bad");
+        if (generateBox && !generateBox.hidden) {
+          // In the Generate box, where the modder is looking; the top line's "Generating…" goes.
+          generateError(m.generateDone.error);
+          s.textContent = "";
+          s.classList.remove("bad");
+        } else {
+          s.textContent = m.generateDone.error;
+          s.classList.add("bad");
+        }
       }
     }
     if (typeof m.status === "string") {

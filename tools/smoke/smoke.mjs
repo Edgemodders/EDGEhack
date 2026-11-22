@@ -352,10 +352,18 @@ check(!fs.existsSync(atlasFile), "with no own icons, a save removes the atlas");
 
 // Generate (H3b.3): Generate All against the stand-in OpenAI, the Item first, then the Wheel and Status
 // as edits of it; Keep writes a fitted picture as Upload does, and nothing is kept before Keep.
+// First its own error line (EDGEhack #3's test): Generate with no words says so under the words, not at the top.
+await run(editor, `document.querySelector('[data-icon-generate="all"]').click(); document.querySelector("[data-generate-go]").click();`);
+let genError = "";
+for (let i = 0; i < 20 && !genError; i++) {
+  await sleep(250);
+  genError = await run(editor, `const e = document.querySelector("[data-generate-error]"); return e && !e.hidden ? e.textContent : "";`);
+}
+check(/Say what the icon shows/.test(genError), `a Generate error shows in the Generate box, above its button: ${genError}`);
+check(!/Say what the icon shows/.test(await run(editor, `return document.querySelector("[data-status]").textContent;`)), "and not in the page's top line");
 await run(
   editor,
-  `document.querySelector('[data-icon-generate="all"]').click();
-   const w = document.querySelector("[data-generate-words]"); w.value = "a skull made of static"; w.dispatchEvent(new Event("input"));`,
+  `const w = document.querySelector("[data-generate-words]"); w.value = "a skull made of static"; w.dispatchEvent(new Event("input"));`,
 );
 const shownPrompt = await run(editor, `return document.querySelector("[data-generate-prompt]").textContent;`);
 check(/a skull made of static/.test(shownPrompt) && /Item:/.test(shownPrompt) && /Wheel:/.test(shownPrompt) && /Status:/.test(shownPrompt), "Show the Prompt holds the three prompts with the words");
@@ -364,6 +372,7 @@ check(/Three paid images/.test(await run(editor, `return document.querySelector(
 const wheelTime = () => (fs.existsSync(ownWheel) ? fs.statSync(ownWheel).mtimeMs : 0);
 const wheelBefore = wheelTime();
 await run(editor, `document.querySelector("[data-generate-go]").click();`);
+check(await run(editor, `return document.querySelector("[data-generate-error]").hidden;`), "Generate again clears its error line");
 let results = 0;
 for (let i = 0; i < 60 && results < 3; i++) {
   await sleep(250);

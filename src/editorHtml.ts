@@ -85,6 +85,7 @@ function generatePanel(frame?: string): string {
   return `<div class="generate" data-generate data-looks="${esc(JSON.stringify(looks))}"${frame ? ` data-frame="${esc(frame)}"` : ""} hidden>
 <p class="generate-title" data-generate-title></p>
 <label class="words">What the icon shows <input type="text" maxlength="300" data-generate-words placeholder="a skull made of static"></label>
+<p class="generate-error" data-generate-error role="alert" hidden></p>
 <p><button class="primary" data-generate-go>Generate</button> <button data-generate-cancel hidden>Cancel</button> <button data-generate-close>Close</button></p>
 <p class="foot" data-generate-cost></p>
 <details data-generate-prompt-box><summary>Show the Prompt</summary><pre class="prompt" data-generate-prompt></pre></details>
