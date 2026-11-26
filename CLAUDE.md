@@ -18,6 +18,7 @@ It is one of the Edgemodders repos, checked out side by side in `E:\Modding\Cybe
 
 The same as REDnode's:
 
+- **Writing files on this PC:** follow the section of that name in REDnode's `CLAUDE.md` (Windows, Git Bash, PowerShell 5.1): Write and Edit for file content, never a heredoc, `node -e`, `python -c` or `sed`; read the diff after a scripted change; files are LF (`.gitattributes`).
 - **Commits:** commit straight to `main` and push, in small logical commits. Agree the plan in chat first. Use a PR only for large or risky changes, and ask before opening one. End commit messages with the attribution line the session's instructions give.
 - **Git identity:** set per repo to `CyberbuildsAI` with the GitHub no-reply email (docs/dev-setup.md). The global identity on the dev PC is another one: never change it.
 - **Versions:** one version, in `package.json`. Raise it with each hand test build, and refer to it as "EDGEhack <version>".
